@@ -8,6 +8,9 @@ En el SQL Editor del proyecto Supabase, con el rol de administración `postgres`
 
 1. [001_commercial_schema.sql](migrations/001_commercial_schema.sql)
 2. [002_express_access.sql](migrations/002_express_access.sql)
+3. [003_inventory_access.sql](migrations/003_inventory_access.sql)
+
+Si las versiones 001 y 002 ya están aplicadas, ejecuta únicamente 003. Esta versión habilita el mantenimiento de productos y la lectura del historial para Express, conserva los registros existentes y agrega un identificador único para reintentos de ajustes. También incorpora las cinco categorías que usaba la pantalla original cuando faltan en el catálogo.
 
 Cada migración es transaccional. Registra qué archivos aplicaste y ejecuta cada versión una vez por base. Crean objetos en el esquema propio y mantienen los datos que ya existan. Si el esquema o el rol ya existe en ese proyecto, revisa su origen antes de aplicar los archivos. El [script MySQL de origen](comercial_nazareth.sql) se conserva como antecedente y contiene instrucciones destructivas de inicialización. Las migraciones PostgreSQL no lo ejecutan ni importan sus datos.
 
@@ -68,4 +71,4 @@ Guarda la clave secreta y la contraseña de base únicamente en el entorno del s
 - Entra con cada perfil desde el formulario existente. Comprueba que `GET /api/auth/me` devuelva el perfil y que un cliente autenticado reciba 403 al consultar `GET /api/dashboard` o `GET /api/users`.
 - Desactiva la cuenta cliente desde la pantalla de Configuración. Su sesión previa debe recibir 403 en una operación protegida y un nuevo inicio tampoco debe conceder acceso. Verifica que la cuenta administrativa protegida no pueda desactivarse ni cambiar a cliente.
 - Cierra sesión con cada cuenta. Tras el cierre, `/api/auth/me` debe exigir autenticación. Para comprobar revocación en una prueba controlada, el JWT de la sesión cerrada también debe recibir 401 aunque conserve su vigencia criptográfica. Mantén esos tokens fuera de la evidencia.
-- El flujo de CU-006 utilizará las tablas de productos y movimientos. Su operación de ajuste y las pruebas PRU-016 a PRU-019 se implementan en la etapa siguiente.
+- Con 003 aplicada, abre Inventario desde una cuenta administrativa. Registra un producto, actualiza su precio y realiza un ajuste con motivo. Comprueba el saldo y los movimientos desde Historial. Los detalles de la implementación y las pruebas están en [verificacion-cu006.md](../docs/verificacion-cu006.md).

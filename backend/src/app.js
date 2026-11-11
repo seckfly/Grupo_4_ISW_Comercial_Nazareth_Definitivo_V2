@@ -9,6 +9,7 @@ import productRoutes from './routes/productRoutes.js'
 import promotionRoutes from './routes/promotionRoutes.js'
 import saleRoutes from './routes/saleRoutes.js'
 import userRoutes from './routes/userRoutes.js'
+import { createInventoryRouter } from './routes/inventoryRoutes.js'
 
 export const app = express()
 
@@ -22,6 +23,7 @@ app.use('/api/users', userRoutes)
 app.use('/api/products', productRoutes)
 app.use('/api/sales', saleRoutes)
 app.use('/api/promotions', promotionRoutes)
+app.use('/api/inventory', createInventoryRouter({ db: pool, authenticate: auth }))
 
 app.get('/api/dashboard', auth, requireRole('admin'), async (_req, res, next) => {
   try {
