@@ -229,6 +229,20 @@ test('PRU-010: campañas CRUD persistidas y mismo precio promocional en catálog
   assert.equal((await request('/api/promotions',{method:'POST',role:'client-fixture',body:input})).status,403)
 })
 
+test('La migración de campañas se puede reaplicar y restringe las solicitudes a Express', async () => {
+  const migration = await readFile(new URL('../../database/migrations/008_promotion_creation_requests.sql', import.meta.url), 'utf8')
+  await postgres.admin.query(migration)
+  const { rows: [permissions] } = await postgres.admin.query(`SELECT relrowsecurity AS rls,
+    has_table_privilege('nazareth_app', oid, 'SELECT') AS backend_read,
+    has_table_privilege('nazareth_app', oid, 'INSERT') AS backend_insert,
+    has_table_privilege('nazareth_app', oid, 'UPDATE,DELETE') AS backend_modify,
+    has_table_privilege('anon', oid, 'SELECT,INSERT') AS anon_access,
+    has_table_privilege('authenticated', oid, 'SELECT,INSERT') AS authenticated_access
+    FROM pg_class WHERE oid = 'nazareth.promotion_creation_requests'::regclass`)
+  assert.deepEqual(permissions, { rls: true, backend_read: true, backend_insert: true,
+    backend_modify: false, anon_access: false, authenticated_access: false })
+})
+
 test('Una respuesta perdida después de guardar una campaña se recupera sin duplicados', async () => {
   const p = await product({ price: 10.4 })
   const body = { productId: p.id, discountType: 'fixed', discountValue: 2, status: 'active',
