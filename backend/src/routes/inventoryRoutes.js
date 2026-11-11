@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { requireRole } from '../middleware/role.js'
-import { listInventory, createProduct, updateProduct, productHistory, adjustInventory } from '../services/inventoryService.js'
+import { listInventory, createProduct, updateProduct, productHistory, adjustInventory, setProductArchived, deleteProduct } from '../services/inventoryService.js'
 
 export function createInventoryRouter({ db, authenticate }) {
   const router = Router()
@@ -15,6 +15,12 @@ export function createInventoryRouter({ db, authenticate }) {
   })
   router.put('/products/:id', async (req, res, next) => {
     try { res.json(await updateProduct(db, req.params.id, req.body)) } catch (error) { next(error) }
+  })
+  router.patch('/products/:id/archive', async (req, res, next) => {
+    try { res.json(await setProductArchived(db, req.params.id, req.body?.archived)) } catch (error) { next(error) }
+  })
+  router.delete('/products/:id', async (req, res, next) => {
+    try { res.json(await deleteProduct(db, req.params.id, req.body?.confirmation)) } catch (error) { next(error) }
   })
   router.get('/products/:id/history', async (req, res, next) => {
     try { res.json(await productHistory(db, req.params.id)) } catch (error) { next(error) }

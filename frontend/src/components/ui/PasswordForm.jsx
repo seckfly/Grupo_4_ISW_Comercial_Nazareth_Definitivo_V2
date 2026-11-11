@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import PasswordVisibilityControl from './PasswordVisibilityControl'
 import { createClient } from '@supabase/supabase-js'
 import { supabase } from '../../services/supabase'
 import { changeOwnPassword } from '../../services/password'
@@ -30,14 +30,10 @@ export default function PasswordForm() {
       const shown = Boolean(visible[field.name])
       return <div className="own-password-field" key={field.name}>
         <label htmlFor={id}>{label}</label>
-        <div className="own-password-control">
+        <PasswordVisibilityControl id={id} shown={shown} subject={subject} disabled={busy}
+          onToggle={() => setVisible(current => ({ ...current, [field.name]: !current[field.name] }))}>
           <input {...field} id={id} type={shown ? 'text' : 'password'} required disabled={busy}/>
-          <button type="button" disabled={busy} aria-controls={id}
-            aria-label={(shown ? 'Ocultar ' : 'Mostrar ') + subject}
-            onClick={() => setVisible(current => ({ ...current, [field.name]: !current[field.name] }))}>
-            {shown ? <EyeOff aria-hidden="true"/> : <Eye aria-hidden="true"/>}
-          </button>
-        </div>
+        </PasswordVisibilityControl>
       </div>
     })}
     {error&&<p className="form-error" role="alert">{error}</p>}{notice&&<p className="form-success" role="status">{notice}</p>}

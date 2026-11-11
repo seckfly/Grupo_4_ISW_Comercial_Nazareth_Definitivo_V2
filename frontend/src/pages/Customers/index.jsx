@@ -15,7 +15,7 @@ function CustomerProfile({ customer, initials }) {
     <section className="customer-profile-section">
       <h4>Contacto</h4>
       <dl className="customer-contact">
-        <div><dt>Correo electrónico</dt><dd>{customer.email}</dd></div>
+        <div><dt>Correo electrónico</dt><dd>{customer.email || 'Sin correo registrado'}</dd></div>
         <div><dt>Teléfono</dt><dd>{customer.phone || 'Sin teléfono registrado'}</dd></div>
       </dl>
     </section>
@@ -68,7 +68,7 @@ export default function Customers() {
     <div className="customer-layout"><Card className="customer-directory">
       <label className="search"><Search/><input aria-label="Buscar cliente" placeholder="Buscar cliente" value={query} onChange={event => setQuery(event.target.value)}/></label>
       {rows.map(customer => <button key={customer.id} className={selected?.id === customer.id ? 'active' : ''} onClick={() => setSelected(customer)}>
-        <span className="big-avatar">{initials(customer.name)}</span><div><strong>{customer.name}</strong><small>{customer.email}</small></div><ChevronRight/>
+        <span className="big-avatar">{initials(customer.name)}</span><div><strong>{customer.name}</strong><small>{customer.email || 'Sin correo registrado'}</small></div><ChevronRight/>
       </button>)}
       {!rows.length && <p>No hay coincidencias con la búsqueda.</p>}
     </Card><Card className="customer-profile">

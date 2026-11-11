@@ -137,7 +137,7 @@ export async function findSaleCustomers(db, query, { allowEmpty = false } = {}) 
   const term = typeof query === 'string' ? query.trim() : ''
   if (!term && !allowEmpty) return []
   const { rows } = await db.query(`SELECT c.id, p.name, c.phone, p.email FROM nazareth.customers c
-    JOIN nazareth.account_directory p ON p.id = c.user_id WHERE p.role = 'client'
+    JOIN nazareth.account_directory p ON p.id = c.user_id WHERE p.role = 'client' AND p.access_removed_at IS NULL
     AND (strpos(lower(p.name), lower($1)) > 0 OR strpos(lower(COALESCE(c.phone, '')), lower($1)) > 0
       OR strpos(lower(p.email), lower($1)) > 0) ORDER BY p.name, c.id`, [term])
   return rows
@@ -173,7 +173,7 @@ export async function createSale(pool, payload) {
     }
     if (data.customerId !== null) {
       const { rows } = await connection.query(`SELECT c.id FROM nazareth.customers c
-        JOIN nazareth.account_directory p ON p.id = c.user_id WHERE c.id = $1 AND p.role = 'client'`, [data.customerId])
+        JOIN nazareth.account_directory p ON p.id = c.user_id WHERE c.id = $1 AND p.role = 'client' AND p.access_removed_at IS NULL`, [data.customerId])
       if (!rows.length) throw inputError('Selecciona un cliente registrado')
     }
     const cash = data.cash === null ? null : decimalText(data.cash)

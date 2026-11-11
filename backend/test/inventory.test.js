@@ -22,7 +22,7 @@ async function inventoryFixture(t, { legacyProduct = false } = {}) {
     INSERT INTO public.preexisting_data VALUES (42);
   `)
   let legacySnapshot
-  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql']) {
+  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '009_archive_and_remove_access.sql']) {
     await database.exec(await readFile(new URL('../../database/migrations/' + file, import.meta.url), 'utf8'))
     if (file === '002_express_access.sql' && legacyProduct) {
       await database.exec(`
@@ -33,7 +33,7 @@ async function inventoryFixture(t, { legacyProduct = false } = {}) {
         VALUES (100, 'adjustment', -1, 'Motivo anterior', 10, 9);
       `)
       legacySnapshot = {
-        product: (await database.query('SELECT * FROM nazareth.products WHERE id = 100')).rows[0],
+        product: (await database.query('SELECT id, category_id, name, unit, cost_price, sale_price, current_stock, min_stock_threshold, image_url, is_active, created_at FROM nazareth.products WHERE id = 100')).rows[0],
         movement: (await database.query('SELECT * FROM nazareth.inventory_movements WHERE product_id = 100')).rows[0],
       }
     }
@@ -238,7 +238,7 @@ test('migración 003 conserva los datos previos y permite movimientos de venta s
   await fixture.database.exec('RESET ROLE')
   const existing = await fixture.database.query('SELECT id FROM public.preexisting_data')
   assert.deepEqual(existing.rows, [{ id: 42 }])
-  const legacyProduct = (await fixture.database.query('SELECT * FROM nazareth.products WHERE id = 100')).rows[0]
+  const legacyProduct = (await fixture.database.query('SELECT id, category_id, name, unit, cost_price, sale_price, current_stock, min_stock_threshold, image_url, is_active, created_at FROM nazareth.products WHERE id = 100')).rows[0]
   const { adjustment_request_id, ...legacyMovement } = (await fixture.database.query('SELECT * FROM nazareth.inventory_movements WHERE product_id = 100')).rows[0]
   assert.equal(adjustment_request_id, null)
   assert.deepEqual(legacyProduct, fixture.legacySnapshot.product)

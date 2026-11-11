@@ -1,7 +1,7 @@
 import { pool } from '../config/db.js'
 import { supabaseAdmin } from '../config/supabase.js'
 import { User } from '../models/User.js'
-import { canChangeAccess, validateUserPayload } from '../services/userService.js'
+import { canChangeAccess, validateUserPayload, removeClientAccess } from '../services/userService.js'
 
 function publicProfile({ auth_user_id, ...profile }) {
   return profile
@@ -81,6 +81,7 @@ export async function updateUser(req, res, next) {
     await User.lock(connection, id)
     const target = await User.findById(connection, id)
     if (!target) throw operationError(404, 'Usuario no encontrado')
+    if (target.removalPending) throw operationError(409, 'Este acceso está pendiente de eliminación')
     const updates = { name: name?.trim() ?? target.name, role: role ?? target.role, isActive: isActive ?? target.isActive }
     if (!canChangeAccess(target, updates)) throw operationError(409, 'La cuenta administrativa protegida debe conservar su acceso')
 
@@ -103,4 +104,13 @@ export async function updateUser(req, res, next) {
   } finally {
     connection?.release()
   }
+}
+
+export async function deleteUser(req, res, next) {
+  try {
+    const auth = adminAuth()
+    const result = await removeClientAccess(pool, req.user.id, req.params.id, req.body?.confirmation,
+      id => auth.deleteUser(id))
+    res.status(result.removed ? 200 : 202).json(result)
+  } catch (error) { next(error) }
 }

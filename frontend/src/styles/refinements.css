@@ -101,13 +101,13 @@
 
 /* Las acciones conservan dos posiciones incluso en cuentas protegidas. */
 .settings-main { min-width: 0; }
-.access-card .credential-list article { grid-template-columns: 46px minmax(0, 1fr) 95px 112px 77px; gap: 12px; }
+.access-card .credential-list article { grid-template-columns: 46px minmax(0, 1fr) 95px 112px 118px; gap: 12px; }
 .access-card .credential-list article.is-inactive { opacity: 1; }
 .credential-identity { min-width: 0; }
 .credential-identity strong, .credential-identity small { overflow-wrap: anywhere; }
 .access-card .credential-status { grid-column: auto; justify-content: flex-start; }
 .credential-status .status-dot, .credential-role .role-badge { font-size: 12px; }
-.access-card .credential-actions { display: grid; grid-template-columns: repeat(2, 36px); gap: 5px; grid-column: auto; grid-row: auto; }
+.access-card .credential-actions { display: grid; grid-template-columns: repeat(3, 36px); gap: 5px; grid-column: auto; grid-row: auto; }
 
 /* Leyendas y productos conservan los colores de sus paneles. */
 .sales-benchmarks { flex-wrap: wrap; gap: 12px 20px; }
@@ -133,7 +133,7 @@
   .settings-page .settings-layout { grid-template-columns: 1fr; }
   .settings-page .settings-nav { flex-direction: row; overflow: auto; }
   .settings-page .settings-nav button { white-space: nowrap; }
-  .access-card .credential-list article { grid-template-columns: 38px minmax(0, 1fr) 90px 106px 77px; gap: 8px; }
+  .access-card .credential-list article { grid-template-columns: 38px minmax(0, 1fr) 90px 106px 118px; gap: 8px; }
   .access-card .credential-avatar { width: 36px; height: 36px; }
   .sale-drawer .pos-grid { grid-template-columns: minmax(0, 1fr) minmax(420px, 1fr); }
   .sale-drawer .pos-progress em { width: 8px; }
@@ -166,7 +166,7 @@
   .inventory-filters .view-toggle { justify-self: end; }
   .inventory-filters .chips { overflow: visible; }
   .inventory-filters .chips button { padding: 8px 10px; }
-  .access-card .credential-list article { grid-template-columns: 36px minmax(0, 1fr) 77px; gap: 10px; }
+  .access-card .credential-list article { grid-template-columns: 36px minmax(0, 1fr) 118px; gap: 10px; }
   .credential-identity { grid-column: 2; }
   .access-card .credential-status { grid-column: 2; grid-row: 2; }
   .credential-role { grid-column: 2; grid-row: 3; }
@@ -517,3 +517,16 @@
 }
 .own-password-control button:hover:not(:disabled) { background: #e4ebe4; }
 .own-password-control button svg { width: 19px; height: 19px; }
+
+.shopping-list-panel > footer .shopping-list-total { align-items: baseline; gap: 8px 16px; flex-wrap: wrap; }
+.shopping-list-panel > footer .shopping-list-total span { color: #e4ebe4; font-size: .95rem; font-weight: 600; }
+.credential-form .own-password-control input { width: 100%; padding-inline-end: 56px; }
+.credential-row-feedback { grid-column: 2 / -1; }
+.credential-list-notice { color: var(--forest); }
+.inventory-record-tabs { display: inline-flex; margin-bottom: 12px; }
+.inventory-actions { flex-wrap: wrap; }
+.inventory-actions .secondary { display: inline-flex; align-items: center; gap: 6px; }
+.inventory-actions .secondary svg { width: 16px; height: 16px; }
+.confirmation-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.confirmation-actions .confirmation-danger { color: #912e24; border-color: #dcb7b2; }
+.confirmation-actions .confirmation-danger:disabled { opacity: .5; }

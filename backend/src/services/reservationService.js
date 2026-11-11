@@ -48,6 +48,8 @@ export async function requestReservation(pool,userId,input,generateCode=()=> 'NZ
   return transaction(pool,async db=>{
     // Serializes idempotency without changing stock or availability.
     await db.query('SELECT pg_advisory_xact_lock(hashtext($1))',[input.requestId])
+    const { rows: [profile] } = await db.query('SELECT is_active FROM nazareth.profiles WHERE id = $1', [userId])
+    if (!profile?.is_active) throw inputError('La cuenta no tiene acceso activo', 403)
     const customer=await customerForUser(db,userId)
     const {rows:[previous]}=await db.query('SELECT * FROM nazareth.reservations WHERE request_id=$1',[input.requestId])
     if(previous) {if(previous.request_fingerprint!==hash)throw inputError('La solicitud ya se utilizó con otros datos',409);return previous}
@@ -60,7 +62,7 @@ export async function requestReservation(pool,userId,input,generateCode=()=> 'NZ
     const total = await writeItems(db, saved.id, items, expectedPrices)
     if (expectedTotal !== null && expectedTotal !== total) throw priceChanged()
     return (await db.query('SELECT * FROM nazareth.reservations WHERE id=$1',[saved.id])).rows[0]
-  })
+  }, true)
 }
 export async function changeReservation(pool,user,id,input) {
   id=positiveId(id)

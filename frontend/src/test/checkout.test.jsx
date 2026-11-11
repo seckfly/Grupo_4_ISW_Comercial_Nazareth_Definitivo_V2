@@ -20,9 +20,9 @@ import { api } from '../services/api'
 vi.mock('../services/api', () => ({ api: {
   products: vi.fn(), quoteSale: vi.fn(), createSale: vi.fn(), saleCustomers: vi.fn(),
   sales: vi.fn(), productHistory: vi.fn(), updateProduct: vi.fn(), createProduct: vi.fn(),
-  adjustInventory: vi.fn(),
+  adjustInventory: vi.fn(), deleteProduct: vi.fn(), archiveProduct: vi.fn(),
   promotions: vi.fn(), createPromotion: vi.fn(), customers: vi.fn(),
-  dashboard: vi.fn(), users: vi.fn(), createUser: vi.fn(),
+  dashboard: vi.fn(), users: vi.fn(), createUser: vi.fn(), updateUser: vi.fn(), deleteUser: vi.fn(),
   orders: vi.fn(), receiveOrder: vi.fn(), registerDirectPurchase: vi.fn(),
   preferences:vi.fn(),savePreferences:vi.fn(),requestReservation:vi.fn(),reservations:vi.fn(),changeReservation:vi.fn(),uploadPhoto:vi.fn(),
 } }))
@@ -464,6 +464,36 @@ it('Configuración cambia entre credenciales y seguridad, y muestra al cliente r
   expect(row.querySelector('.status-dot').textContent).toBe('Activo')
 })
 
+it('Credenciales muestra el aviso en la fila, el ojito y confirma el retiro de acceso', async () => {
+  const client = { id: 2, name: 'Cliente QA', email: 'cliente@example.test', role: 'client', isActive: true }
+  api.users.mockResolvedValue([{ id: 1, name: 'Humberto QA', role: 'admin', isActive: true, isProtected: true }, client])
+  api.updateUser.mockResolvedValue({ ...client, isActive: false })
+  api.deleteUser.mockResolvedValue({ id: 2, removed: true })
+  const element = render(<Settings/>)
+  await settled(() => expect(element.querySelectorAll('.credential-list article')).toHaveLength(2))
+  expect(element.querySelector('[aria-label="Eliminar acceso de Humberto QA"]')).toBeNull()
+  await act(async () => element.querySelector('[aria-label="Suspender a Cliente QA"]').click())
+  expect(element.querySelector('.credential-row-feedback').textContent).toBe('Acceso suspendido.')
+  expect(element.querySelector('.credential-form').textContent).not.toContain('Acceso suspendido.')
+  const password = element.querySelector('.credential-form input[autocomplete="new-password"]')
+  act(() => element.querySelector('.credential-form [aria-label="Mostrar la contraseña"]').click())
+  expect(password.type).toBe('text')
+  act(() => element.querySelector('.credential-form [aria-label="Ocultar la contraseña"]').click())
+  expect(password.type).toBe('password')
+  const open = () => act(() => element.querySelector('[aria-label="Eliminar acceso de Cliente QA"]').click())
+  open()
+  act(() => element.querySelector('[role="dialog"] .confirmation-actions button').click())
+  expect(api.deleteUser).not.toHaveBeenCalled()
+  open()
+  const dialog = element.querySelector('[role="dialog"]')
+  const remove = dialog.querySelector('[type="submit"]')
+  expect(remove.disabled).toBe(true)
+  type(dialog.querySelector('input'), 'ELIMINAR')
+  await act(async () => remove.click())
+  expect(api.deleteUser).toHaveBeenCalledWith(2, 'ELIMINAR')
+  expect(element.querySelector('.credential-list').textContent).not.toContain('Cliente QA')
+})
+
 it.each(['admin', 'client'])('Reservas separa solicitudes activas e historial para %s', async (role) => {
   authState.user.role = role
   const reservation = { pickup_deadline: '2026-11-12T18:00:00Z', estimated_total: 6.7,
@@ -539,6 +569,30 @@ it('Inventario muestra disponible, físico, apartado y mínimo en lista y tarjet
     checkStock()
     act(() => element.querySelector('[aria-label="Vista de tarjetas"]').click())
     checkStock()
+  } finally {
+    inventoryState.data = previousData
+  }
+})
+
+it('Inventario separa los archivados y protege el borrado definitivo con confirmación', () => {
+  const previousData = inventoryState.data
+  const item = { id: 1, name: 'Artículo QA', stock: 0, held: 0, available: 0, minimum: 5,
+    unit: 'Unidad', category: 'Abarrotes', cost: 5, price: 8, isActive: false }
+  inventoryState.data = { categories: [], products: [item, { ...item, id: 2, name: 'Archivado QA', archivedAt: '2026-11-11T18:00:00Z' }] }
+  try {
+    const element = render(<Inventory/>)
+    expect(element.querySelector('tbody').textContent).toContain('Artículo QA')
+    expect(element.querySelector('tbody').textContent).not.toContain('Archivado QA')
+    act(() => [...element.querySelectorAll('button')].find(button => button.textContent === 'Archivados').click())
+    expect(element.querySelector('tbody').textContent).toContain('Archivado QA')
+    expect(element.querySelector('[aria-label="Restaurar Archivado QA"]')).not.toBeNull()
+    act(() => element.querySelector('[aria-label="Eliminar definitivamente Archivado QA"]').click())
+    const dialog = element.querySelector('[role="dialog"]')
+    expect(dialog.querySelector('[type="submit"]').disabled).toBe(true)
+    type(dialog.querySelector('input'), 'ELIMINAR')
+    expect(dialog.querySelector('[type="submit"]').disabled).toBe(false)
+    act(() => dialog.querySelector('.confirmation-actions button').click())
+    expect(api.deleteProduct).not.toHaveBeenCalled()
   } finally {
     inventoryState.data = previousData
   }

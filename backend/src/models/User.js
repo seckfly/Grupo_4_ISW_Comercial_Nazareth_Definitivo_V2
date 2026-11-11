@@ -1,4 +1,4 @@
-const directoryFields = 'id, name, email, role, is_active AS "isActive", is_protected AS "isProtected"'
+const directoryFields = 'id, name, email, role, is_active AS "isActive", is_protected AS "isProtected", (access_removed_at IS NOT NULL) AS "removalPending"'
 
 export const User = {
   async list(db) {

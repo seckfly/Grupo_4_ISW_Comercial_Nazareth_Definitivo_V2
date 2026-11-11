@@ -29,8 +29,10 @@ async function insertOrder(db, { supplier, items }, userId) {
   const lines = []
   for (const item of items) {
     const { rows: [line] } = await db.query(`INSERT INTO nazareth.purchase_order_items
-      (order_id,product_id,quantity,unit_cost) VALUES($1,$2,$3,$4) RETURNING id`,
+      (order_id,product_id,quantity,unit_cost)
+      SELECT $1,id,$3,$4 FROM nazareth.products WHERE id=$2 AND archived_at IS NULL RETURNING id`,
     [order.id, item.productId, decimalText(item.quantity), decimalText(item.cost)])
+    if (!line) throw inputError('El producto no existe o está archivado', 409)
     lines.push({ id: line.id, quantity: item.quantity })
   }
   return { order, lines }
@@ -38,7 +40,7 @@ async function insertOrder(db, { supplier, items }, userId) {
 
 export async function createOrder(pool, input, userId) {
   const data = orderInput(input)
-  return transaction(pool, async db => (await insertOrder(db, data, userId)).order)
+  return transaction(pool, async db => (await insertOrder(db, data, userId)).order, true)
 }
 
 export async function registerDirectPurchase(pool, input, userId) {
@@ -80,7 +82,8 @@ async function recordReceipt(db, id, reference, lines, userId) {
     if(!item||line.quantity>decimalUnits(item.quantity)-decimalUnits(item.received_quantity))throw inputError('La cantidad supera el saldo por recibir',409)
     const quantity=decimalText(line.quantity)
     await db.query('UPDATE nazareth.purchase_order_items SET received_quantity=received_quantity+$1 WHERE id=$2',[quantity,item.id])
-    const {rows:[stock]}=await db.query(`UPDATE nazareth.products SET current_stock=current_stock+$1 WHERE id=$2 RETURNING current_stock-$1::numeric AS before,current_stock AS after`,[quantity,item.product_id])
+    const {rows:[stock]}=await db.query(`UPDATE nazareth.products SET current_stock=current_stock+$1 WHERE id=$2 AND archived_at IS NULL RETURNING current_stock-$1::numeric AS before,current_stock AS after`,[quantity,item.product_id])
+    if (!stock) throw inputError('Restaura el producto archivado antes de recibirlo', 409)
     await db.query('INSERT INTO nazareth.receipt_items(order_id,receipt_id,order_item_id,quantity) VALUES($1,$2,$3,$4)',[order.id,receipt.id,item.id,quantity])
     await db.query(`INSERT INTO nazareth.inventory_movements(product_id,type,quantity_change,stock_before,stock_after,receipt_id,created_by) VALUES($1,'entry',$2,$3,$4,$5,$6)`,[item.product_id,quantity,stock.before,stock.after,receipt.id,userId])
   }

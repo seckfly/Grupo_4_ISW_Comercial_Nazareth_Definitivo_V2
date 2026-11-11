@@ -6,11 +6,12 @@ export async function customerForUser(db,userId) {
   return customer
 }
 export async function customerDirectory(db) {
-  const {rows}=await db.query(`SELECT c.id,p.name,p.email,c.phone,c.points,
+  const {rows}=await db.query(`SELECT c.id,p.name,a.email,c.phone,c.points,
     (SELECT COUNT(*)::int FROM nazareth.sales s WHERE s.customer_id=c.id AND s.status='completed') AS visits,
     COALESCE((SELECT SUM(total_amount)::float8 FROM nazareth.sales s WHERE s.customer_id=c.id AND s.status='completed'),0) AS spent,
     COALESCE((SELECT json_agg(x ORDER BY x."createdAt" DESC) FROM (SELECT id,created_at AS "createdAt",total_amount::float8 AS total,payment_method AS "paymentMethod" FROM nazareth.sales WHERE customer_id=c.id AND status='completed') x),'[]') AS purchases
-    FROM nazareth.customers c JOIN nazareth.account_directory p ON p.id=c.user_id WHERE p.role='client' ORDER BY p.name,c.id`)
+    FROM nazareth.customers c JOIN nazareth.profiles p ON p.id=c.user_id
+    LEFT JOIN nazareth.account_directory a ON a.id=p.id AND a.access_removed_at IS NULL WHERE p.role='client' ORDER BY p.name,c.id`)
   return rows
 }
 export async function preferences(db,userId) {

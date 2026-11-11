@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { decimalUnits, decimalText, positiveId, inputError as invalid } from '../../../shared/numbers.mjs'
-import { lockStock, heldSql } from './stockService.js'
+import { lockStock, heldSql, transaction } from './stockService.js'
 import { photoUrl } from './photoService.js'
 
 export const inventoryId = positiveId
@@ -45,9 +45,9 @@ export function adjustmentInput(input) {
 }
 
 const productFields = `p.id, p.category_id AS "categoryId", c.name AS category, p.name, p.unit,p.image_url AS "imageUrl",
-  ${heldSql()}::float8 AS held,(p.current_stock-${heldSql()})::float8 AS available,
+  ${heldSql()}::float8 AS held,(CASE WHEN p.archived_at IS NULL THEN p.current_stock-${heldSql()} ELSE 0 END)::float8 AS available,
   p.cost_price::float8 AS cost, p.sale_price::float8 AS price, p.current_stock::float8 AS stock,
-  p.min_stock_threshold::float8 AS minimum, p.is_active AS "isActive",
+  p.min_stock_threshold::float8 AS minimum, p.is_active AS "isActive", p.archived_at AS "archivedAt",
   (p.is_active AND p.current_stock <= p.min_stock_threshold) AS "lowStock"`
 
 const movementFields = `m.id, m.product_id AS "productId", m.type, m.quantity_change::float8 AS change,
@@ -133,7 +133,7 @@ export async function updateProduct(db, productId, input) {
   try {
     const { rowCount } = await db.query(`UPDATE nazareth.products SET category_id = $1, name = $2,
       unit = $3, cost_price = COALESCE($4, cost_price), sale_price = $5, min_stock_threshold = $6, is_active = COALESCE($7, is_active),
-      image_url=CASE WHEN $9::boolean THEN $10 ELSE image_url END WHERE id = $8`,
+      image_url=CASE WHEN $9::boolean THEN $10 ELSE image_url END WHERE id = $8 AND archived_at IS NULL`,
     [data.categoryId, data.name, data.unit, data.cost, data.price, data.minimum, data.isActive, id,data.imageUrl!==undefined,data.imageUrl??null])
     if (!rowCount) throw invalid('Producto no encontrado', 404)
     return await productById(db, id)
@@ -150,7 +150,7 @@ export async function adjustInventory(db, productId, input, userId) {
   try {
     await connection.query('BEGIN')
     await lockStock(connection)
-    const { rows: [locked] } = await connection.query('SELECT id FROM nazareth.products WHERE id = $1 FOR UPDATE', [id])
+    const { rows: [locked] } = await connection.query('SELECT id, archived_at FROM nazareth.products WHERE id = $1 FOR UPDATE', [id])
     if (!locked) throw invalid('Producto no encontrado', 404)
 
     const { rows: [previous] } = await connection.query(`SELECT ${movementFields}
@@ -164,6 +164,8 @@ export async function adjustInventory(db, productId, input, userId) {
       await connection.query('COMMIT')
       return { product, movement: previous, replayed: true }
     }
+
+    if (locked.archived_at) throw invalid('Restaura el producto antes de ajustar su stock', 409)
 
     const { rows: [balance] } = await connection.query(`UPDATE nazareth.products
       SET current_stock = current_stock + $1::numeric
@@ -189,5 +191,45 @@ export async function adjustInventory(db, productId, input, userId) {
     throw error
   } finally {
     connection.release()
+  }
+}
+
+export async function setProductArchived(pool, productId, archived) {
+  const id = inventoryId(productId)
+  if (typeof archived !== 'boolean') throw invalid('Selecciona si deseas archivar o restaurar el producto')
+  return transaction(pool, async db => {
+    const product = await productById(db, id)
+    if (Boolean(product.archivedAt) === archived) return product
+    if (archived) {
+      const { rows: [activity] } = await db.query(`SELECT
+        EXISTS(SELECT 1 FROM nazareth.reservation_items ri JOIN nazareth.reservations r ON r.id = ri.reservation_id
+          WHERE ri.product_id = $1 AND r.status IN ('pending', 'confirmed') AND r.pickup_deadline > statement_timestamp()) AS reservation,
+        EXISTS(SELECT 1 FROM nazareth.purchase_order_items oi JOIN nazareth.purchase_orders o ON o.id = oi.order_id
+          WHERE oi.product_id = $1 AND o.status = 'pending' AND oi.received_quantity < oi.quantity) AS purchase`, [id])
+      if (activity.reservation) throw invalid('Resuelve primero las reservas activas de este producto', 409)
+      if (activity.purchase) throw invalid('Resuelve primero las órdenes pendientes de este producto', 409)
+    }
+    await db.query(`UPDATE nazareth.products
+      SET archived_at = CASE WHEN $2 THEN now() ELSE NULL END, is_active = false WHERE id = $1`, [id, archived])
+    return productById(db, id)
+  }, true)
+}
+
+export async function deleteProduct(pool, productId, confirmation) {
+  const id = inventoryId(productId)
+  if (confirmation !== 'ELIMINAR') throw invalid('Escribe ELIMINAR para confirmar')
+  try {
+    return await transaction(pool, async db => {
+      const { rows: [product] } = await db.query('SELECT current_stock FROM nazareth.products WHERE id = $1 FOR UPDATE', [id])
+      if (!product) throw invalid('Producto no encontrado', 404)
+      if (Number(product.current_stock) !== 0) throw invalid('El producto tiene stock. Puedes archivarlo para conservar su registro.', 409)
+      await db.query('DELETE FROM nazareth.customer_favorites WHERE product_id = $1', [id])
+      await db.query('DELETE FROM nazareth.product_list_items WHERE product_id = $1', [id])
+      await db.query('DELETE FROM nazareth.products WHERE id = $1', [id])
+      return { id }
+    }, true)
+  } catch (error) {
+    if (error.code === '23503') throw invalid('El producto tiene operaciones o campañas registradas. Puedes archivarlo.', 409)
+    throw error
   }
 }

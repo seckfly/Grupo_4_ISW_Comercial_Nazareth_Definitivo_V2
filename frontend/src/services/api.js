@@ -63,6 +63,8 @@ export const api = {
     return created
   },
   updateProduct: (id, product) => request('/inventory/products/' + id, { method: 'PUT', body: JSON.stringify(product) }),
+  archiveProduct: (id, archived) => request('/inventory/products/' + id + '/archive', { method: 'PATCH', body: JSON.stringify({ archived }) }),
+  deleteProduct: (id, confirmation) => request('/inventory/products/' + id, { method: 'DELETE', body: JSON.stringify({ confirmation }) }),
   productHistory: (id, signal) => request('/inventory/products/' + id + '/history', { signal }),
   adjustInventory: (id, adjustment) => request('/inventory/products/' + id + '/adjustments', { method: 'POST', replaySafe: Boolean(adjustment.requestId), body: JSON.stringify(adjustment) }),
   dashboard: (period = 'week', signal) => request('/dashboard?period=' + encodeURIComponent(period), { signal }),
@@ -75,6 +77,7 @@ export const api = {
   users: (signal) => request('/users', { signal }),
   createUser: (user) => request('/users', { method: 'POST', body: JSON.stringify(user) }),
   updateUser: (id, user) => request('/users/' + id, { method: 'PUT', body: JSON.stringify(user) }),
+  deleteUser: (id, confirmation) => request('/users/' + id, { method: 'DELETE', body: JSON.stringify({ confirmation }) }),
   promotions: () => request('/promotions'),
   createPromotion: (promotion) => request('/promotions', { method: 'POST', replaySafe: Boolean(promotion.requestId), body: JSON.stringify(promotion) }),
   updatePromotion: (id, promotion) => request('/promotions/' + id, { method: 'PUT', body: JSON.stringify(promotion) }),

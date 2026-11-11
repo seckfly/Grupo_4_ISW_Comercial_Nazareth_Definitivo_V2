@@ -17,6 +17,8 @@ import { fullScopeRouter } from '../src/routes/fullScopeRoutes.js'
 import { createPromotionRouter } from '../src/routes/promotionRouter.js'
 import { Product } from '../src/models/Product.js'
 import { customerDirectory,customerForUser,preferences,savePreferences } from '../src/services/customerService.js'
+import { User } from '../src/models/User.js'
+import { removeClientAccess } from '../src/services/userService.js'
 import { requestReservation } from '../src/services/reservationService.js'
 
 let postgres, pool, server, base, app
@@ -36,7 +38,7 @@ before(async () => {
   await postgres.admin.query(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
     CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY, email text NOT NULL);
     CREATE TABLE auth.sessions (id uuid PRIMARY KEY, user_id uuid, not_after timestamptz)`)
-  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql', '008_promotion_creation_requests.sql']) {
+  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql', '008_promotion_creation_requests.sql', '009_archive_and_remove_access.sql']) {
     await postgres.admin.query(await readFile(new URL('../../database/migrations/' + file, import.meta.url), 'utf8'))
   }
   pool = await postgres.applicationPool()
@@ -118,6 +120,75 @@ test('Reintentar un alta concurrente devuelve el mismo producto y registra una s
   const history = await request('/api/inventory/products/' + first.body.id + '/history')
   assert.equal(history.body.movements.length, 1)
   assert.equal((await create({ ...body, name: 'Otro producto' })).status, 409)
+})
+
+test('Inventario archiva sin perder movimientos, bloquea reservas y exige confirmación para borrar', async () => {
+  const item = await product({ name: 'Artículo con historial' })
+  const empty = await product({ name: 'Alta por error', initialStock: 0 })
+  const archive = (id, archived, role) => request('/api/inventory/products/' + id + '/archive',
+    { method: 'PATCH', body: { archived }, role })
+  const remove = (id, confirmation, role) => request('/api/inventory/products/' + id,
+    { method: 'DELETE', body: { confirmation }, role })
+  assert.equal((await remove(empty.id, 'ELIMINAR', 'client-fixture')).status, 403)
+  assert.equal((await remove(empty.id, 'eliminar')).status, 400)
+  assert.equal((await remove(item.id, 'ELIMINAR')).status, 409)
+  const reservation = await request('/api/reservations', { method: 'POST', role: 'client-fixture',
+    body: { requestId: randomUUID(), items: [{ productId: item.id, quantity: 1 }] } })
+  assert.equal(reservation.status, 200)
+  assert.equal((await archive(item.id, true)).status, 409)
+  await request('/api/reservations/' + reservation.body.id, { method: 'POST', body: { action: 'cancel' } })
+  const archived = await archive(item.id, true)
+  assert.equal(archived.status, 200)
+  assert.ok(archived.body.archivedAt)
+  assert.deepEqual([archived.body.stock, archived.body.available, archived.body.isActive], [10, 0, false])
+  assert.ok(!(await Product.list(pool)).some(row => row.id === item.id))
+  const purchase = await request('/api/purchase-orders/direct', { method: 'POST', body: {
+    supplierName: 'Mayorista QA', supplierRuc: 'RUC QA', supplierPhone: 'Teléfono QA',
+    reference: 'ARCHIVE-QA', items: [{ productId: item.id, quantity: 1, cost: 4 }],
+  } })
+  assert.equal(purchase.status, 409)
+  const restored = await archive(item.id, false)
+  assert.equal(restored.body.archivedAt, null)
+  assert.equal(restored.body.isActive, false)
+  const history = await request('/api/inventory/products/' + item.id + '/history')
+  assert.equal(history.body.movements.length, 1)
+  await adjustInventory(pool, item.id, { change: -10, reason: 'Salida QA', requestId: randomUUID() }, 1)
+  assert.equal((await remove(item.id, 'ELIMINAR')).status, 409)
+  assert.equal((await remove(empty.id, 'ELIMINAR')).status, 200)
+  assert.ok(!(await listInventory(pool)).products.some(row => row.id === empty.id))
+})
+
+test('Eliminar acceso protege administradores, conserva el historial y permite completar un fallo del proveedor', async () => {
+  const item = await product()
+  const sale = await request('/api/sales', { method: 'POST', body: await salePayload(item.id, { customerId: 1 }) })
+  assert.equal(sale.status, 201)
+  const reservation = await request('/api/reservations', { method: 'POST', role: 'client-fixture',
+    body: { requestId: randomUUID(), items: [{ productId: item.id, quantity: 1 }] } })
+  assert.equal(reservation.status, 200)
+  let attempts = 0
+  async function deleteIdentity(id) {
+    assert.equal(id, clientIdentity)
+    attempts += 1
+    if (attempts === 1) return { error: { status: 503 } }
+    await postgres.admin.query('DELETE FROM auth.users WHERE id = $1', [id])
+    return { error: null }
+  }
+  const remove = (id, confirmation = 'ELIMINAR', actor = 1) => removeClientAccess(pool, actor, id, confirmation, deleteIdentity)
+  await assert.rejects(remove(2, 'eliminar'), { statusCode: 400 })
+  await assert.rejects(remove(1), { statusCode: 403 })
+  await assert.rejects(remove(1, 'ELIMINAR', 3), { statusCode: 403 })
+  await assert.rejects(remove(2), { statusCode: 409 })
+  assert.equal(attempts, 0)
+  await request('/api/reservations/' + reservation.body.id, { method: 'POST', body: { action: 'cancel' } })
+  assert.deepEqual(await remove(2), { id: 2, removed: false })
+  assert.deepEqual((await User.list(pool)).find(user => user.id === 2).removalPending, true)
+  await assert.rejects(requestReservation(pool, 2, { requestId: randomUUID(), items: [{ productId: item.id, quantity: 1 }] }), { statusCode: 403 })
+  assert.deepEqual(await remove(2), { id: 2, removed: true })
+  assert.deepEqual(await remove(2), { id: 2, removed: true })
+  assert.equal(attempts, 2)
+  assert.deepEqual((await User.list(pool)).map(user => user.id), [1])
+  assert.equal((await customerDirectory(pool))[0].purchases[0].id, sale.body.id)
+  assert.equal((await request('/api/reservations')).body[0].status, 'cancelled')
 })
 
 test('PRU-005/006/008: proveedor, orden sin stock, recepción parcial, exceso, duplicados y anulación',async()=>{
