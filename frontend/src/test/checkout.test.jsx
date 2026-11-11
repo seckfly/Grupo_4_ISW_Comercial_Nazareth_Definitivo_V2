@@ -399,7 +399,8 @@ it('Configuración cambia entre credenciales y seguridad, y muestra al cliente r
 
 it.each(['admin', 'client'])('Reservas separa solicitudes activas e historial para %s', async (role) => {
   authState.user.role = role
-  const reservation = { pickup_deadline: '2026-11-12T18:00:00Z', estimated_total: 6.7, items: [], customerName: 'Cliente Demo' }
+  const reservation = { pickup_deadline: '2026-11-12T18:00:00Z', estimated_total: 6.7,
+    items: [{ productId: 1, name: 'Aceite QA', unit: 'Unidad', quantity: 2 }], customerName: 'Cliente Demo' }
   const rows = ['pending', 'confirmed', 'expired', 'cancelled', 'rejected', 'collected']
     .map((status, id) => ({ ...reservation, id, status, pickup_code: 'NZ-' + status }))
   api.reservations.mockResolvedValue(rows)
@@ -408,6 +409,12 @@ it.each(['admin', 'client'])('Reservas separa solicitudes activas e historial pa
   const button = name => [...element.querySelectorAll('button')].find(item => item.textContent === name)
   await settled(() => expect(element.textContent).toContain('NZ-pending'))
   expect(button('Activas').getAttribute('aria-pressed')).toBe('true')
+  const pending = element.querySelector('[data-status="pending"]').closest('.reservation-record')
+  expect(pending.querySelector('h3').textContent).toBe('NZ-pending')
+  expect(pending.querySelector('time').dateTime).toBe(reservation.pickup_deadline)
+  expect([...pending.querySelector('tbody tr').cells].map(cell => cell.textContent)).toEqual(['Aceite QA', '2 Unidades'])
+  expect(pending.querySelector('.reservation-record-total').textContent).toContain('Total estimado')
+  expect(pending.querySelector('.reservation-record-meta').textContent.includes('Cliente Demo')).toBe(role === 'admin')
   expect(element.textContent).toContain('NZ-confirmed')
   for (const status of ['expired', 'cancelled', 'rejected', 'collected']) {
     expect(element.textContent).not.toContain('NZ-' + status)
@@ -423,6 +430,7 @@ it.each(['admin', 'client'])('Reservas separa solicitudes activas e historial pa
   }
   expect(button('Cancelar')).toBeUndefined()
   expect(button('Recoger y pagar')).toBeUndefined()
+  expect(element.querySelector('.reservation-record-meta').textContent).toContain('Vigencia original')
   expect(api.reservations).toHaveBeenCalledTimes(1)
 })
 
