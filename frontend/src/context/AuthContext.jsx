@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
   async function login(email, password) {
     setVerification(null)
     if (!supabase) throw new Error('El acceso a Supabase aún no está configurado')
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password }).catch(() => ({ error: {} }))
     if (error) {
       throw new Error(error.code === 'invalid_credentials'
         ? 'Las credenciales no coinciden. Revisa el correo y la contraseña.'
@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
-    const { error } = await supabase.auth.signOut({ scope: 'local' })
+    const { error } = await supabase.auth.signOut({ scope: 'local' }).catch(() => ({ error: true }))
     if (error) throw new Error('No se pudo cerrar la sesión. Intenta de nuevo.')
     setVerification(null)
   }

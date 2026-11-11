@@ -323,12 +323,37 @@ it('CU-005: catálogo sin foto permite solicitar con cantidad decimal y consulta
   type(element.querySelector('[aria-label="Cantidad para separar Producto real QA"]'),'0.25')
   await act(async()=>[...element.querySelectorAll('button')].find(button=>button.textContent.includes('Solicitar separación')).click())
   await settled(()=>expect(element.textContent).toContain('NZ-TEST-QA'))
-  expect(api.requestReservation.mock.calls[0][0].items).toEqual([{productId:1,quantity:'0.25'}])
+  expect(api.requestReservation.mock.calls[0][0].items).toEqual([{productId:1,quantity:'0.25',expectedUnitPrice:'6.70'}])
   expect(element.textContent).toContain('Pendiente de confirmación')
   expect(element.textContent).not.toContain('WhatsApp')
   expect(api.createSale).not.toHaveBeenCalled()
   act(()=>[...element.querySelectorAll('button')].find(button=>button.textContent==='Ver mis solicitudes').click())
   expect(navigate).toHaveBeenCalledWith('Reservas')
+})
+
+it('El cliente ve el precio anterior y el actual en ofertas, catálogo y lista; revisa un cambio antes de reservar', async () => {
+  authState.user.role = 'client'
+  api.promotions.mockResolvedValue([{ id: 1, product: 'Cafetal QA', regularPrice: 10.4, currentPrice: 8.4,
+    status: 'active', startDate: '2026-11-11T05:00:00Z', endDate: '2026-11-20T05:00:00Z' }])
+  const offer = render(<Promotions/>)
+  await settled(() => expect(offer.querySelector('.offer-price del')?.textContent).toContain('10.40'))
+  expect(offer.textContent).toContain('Ofertas vigentes')
+  expect(offer.textContent).toContain('Ahorras')
+  expect(offer.querySelector('.offer-price strong').textContent).toContain('8.40')
+
+  const product = { id: 1, name: 'Cafetal QA', unit: 'Unidad', category: 'Abarrotes',
+    sale_price: 8.4, regular_price: '10.40', current_stock: 10 }
+  api.products.mockResolvedValueOnce([product]).mockResolvedValue([{ ...product, sale_price: 10.4 }])
+  api.preferences.mockResolvedValue({ favorites: [], list: [1] })
+  api.requestReservation.mockRejectedValueOnce(Object.assign(new Error('Los precios cambiaron.'), { status: 409 }))
+  act(() => root.render(<Products/>))
+  await settled(() => expect(offer.querySelectorAll('.offer-price del')).toHaveLength(2))
+  expect(offer.querySelector('.shopping-list-lines .offer-price strong').textContent).toContain('8.40')
+  await act(async () => [...offer.querySelectorAll('button')].find(button => button.textContent.includes('Solicitar separación')).click())
+  expect(api.requestReservation).toHaveBeenCalledWith(expect.objectContaining({ expectedTotal: '8.40' }))
+  expect(offer.querySelectorAll('.offer-price del')).toHaveLength(0)
+  expect(offer.querySelector('.shopping-list-lines .offer-price strong').textContent).toContain('10.40')
+  expect(offer.textContent).toContain('Los precios cambiaron.')
 })
 
 it('CU-001 digital: QR de demostración, importe exacto y confirmación manual sin referencia',async()=>{

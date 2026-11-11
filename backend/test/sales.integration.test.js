@@ -36,7 +36,7 @@ before(async () => {
   await postgres.admin.query(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
     CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY, email text NOT NULL);
     CREATE TABLE auth.sessions (id uuid PRIMARY KEY, user_id uuid, not_after timestamptz)`)
-  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql']) {
+  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql', '008_promotion_creation_requests.sql']) {
     await postgres.admin.query(await readFile(new URL('../../database/migrations/' + file, import.meta.url), 'utf8'))
   }
   pool = await postgres.applicationPool()
@@ -50,6 +50,10 @@ before(async () => {
   app.use(express.json())
   app.use('/api/sales', createSalesRouter({ db: pool, authenticate }))
   app.use('/api/inventory', createInventoryRouter({ db: pool, authenticate }))
+  app.use('/api/promotions', (req, res, next) => {
+    if (req.get('x-qa-drop-campaign-response') === 'yes') res.json = () => res.destroy()
+    next()
+  })
   app.use('/api/promotions',createPromotionRouter({db:pool,authenticate}))
   app.get('/api/products',authenticate,async(_req,res,next)=>{try{res.json(await Product.list(pool))}catch(error){next(error)}})
   app.get('/api/dashboard',authenticate,async(req,res,next)=>{if(req.user.role!=='admin')return res.sendStatus(403);try{res.json(await dashboard(pool,req.query.period||'week'))}catch(error){next(error)}})
@@ -73,7 +77,7 @@ after(async () => {
 beforeEach(async () => {
   apiErrors.length = 0
   // Este cliente pertenece exclusivamente al clúster temporal de nativePostgres().
-  await postgres.admin.query(`TRUNCATE nazareth.categories, auth.users RESTART IDENTITY CASCADE;
+  await postgres.admin.query(`TRUNCATE nazareth.categories, auth.users, nazareth.promotion_creation_requests RESTART IDENTITY CASCADE;
     INSERT INTO auth.users VALUES ('${adminIdentity}', 'admin@example.test'), ('${clientIdentity}', 'cliente@example.test');
     INSERT INTO nazareth.profiles (auth_user_id, name, role, is_protected) VALUES
       ('${adminIdentity}', 'Administrador QA', 'admin', true), ('${clientIdentity}', 'Cliente Demo', 'client', false);
@@ -223,6 +227,53 @@ test('PRU-010: campañas CRUD persistidas y mismo precio promocional en catálog
   assert.equal((await request('/api/promotions/'+result.body.id,{method:'DELETE'})).status,200)
   assert.equal((await request('/api/promotions')).body.length,0)
   assert.equal((await request('/api/promotions',{method:'POST',role:'client-fixture',body:input})).status,403)
+})
+
+test('Una respuesta perdida después de guardar una campaña se recupera sin duplicados', async () => {
+  const p = await product({ price: 10.4 })
+  const body = { productId: p.id, discountType: 'fixed', discountValue: 2, status: 'active',
+    startDate: '2020-01-01', endDate: '2090-01-01', requestId: randomUUID() }
+  await assert.rejects(fetch(base + '/api/promotions', { method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'admin-fixture', 'x-qa-drop-campaign-response': 'yes' },
+    body: JSON.stringify(body),
+  }))
+  const saved = (await request('/api/promotions')).body
+  assert.equal(saved.length, 1)
+  const replay = await request('/api/promotions', { method: 'POST', body })
+  assert.equal(replay.status, 200)
+  assert.equal(replay.body.id, saved[0].id)
+  assert.equal((await request('/api/promotions', { method: 'POST', body: { ...body, discountValue: 3 } })).status, 409)
+
+  const catalog = (await request('/api/products', { role: 'client-fixture' })).body
+  assert.equal(catalog[0].sale_price, 8.4)
+  assert.equal(Number(catalog[0].regular_price), 10.4)
+  const weaker = await request('/api/promotions', { method: 'POST', body: { ...body, requestId: randomUUID(), discountValue: 1 } })
+  assert.equal(weaker.status, 200)
+  const offers = () => request('/api/promotions', { role: 'client-fixture' })
+  assert.deepEqual((await offers()).body.map(offer => [offer.regularPrice, offer.currentPrice]), [[10.4, 8.4]])
+
+  const reservation = { requestId: randomUUID(), expectedTotal: '8.40', items: [{ productId: p.id, quantity: 1, expectedUnitPrice: '8.40' }] }
+  const separate = payload => request('/api/reservations', { method: 'POST', body: payload, role: 'client-fixture' })
+  const reserved = await separate(reservation)
+  assert.equal(reserved.status, 200)
+  assert.equal(Number(reserved.body.estimated_total), 8.4)
+
+  for (const id of [replay.body.id, weaker.body.id]) {
+    assert.equal((await request('/api/promotions/' + id + '/status', { method: 'PATCH', body: { status: 'paused' } })).status, 200)
+  }
+  assert.equal((await offers()).body.length, 0)
+  assert.equal((await request('/api/products', { role: 'client-fixture' })).body[0].sale_price, 10.4)
+  const stale = { ...reservation, requestId: randomUUID() }
+  const changed = await separate(stale)
+  assert.equal(changed.status, 409)
+  assert.match(changed.body.message, /precios cambiaron/)
+  assert.equal((await request('/api/reservations', { role: 'client-fixture' })).body.length, 1)
+  assert.equal((await separate({ ...stale, expectedTotal: '10.40' })).status, 409)
+  const repriced = await separate({ ...stale, expectedTotal: '10.40',
+    items: [{ ...stale.items[0], expectedUnitPrice: '10.40' }] })
+  assert.equal(repriced.status, 200)
+  assert.equal(Number(repriced.body.estimated_total), 10.4)
+  assert.equal(Number((await separate(reservation)).body.estimated_total), 8.4)
 })
 
 test('PRU-004/012/015: Cliente Demo, venta sin cliente, portal propio, frecuencia y puntos persistidos',async()=>{

@@ -1,5 +1,5 @@
 import { randomBytes, createHash } from 'node:crypto'
-import { decimalUnits, decimalText, lineAmount, positiveId, inputError, quantityForUnit } from '../../../shared/numbers.mjs'
+import { decimalUnits, decimalText, lineAmount, positiveId, inputError, quantityForUnit, MONEY_MAX_UNITS } from '../../../shared/numbers.mjs'
 import { transaction, heldSql } from './stockService.js'
 import { customerForUser } from './customerService.js'
 import { priceSql } from './priceService.js'
@@ -13,15 +13,20 @@ export function reservationLines(input) {
     ids.add(id);return {productId:id,quantity:decimalText(quantity)}
   }).sort((a,b)=>a.productId-b.productId)
 }
-async function writeItems(db,id,items) {
+const priceChanged = () => inputError('Los precios cambiaron. Revisa el total actualizado y vuelve a enviar tu solicitud.', 409)
+
+async function writeItems(db,id,items,expectedPrices) {
   let total=0
   for(const [index,item] of items.entries()) {
     const {rows:[product]}=await db.query(`SELECT p.id,p.name,p.unit,${priceSql()}::text AS price,p.is_active FROM nazareth.products p WHERE id=$1`,[item.productId])
     if(!product?.is_active)throw inputError('Producto no disponible',409)
-    total+=lineAmount(quantityForUnit(item.quantity, product.unit),decimalUnits(product.price))
+    const price = decimalUnits(product.price)
+    if (expectedPrices?.has(item.productId) && expectedPrices.get(item.productId) !== price) throw priceChanged()
+    total+=lineAmount(quantityForUnit(item.quantity, product.unit),price)
     await db.query('INSERT INTO nazareth.reservation_items(reservation_id,product_id,line_position,quantity,unit_price) VALUES($1,$2,$3,$4,$5)',[id,item.productId,index+1,item.quantity,product.price])
   }
   await db.query('UPDATE nazareth.reservations SET estimated_total=$1 WHERE id=$2',[decimalText(total),id])
+  return total
 }
 export async function reservations(db,user) {
   const customer=user.role==='client'?await customerForUser(db,user.id):null
@@ -35,6 +40,9 @@ export async function reservations(db,user) {
 }
 export async function requestReservation(pool,userId,input,generateCode=()=> 'NZ-'+randomBytes(6).toString('hex').toUpperCase()) {
   const items=reservationLines(input)
+  const expectedTotal = input.expectedTotal === undefined ? null : decimalUnits(input.expectedTotal, { maxUnits: MONEY_MAX_UNITS })
+  const expectedPrices = new Map(input.items.filter(item => item.expectedUnitPrice !== undefined)
+    .map(item => [positiveId(item.productId), decimalUnits(item.expectedUnitPrice)]))
   if(!uuid.test(input.requestId||''))throw inputError('Solicitud no válida')
   const hash=createHash('sha256').update(JSON.stringify({userId,items})).digest('hex')
   return transaction(pool,async db=>{
@@ -49,7 +57,8 @@ export async function requestReservation(pool,userId,input,generateCode=()=> 'NZ
       saved=rows[0]
     }
     if(!saved)throw inputError('No se pudo generar un código único. Reintenta la solicitud.',503)
-    await writeItems(db,saved.id,items)
+    const total = await writeItems(db, saved.id, items, expectedPrices)
+    if (expectedTotal !== null && expectedTotal !== total) throw priceChanged()
     return (await db.query('SELECT * FROM nazareth.reservations WHERE id=$1',[saved.id])).rows[0]
   })
 }

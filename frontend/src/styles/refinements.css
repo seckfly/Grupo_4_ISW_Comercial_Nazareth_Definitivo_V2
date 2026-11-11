@@ -440,3 +440,34 @@
 @media (max-width: 680px) {
   .reservation-record-actions > button { flex: 1 1 140px; }
 }
+
+.offer-price { display: inline-flex; align-items: baseline; flex-wrap: wrap; gap: 2px 7px; }
+.offer-price del { color: #625e56; font-size: .88em; }
+.offer-price strong { color: inherit; }
+.offer-price-unit { font-size: .85em; }
+.product-copy .offer-price { margin-block: 4px; }
+.shopping-list-lines .offer-price { margin: 3px 0; color: #fff; }
+.shopping-list-lines .offer-price del, .shopping-list-lines .offer-price-unit { color: #ccdbd1; }
+.shopping-list-lines .offer-price strong { display: inline; }
+.admin-promo-v5 .campaign-status { position: static; align-self: flex-start; order: -1; margin: 2px 10px 0; }
+.campaign-row .campaign-date { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.campaign-row .campaign-date > svg { width: 16px; flex: 0 0 16px; }
+.campaign-row .campaign-date strong { display: block; }
+.campaign-price .offer-price strong { font-size: 1.15em; }
+.admin-promo-v5 .campaign-price { margin-inline: 10px; }
+.admin-promo-v5 .campaign-actions { flex-wrap: wrap; margin-top: auto; }
+.admin-promo-v5 .campaign-actions button {
+  flex: 1 1 76px;
+  width: auto;
+  height: auto;
+  min-height: 42px;
+  padding: 6px 9px;
+  text-align: center;
+}
+.admin-promo-v5 .campaign-actions .danger { margin-left: 0; }
+.promo-client-catalog .campaign-row { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; }
+.promo-client-catalog .campaign-price { color: var(--forest); }
+@media (max-width: 680px) {
+  .promo-client-catalog .campaign-row { display: flex; flex-wrap: wrap; gap: 10px 16px; }
+  .promo-client-catalog .campaign-product { flex-basis: 100%; }
+}
