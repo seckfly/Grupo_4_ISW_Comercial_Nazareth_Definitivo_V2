@@ -1,0 +1,3 @@
+import { AreaChart,Area,ResponsiveContainer,XAxis,YAxis,Tooltip } from 'recharts'
+import { currency } from '../../utils/format'
+export default function SalesTrend({data}){return <ResponsiveContainer width="100%" height={270}><AreaChart data={data}><defs><linearGradient id="premiumFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#d9a36f" stopOpacity=".34"/><stop offset="1" stopColor="#d9a36f" stopOpacity="0"/></linearGradient></defs><XAxis dataKey="d" axisLine={false} tickLine={false}/><YAxis hide/><Tooltip formatter={currency} contentStyle={{border:0,borderRadius:12,boxShadow:'0 14px 40px #26362c22'}}/><Area type="monotone" dataKey="v" stroke="#b96f43" strokeWidth={3} fill="url(#premiumFill)"/></AreaChart></ResponsiveContainer>}

@@ -1,0 +1,2 @@
+import { BarChart,Bar,ResponsiveContainer,XAxis,YAxis,Tooltip } from 'recharts'
+export default function ProductBars({data}){return <ResponsiveContainer width="100%" height={270}><BarChart data={data} layout="vertical"><XAxis type="number" hide/><YAxis dataKey="name" type="category" width={118} axisLine={false} tickLine={false} tick={{fontSize:11}}/><Tooltip/><Bar dataKey="sold" fill="#274c38" radius={[0,7,7,0]}/></BarChart></ResponsiveContainer>}

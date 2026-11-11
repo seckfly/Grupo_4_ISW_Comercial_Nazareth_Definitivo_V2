@@ -1,0 +1,3 @@
+import { ArrowUpRight,Clock3,PackageCheck,TrendingUp } from 'lucide-react'
+import { currency } from '../../utils/format'
+export default function AdminBrief(){return <section className="admin-brief"><div className="brief-lead"><span><TrendingUp/></span><div><p className="eyebrow">Proyección de cierre</p><strong>{currency(712.4)}</strong><small>Si se mantiene el ritmo actual</small></div><em>+8.6%</em></div><div><span><Clock3/></span><div><small>Hora más fuerte</small><strong>5:00 — 7:00 p. m.</strong></div></div><div><span><PackageCheck/></span><div><small>Cobertura saludable</small><strong>45 de 48 productos</strong></div></div><button>Ver análisis del día <ArrowUpRight/></button></section>}

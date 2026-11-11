@@ -1,0 +1,1 @@
+export default function PageHeader({kicker,title,description,action}){return <header className="section-title premium-title"><div><p className="eyebrow">{kicker}</p><h2>{title}</h2><span>{description}</span></div>{action}</header>}

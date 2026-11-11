@@ -1,0 +1,1 @@
+import { Router } from 'express';import { registerSale } from '../controllers/saleController.js';import { auth } from '../middleware/auth.js';import { requireRole } from '../middleware/role.js';const router=Router();router.post('/',auth,requireRole('admin'),registerSale);export default router

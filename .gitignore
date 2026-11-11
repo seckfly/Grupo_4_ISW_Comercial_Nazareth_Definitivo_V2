@@ -1,0 +1,32 @@
+node_modules/
+dist/
+.env
+.env.*
+*.env
+!.env.example
+
+# Credenciales y archivos de configuración local
+credentials/
+secrets/
+credentials.*
+secrets.*
+service-account*.json
+.npmrc
+.netrc
+_netrc
+.pgpass
+pgpass.conf
+*.key
+*.pem
+*.p12
+*.pfx
+*.ppk
+*.jks
+*.keystore
+id_rsa
+id_ed25519
+supabase/.temp/
+supabase/.branches/
+
+# Script de origen con credenciales de demostración; conservar solo localmente.
+/database/comercial_nazareth.sql
