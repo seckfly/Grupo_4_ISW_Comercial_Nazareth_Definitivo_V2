@@ -3,7 +3,7 @@
 export const lockStock = db => db.query('SELECT pg_advisory_xact_lock(73642)')
 export const heldSql = (alias = 'p', exclude = 'NULL') => `COALESCE((SELECT SUM(ri.quantity)
   FROM nazareth.reservation_items ri JOIN nazareth.reservations r ON r.id=ri.reservation_id
-  WHERE ri.product_id=${alias}.id AND r.status='confirmed' AND r.pickup_deadline>now()
+  WHERE ri.product_id=${alias}.id AND r.status='confirmed' AND r.pickup_deadline>statement_timestamp()
   AND r.id IS DISTINCT FROM ${exclude}),0)`
 export async function transaction(pool, work, stock = false) {
   const db = await pool.connect()

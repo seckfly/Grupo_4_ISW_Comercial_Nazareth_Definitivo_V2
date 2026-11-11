@@ -1,4 +1,6 @@
 /* Ajustes de presentación sobre los componentes y la identidad existentes. */
+.premium-app > aside { overflow-y:auto; }
+.premium-app > aside > nav, .premium-app > aside > .brand, .premium-app > aside > .owner { flex-shrink:0; }
 .product-photo-preview { width:160px; height:160px; object-fit:cover; border-radius:12px; background:var(--green-soft); }
 .catalog-thumb { width:100%; height:100%; object-fit:cover; border-radius:inherit; }
 .photo-neutral { display:grid;place-items:center;width:100%;min-height:180px;color:var(--forest);background:var(--green-soft);font-size:48px; }

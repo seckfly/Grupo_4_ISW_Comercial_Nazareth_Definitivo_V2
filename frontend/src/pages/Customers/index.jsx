@@ -3,7 +3,7 @@ import { Search, ChevronRight, Phone, Users } from 'lucide-react'
 import PageHeader from '../../components/ui/PageHeader'
 import { Card } from '../../components/ui/Card'
 import { EmptyState, Skeleton } from '../../components/ui/States'
-import { currency } from '../../utils/format'
+import { currency,countLabel } from '../../utils/format'
 import { api } from '../../services/api'
 
 export default function Customers() {
@@ -35,7 +35,7 @@ export default function Customers() {
       </button>)}
       {!rows.length && <p>No hay coincidencias con la búsqueda.</p>}
     </Card><Card className="customer-profile">
-      {selected ? <div className="profile-head"><span className="profile-avatar">{initials(selected.name)}</span><div><p className="eyebrow">Cliente registrado</p><h3>{selected.name}</h3><p>{selected.email}</p><span><Phone/> {selected.phone || 'Sin teléfono registrado'}</span><p>{selected.visits} compras ? {currency(selected.spent)} ? {selected.points} puntos</p>{selected.purchases?.map(sale=><p key={sale.id}>Venta #{sale.id} ? {new Date(sale.createdAt).toLocaleDateString('es-PE',{timeZone:'America/Lima'})} ? {currency(sale.total)}</p>)}</div></div> :
+      {selected ? <div className="profile-head"><span className="profile-avatar">{initials(selected.name)}</span><div><p className="eyebrow">Cliente registrado</p><h3>{selected.name}</h3><p>{selected.email}</p><span><Phone/> {selected.phone || 'Sin teléfono registrado'}</span><p>{countLabel(selected.visits,'compra','compras')} · {currency(selected.spent)} · {countLabel(selected.points,'punto','puntos')}</p>{selected.purchases?.map(sale=><p key={sale.id}>Venta #{sale.id} · {new Date(sale.createdAt).toLocaleDateString('es-PE',{timeZone:'America/Lima'})} · {currency(sale.total)}</p>)}</div></div> :
       <EmptyState icon={<Users/>} title="Selecciona un cliente" copy="Consulta su nombre y datos de contacto."/>}
     </Card></div>}
   </div>

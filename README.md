@@ -4,6 +4,8 @@ Sistema de gestión comercial y portal de clientes con React/Vite, Express, Post
 
 La [especificación aprobada](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/blob/e98e1400cb4fa5ec47eef3585037a0e105af2b11/docs/SRS.md) define el alcance y los identificadores. [CR-002](docs/cambios/CR-002-migracion-supabase.md) registra el cambio de tecnología en esta implementación.
 
+La [correspondencia completa de requisitos y evidencia](docs/cierre-requisitos.md) distingue implementación, pruebas aisladas y verificaciones alojadas pendientes. Para Compras, Reservas, fotos y contraseña propia, aplicar la [configuración del alcance completo](database/CONFIGURACION-ALCANCE-COMPLETO.md), incluidas las migraciones nuevas 005 y 006. No se aplicaron a la base de trabajo durante las pruebas.
+
 ## Instalación
 
 La versión comprobada se indica en `.node-version`. Se requiere Node.js 22 o superior. Desde la raíz, en PowerShell:

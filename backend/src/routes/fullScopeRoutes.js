@@ -6,7 +6,7 @@ import { reservations,requestReservation,changeReservation } from '../services/r
 const handle=work=>async(req,res,next)=>{try{res.json(await work(req))}catch(error){next(error)}}
 export function fullScopeRouter({db,authenticate}) {
   const router=Router()
-  router.use(authenticate,(_req,res,next)=>{res.set('Cache-Control','no-store');next()})
+  router.use(['/customers','/customer-account','/preferences','/purchase-orders','/reservations'],authenticate,(_req,res,next)=>{res.set('Cache-Control','no-store');next()})
   router.get('/customers',requireRole('admin'),handle(()=>customerDirectory(db)))
   router.get('/reservations',handle(req=>reservations(db,req.user)))
   router.post('/reservations',requireRole('client'),handle(req=>requestReservation(db,req.user.id,req.body)))

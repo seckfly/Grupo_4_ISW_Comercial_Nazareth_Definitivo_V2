@@ -17,6 +17,7 @@ import { fullScopeRouter } from '../src/routes/fullScopeRoutes.js'
 import { createPromotionRouter } from '../src/routes/promotionRouter.js'
 import { Product } from '../src/models/Product.js'
 import { customerDirectory,customerForUser,preferences,savePreferences } from '../src/services/customerService.js'
+import { requestReservation } from '../src/services/reservationService.js'
 
 let postgres, pool, server, base, app
 const apiErrors = []
@@ -41,8 +42,8 @@ before(async () => {
   pool = await postgres.applicationPool()
   function authenticate(req, res, next) {
     const role = req.get('Authorization')
-    if (!['admin-fixture', 'client-fixture'].includes(role)) return res.status(401).json({ message: 'Sesión requerida' })
-    req.user = { id: role === 'admin-fixture' ? 1 : 2, role: role === 'admin-fixture' ? 'admin' : 'client' }
+    if (!['admin-fixture', 'client-fixture','other-fixture'].includes(role)) return res.status(401).json({ message: 'Sesión requerida' })
+    req.user = { id: role === 'admin-fixture' ? 1 : role==='other-fixture'?3:2, role: role === 'admin-fixture' ? 'admin' : 'client' }
     next()
   }
   app = express()
@@ -50,6 +51,8 @@ before(async () => {
   app.use('/api/sales', createSalesRouter({ db: pool, authenticate }))
   app.use('/api/inventory', createInventoryRouter({ db: pool, authenticate }))
   app.use('/api/promotions',createPromotionRouter({db:pool,authenticate}))
+  app.get('/api/products',authenticate,async(_req,res,next)=>{try{res.json(await Product.list(pool))}catch(error){next(error)}})
+  app.get('/api/dashboard',authenticate,async(req,res,next)=>{if(req.user.role!=='admin')return res.sendStatus(403);try{res.json(await dashboard(pool,req.query.period||'week'))}catch(error){next(error)}})
   app.get('/api/customer-sales',authenticate,async(req,res)=>{
     if(req.user.role!=='client')return res.sendStatus(403)
     res.json(await customerSales(pool,req.user.id))
@@ -74,7 +77,7 @@ beforeEach(async () => {
     INSERT INTO auth.users VALUES ('${adminIdentity}', 'admin@example.test'), ('${clientIdentity}', 'cliente@example.test');
     INSERT INTO nazareth.profiles (auth_user_id, name, role, is_protected) VALUES
       ('${adminIdentity}', 'Administrador QA', 'admin', true), ('${clientIdentity}', 'Cliente Demo', 'client', false);
-    INSERT INTO nazareth.customers (user_id, name, phone) VALUES (2, 'Cliente QA', 'Contacto QA');
+    INSERT INTO nazareth.customers (user_id, name, phone) VALUES (2, 'Cliente Demo', 'Contacto QA');
     INSERT INTO nazareth.categories (name) VALUES ('Abarrotes')`)
 })
 
@@ -98,15 +101,19 @@ async function salePayload(id, changes = {}) {
 }
 
 test('PRU-005/006/008: proveedor, orden sin stock, recepción parcial, exceso, duplicados y anulación',async()=>{
-  const p=await product(),q=await product({name:'Segundo QA'})
+  const p=await product({initialStock:4,minimum:5}),q=await product({name:'Segundo QA'})
   const order=await request('/api/purchase-orders',{method:'POST',body:{supplierName:'Proveedor QA',supplierRuc:'RUC QA',supplierPhone:'Teléfono QA',items:[{productId:p.id,quantity:2,cost:'4.25'},{productId:q.id,quantity:1,cost:3}]}})
   assert.equal(order.status,200,JSON.stringify(order.body));assert.equal(Number(order.body.estimated_total),11.5)
   let orders=(await request('/api/purchase-orders')).body
-  assert.equal(orders[0].supplier_ruc,'RUC QA');assert.equal(orders[0].supplier_phone,'Teléfono QA')
-  assert.equal((await request('/api/inventory')).body.products.find(i=>i.id===p.id).stock,10)
+  assert.equal(orders[0].supplier_name,'Proveedor QA');assert.equal(orders[0].supplier_ruc,'RUC QA');assert.equal(orders[0].supplier_phone,'Teléfono QA')
+  assert.equal((await request('/api/inventory')).body.products.find(i=>i.id===p.id).stock,4)
+  const equal=await product({name:'Igual al mínimo QA',initialStock:5,minimum:5})
+  assert.equal((await request('/api/inventory')).body.products.find(i=>i.id===equal.id).lowStock,true)
+  assert.equal((await request('/api/purchase-orders')).body.length,1) // Equality never initiates an order.
   const line=orders[0].items[0]
   const payload={reference:'REF-QA',items:[{itemId:line.id,quantity:1}]}
   assert.equal((await request('/api/purchase-orders/'+order.body.id+'/receipts',{method:'POST',body:payload})).status,200)
+  assert.equal((await request('/api/inventory')).body.products.find(i=>i.id===p.id).stock,5)
   assert.equal((await request('/api/purchase-orders/'+order.body.id+'/receipts',{method:'POST',body:payload})).status,409)
   assert.equal((await request('/api/purchase-orders/'+order.body.id+'/receipts',{method:'POST',body:{reference:'EXCESO',items:[{itemId:line.id,quantity:5}]}})).status,409)
   assert.equal((await request('/api/purchase-orders/'+order.body.id+'/cancel',{method:'POST'})).status,409)
@@ -149,6 +156,16 @@ test('PRU-004/012/015: Cliente Demo, venta sin cliente, portal propio, frecuenci
   assert.equal(clients[0].visits,1);assert.equal(clients[0].purchases[0].id,linked.body.id)
   const report=await dashboard(pool,'week');assert.equal(report.today.total,40.2);assert.equal(report.activity.filter(a=>a.kind==='sale').length,2)
   assert.equal((await request('/api/inventory')).body.products[0].stock,4)
+  const otherIdentity=randomUUID()
+  await postgres.admin.query(`INSERT INTO auth.users VALUES($1,'otra@example.test');`,[otherIdentity])
+  await postgres.admin.query(`INSERT INTO nazareth.profiles(auth_user_id,name,role) VALUES($1,'Cuenta ajena QA','client')`,[otherIdentity])
+  await postgres.admin.query(`INSERT INTO nazareth.customers(user_id,name,points) VALUES(3,'Cuenta ajena QA',99)`)
+  assert.equal((await request('/api/sales',{method:'POST',body:await salePayload(p.id,{items:[{productId:p.id,quantity:1}],customerId:2})})).status,201)
+  assert.deepEqual((await request('/api/customer-sales',{role:'client-fixture'})).body.map(sale=>sale.id),[linked.body.id])
+  const other=await request('/api/customer-sales',{role:'other-fixture'})
+  assert.equal(other.body.length,1);assert.equal(other.body[0].customerId,2)
+  assert.equal((await request('/api/customer-account?userId=3',{role:'client-fixture'})).body.points,37)
+  assert.equal((await request('/api/customer-account',{role:'other-fixture'})).body.points,99)
 })
 
 test('PRU-007: favoritos y lista persistidos y aislados por cuenta',async()=>{
@@ -164,8 +181,8 @@ test('PRU-021/022: diez ventas y diez consultas por operación bajo los umbrales
     const payload=await salePayload(p.id,{items:[{productId:p.id,quantity:1}]})
     const start=performance.now(),result=await request('/api/sales',{method:'POST',body:payload})
     saleTimes.push(performance.now()-start);assert.equal(result.status,201)
-    for(const [name,work] of [['products',()=>Product.list(pool)],['stock',()=>listInventory(pool)],['summary',()=>dashboard(pool,'week')]]) {
-      const start=performance.now();await work();queries[name].push(performance.now()-start)
+    for(const [name,path] of [['products','/api/products'],['stock','/api/inventory'],['summary','/api/dashboard?period=week']]) {
+      const start=performance.now();const result=await request(path);queries[name].push(performance.now()-start);assert.equal(result.status,200)
     }
   }
   assert.ok(saleTimes.every(time=>time<15000))
@@ -216,6 +233,9 @@ test('PRU-011: solicitud hasta tres productos, 24 horas, código e idempotencia 
   assert.equal((await dashboard(pool,'today')).today.total,before.today.total)
   assert.equal((await request('/api/reservations',{role:'client-fixture'})).body[0].status,'pending')
   assert.equal((await request('/api/reservations',{method:'POST',role:'client-fixture',body:{...payload,requestId:randomUUID(),items:Array(4).fill({productId:p.id,quantity:1})}})).status,400)
+  let attempts=0
+  const collision=await requestReservation(pool,2,{...payload,requestId:randomUUID()},()=>attempts++===0?first.body.pickup_code:'NZ-NEW-CODE-QA')
+  assert.equal(collision.pickup_code,'NZ-NEW-CODE-QA')
 })
 
 test('Apartado: últimas unidades frente a venta concurrente; cancelación, vencimiento y ajuste',async()=>{
@@ -240,7 +260,7 @@ test('Apartado: últimas unidades frente a venta concurrente; cancelación, venc
     assert.equal((await request('/api/reservations/'+next.body.id,{method:'POST',body:{action:'confirm'}})).status,200)
     await postgres.admin.query(`UPDATE nazareth.reservations SET created_at=now()-interval '25 hours',pickup_deadline=now()-interval '1 hour' WHERE id=$1`,[next.body.id])
     assert.equal((await Product.list(pool))[0].current_stock,3)
-    assert.equal((await request('/api/reservations',{role:'client-fixture'})).body[0].status,'expired')
+    assert.equal((await request('/api/reservations',{role:'client-fixture'})).body.find(row=>row.id===next.body.id).status,'expired')
   }
 })
 
@@ -249,6 +269,14 @@ test('Recojo: venta vinculada y cierre conjuntos, reintentos y conexiones simult
   const requested=await request('/api/reservations',{role:'client-fixture',method:'POST',body:{requestId:randomUUID(),items:[{productId:p.id,quantity:3}]}})
   assert.equal((await request('/api/reservations/'+requested.body.id,{method:'POST',body:{action:'confirm'}})).status,200)
   const payload=await salePayload(p.id,{reservationId:requested.body.id,customerId:1})
+  await postgres.admin.query(`CREATE FUNCTION nazareth.fail_pickup_qa() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.status='collected' THEN RAISE EXCEPTION 'Fallo QA aislado'; END IF; RETURN NEW; END $$;
+    CREATE TRIGGER fail_pickup_qa BEFORE UPDATE ON nazareth.reservations FOR EACH ROW EXECUTE FUNCTION nazareth.fail_pickup_qa()`)
+  try {
+    assert.equal((await request('/api/sales',{method:'POST',body:payload})).status,500)
+    assert.equal((await request('/api/inventory')).body.products[0].stock,3)
+    assert.equal((await request('/api/reservations',{role:'client-fixture'})).body[0].status,'confirmed')
+    assert.equal((await pool.query('SELECT count(*)::int AS count FROM nazareth.sales')).rows[0].count,0)
+  } finally {await postgres.admin.query('DROP TRIGGER fail_pickup_qa ON nazareth.reservations;DROP FUNCTION nazareth.fail_pickup_qa()')}
   const results=await Promise.all([request('/api/sales',{method:'POST',body:payload}),request('/api/sales',{method:'POST',body:payload})])
   assert.ok(results.every(result=>[200,201].includes(result.status)),JSON.stringify(results))
   assert.equal(results[0].body.id,results[1].body.id)
@@ -258,6 +286,7 @@ test('Recojo: venta vinculada y cierre conjuntos, reintentos y conexiones simult
   assert.equal((await request('/api/customer-sales',{role:'client-fixture'})).body.length,1)
   const history=await request('/api/inventory/products/'+p.id+'/history')
   assert.equal(history.body.movements.filter(row=>row.type==='sale').length,1)
+  assert.equal((await request('/api/sales',{method:'POST',body:{...payload,requestId:randomUUID()}})).status,409)
 })
 
 test('Apartado: cancelación y vencimiento liberan unidades sin alterar stock físico; rechazo y edición',async()=>{
@@ -305,6 +334,8 @@ test('Resumen y Reportes: vacío, venta real, Lima, caja neta, demanda, activida
   report = await dashboard(pool,'week')
   assert.equal(report.lowStock.length,1)
   assert.ok(report.activity.some(activity => activity.kind === 'movement' && activity.change === -1))
+  assert.equal(report.movementSummary.find(row=>row.type==='sale').quantity,-3)
+  assert.equal(report.movementSummary.find(row=>row.type==='adjustment').operations,2)
   await postgres.admin.query(`UPDATE nazareth.sales SET created_at = ((now() AT TIME ZONE 'America/Lima')::date AT TIME ZONE 'America/Lima') - interval '1 second'`)
   report = await dashboard(pool,'week')
   assert.equal(report.today.total,0)

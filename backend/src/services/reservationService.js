@@ -33,7 +33,7 @@ export async function reservations(db,user) {
     WHERE ($1::integer IS NULL OR r.customer_id=$1) ORDER BY r.created_at DESC,r.id DESC`,[customer?.id??null])
   return rows
 }
-export async function requestReservation(pool,userId,input) {
+export async function requestReservation(pool,userId,input,generateCode=()=> 'NZ-'+randomBytes(6).toString('hex').toUpperCase()) {
   const items=reservationLines(input)
   if(!uuid.test(input.requestId||''))throw inputError('Solicitud no válida')
   const hash=createHash('sha256').update(JSON.stringify({userId,items})).digest('hex')
@@ -43,9 +43,12 @@ export async function requestReservation(pool,userId,input) {
     const customer=await customerForUser(db,userId)
     const {rows:[previous]}=await db.query('SELECT * FROM nazareth.reservations WHERE request_id=$1',[input.requestId])
     if(previous) {if(previous.request_fingerprint!==hash)throw inputError('La solicitud ya se utilizó con otros datos',409);return previous}
-    let code
-    do {code='NZ-'+randomBytes(6).toString('hex').toUpperCase()} while((await db.query('SELECT id FROM nazareth.reservations WHERE pickup_code=$1',[code])).rows.length)
-    const {rows:[saved]}=await db.query(`INSERT INTO nazareth.reservations(customer_id,pickup_code,estimated_total,request_id,request_fingerprint) VALUES($1,$2,0,$3,$4) RETURNING *`,[customer.id,code,input.requestId,hash])
+    let saved
+    for(let attempt=0;attempt<8&&!saved;attempt++) {
+      const {rows}=await db.query(`INSERT INTO nazareth.reservations(customer_id,pickup_code,estimated_total,request_id,request_fingerprint) VALUES($1,$2,0,$3,$4) ON CONFLICT(pickup_code) DO NOTHING RETURNING *`,[customer.id,generateCode(),input.requestId,hash])
+      saved=rows[0]
+    }
+    if(!saved)throw inputError('No se pudo generar un código único. Reintenta la solicitud.',503)
     await writeItems(db,saved.id,items)
     return (await db.query('SELECT * FROM nazareth.reservations WHERE id=$1',[saved.id])).rows[0]
   })
@@ -63,7 +66,7 @@ export async function changeReservation(pool,user,id,input) {
     if(input.action==='cancel'&&row.status==='cancelled')return row
     if(input.action==='confirm'&&row.status==='confirmed'&&new Date(row.pickup_deadline)>new Date())return row
     if(!['pending','confirmed'].includes(row.status))throw inputError('La solicitud ya fue cerrada',409)
-    const {rows:[clock]}=await db.query('SELECT pickup_deadline>now() AS valid FROM nazareth.reservations WHERE id=$1',[id])
+    const {rows:[clock]}=await db.query('SELECT pickup_deadline>statement_timestamp() AS valid FROM nazareth.reservations WHERE id=$1',[id])
     if(!clock.valid)throw inputError('La solicitud venció',409)
     if(input.action==='edit') {
       const items=reservationLines(input)
@@ -82,7 +85,7 @@ export async function changeReservation(pool,user,id,input) {
   },true)
 }
 export async function validatePickup(db,id,cart,customerId) {
-  const {rows:[reservation]}=await db.query(`SELECT *,pickup_deadline>now() AS valid FROM nazareth.reservations WHERE id=$1 FOR UPDATE`,[id])
+  const {rows:[reservation]}=await db.query(`SELECT *,pickup_deadline>statement_timestamp() AS valid FROM nazareth.reservations WHERE id=$1 FOR UPDATE`,[id])
   if(!reservation||reservation.status!=='confirmed'||!reservation.valid)throw inputError('El apartado no está confirmado o ha vencido',409)
   if(reservation.customer_id!==customerId)throw inputError('La venta debe vincular al cliente de la reserva')
   const {rows}=await db.query('SELECT product_id,quantity::text FROM nazareth.reservation_items WHERE reservation_id=$1 ORDER BY product_id',[id])

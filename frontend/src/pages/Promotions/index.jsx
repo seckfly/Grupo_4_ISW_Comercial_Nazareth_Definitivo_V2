@@ -5,8 +5,10 @@ import { EmptyState, Skeleton } from '../../components/ui/States'
 import { useAuth } from '../../context/AuthContext'
 import { api } from '../../services/api'
 import { currency } from '../../utils/format'
+import { promotionPrice } from '../../utils/promotion'
 
 const statuses = { active: 'Activa', scheduled: 'Programada', paused: 'Pausada', finished: 'Finalizada' }
+const dateInput=value=>value?new Intl.DateTimeFormat('en-CA',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(value)):''
 export default function Promotions() {
   const { user } = useAuth()
   const [creating, setCreating] = useState(false)
@@ -39,8 +41,9 @@ export default function Promotions() {
         <label className="promo-search"><Search/><input aria-label="Buscar campaña" placeholder="Buscar campaña" value={query} onChange={event => setQuery(event.target.value)}/></label>
         {visible.map(item => <article className="campaign-row" key={item.id}>
           <div className="campaign-product">{item.imageUrl && <img src={item.imageUrl} alt={item.product}/>}<div><strong>{item.product}</strong><span>{item.discountType === 'percentage' ? item.discountValue + '%' : currency(item.discountValue)} menos</span></div></div>
-          <div className="campaign-date"><strong><CalendarDays/> {String(item.startDate).slice(0, 10)} — {String(item.endDate).slice(0, 10)}</strong></div>
+          <div className="campaign-date"><strong><CalendarDays/> {dateInput(item.startDate)} — {dateInput(item.endDate)}</strong></div>
           <span className="campaign-status">{statuses[item.status] || item.status}</span>
+          <p>Precio de esta campaña: {currency(promotionPrice(item.regularPrice,item.discountType,item.discountValue))}</p>
           {admin&&<div className="campaign-actions"><button disabled={busy} onClick={()=>{setEditing(item);setCreating(true)}}>Editar</button><button disabled={busy} onClick={async()=>{setBusy(true);try{await api.updatePromotionStatus(item.id,item.status==='active'?'paused':'active');setRetry(v=>v+1)}catch(error){setError(error.message)}finally{setBusy(false)}}}>{item.status==='active'?'Pausar':'Activar'}</button><button disabled={busy} onClick={async()=>{setBusy(true);try{await api.deletePromotion(item.id);setRetry(v=>v+1)}catch(error){setError(error.message)}finally{setBusy(false)}}}>Eliminar</button></div>}
         </article>)}
         {!visible.length && <p>No hay coincidencias con la búsqueda.</p>}
@@ -55,6 +58,11 @@ function CampaignModal({ campaign, close, saved }) {
   const [discountType, setDiscountType] = useState(campaign?.discountType || 'percentage')
   const [error, setError] = useState('')
   const [products, setProducts] = useState([])
+  const [productId,setProductId]=useState(campaign?.productId||'')
+  const [discountValue,setDiscountValue]=useState(campaign?.discountValue??'')
+  let preview=null
+  const product=products.find(product=>product.id===Number(productId))
+  try {if(product||campaign)preview=promotionPrice(product?.regular_price??product?.sale_price??campaign.regularPrice,discountType,discountValue)}catch{}
   useEffect(() => {
     let active = true
     api.products().then(rows => { if (active) setProducts(rows) }).catch(failure => { if (active) setError(failure.message) })
@@ -72,11 +80,12 @@ function CampaignModal({ campaign, close, saved }) {
       <button type="button" onClick={close} aria-label="Cerrar campaña"><X/></button>
       {<>
         <p className="eyebrow">Nueva campaña</p><h3>{campaign ? 'Editar promoción' : 'Crear promoción'}</h3>
-        <label>Producto<select name="productId" defaultValue={campaign?.productId || ''}><option value="">Selecciona un producto</option>{products.map((product) => <option value={product.id} key={product.id}>{product.name}</option>)}</select></label>
-        <div><label>{discountType === 'percentage' ? 'Descuento (%)' : 'Descuento (S/)'}<input name="discountValue" type="number" min="0.01" step="0.01" max={discountType === 'percentage' ? 100 : 99999999.99} defaultValue={campaign?.discountValue || ''} required/></label>
+        <label>Producto<select name="productId" required value={productId} onChange={event=>setProductId(event.target.value)}><option value="">Selecciona un producto</option>{campaign&&!products.some(product=>product.id===campaign.productId)&&<option value={campaign.productId}>{campaign.product}</option>}{products.map((product) => <option value={product.id} key={product.id}>{product.name}</option>)}</select></label>
+        <div><label>{discountType === 'percentage' ? 'Descuento (%)' : 'Descuento (S/)'}<input name="discountValue" type="number" min="0.01" step="0.01" max={discountType === 'percentage' ? 100 : 99999999.99} value={discountValue} onChange={event=>setDiscountValue(event.target.value)} required/></label>
           <label>Tipo<select name="discountType" value={discountType} onChange={(event) => setDiscountType(event.target.value)}><option value="percentage">Porcentaje</option><option value="fixed">Monto fijo</option></select></label></div>
-        <div><label>Inicio<input name="startDate" type="date" defaultValue={campaign?.startDate?.slice(0,10) || ''} required/></label><label>Fin<input name="endDate" type="date" defaultValue={campaign?.endDate?.slice(0,10) || ''} required/></label></div>
+        <div><label>Inicio<input name="startDate" type="date" defaultValue={dateInput(campaign?.startDate)} required/></label><label>Fin<input name="endDate" type="date" defaultValue={dateInput(campaign?.endDate)} required/></label></div>
         <label>Estado<select name="status" defaultValue={campaign?.status || 'scheduled'}><option value="active">Activa</option><option value="scheduled">Programada</option><option value="paused">Pausada</option><option value="finished">Finalizada</option></select></label>
+        <p>Precio resultante: {preview===null?'Completa producto y descuento válido':currency(preview)}</p>
         {error && <p className="form-error" role="alert">{error}</p>}
         <button className="primary" disabled={busy}>{campaign ? 'Guardar cambios' : 'Crear campaña'} <ArrowRight/></button>
       </>}

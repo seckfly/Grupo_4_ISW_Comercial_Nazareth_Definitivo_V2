@@ -96,3 +96,11 @@ Evidencia inicial de esta etapa: PRU-005/006/008, PRU-010, PRU-004/012/015 pasan
 PRU-011 y las pruebas de carrera en conexiones PostgreSQL independientes verifican solicitud sin bloqueo, confirmación de últimas unidades frente a venta, cancelación/vencimiento, ajuste protegido y recojo con idempotencia. Se corrigió el permiso UPDATE de reservation_id que la prueba de recojo detectó. Los QRs Yape/Plin se generaron y se decodificaron hacia example.com; el monto digital se compara a dos decimales y requiere confirmación manual. La referencia opcional conserva el escenario con referencia de PRU-020. Las fotos tienen carga administrativa, validación MIME/firma/tamaño y previsualización/reemplazo/retirada.
 
 La suite de backend con 52 casos pasó antes de añadir un caso adicional incondicional de cancelación y vencimiento; esa ampliación se incluye en la verificación final. Se ejecutaron mediciones locales de diez ventas (máximo 14 ms) y diez consultas por operación (máximos 2/2/12 ms en productos/stock/resumen) y una restauración real mediante pg_dump/pg_restore en otra base temporal. Estos resultados locales no equivalen a mediciones del proyecto alojado.
+
+## Etapa 4: contraseña propia y cierre de configuración
+
+Se implementó Mi cuenta para ambos roles con confirmación de nueva contraseña, reautenticación de la misma identidad, actualización y renovación de sesión mediante Supabase Auth. Las pruebas de la función verifican éxito, confirmación distinta y contraseña actual incorrecta sin modificar Auth.
+
+La verificación alojada está **bloqueada**, no aprobada: createUser para una cuenta temporal devolvió HTTP 401 Invalid API key. No se creó cuenta, bucket ni contraseña de trabajo. El script reproducible y las variables exactas están en database/CONFIGURACION-ALCANCE-COMPLETO.md. No se solicitan secretos en chat.
+
+La correspondencia final de los 15 RF, 6 RNF, 8 BR y 23 PRU, distinguiendo implementación y evidencia pendiente, está en [cierre-requisitos.md](cierre-requisitos.md). No se declaran aprobados integralmente PRU-009/014 ni los recorridos de navegador pendientes. Se conserva la asociación original de las ventas históricas; ninguna prueba escribió en datos de trabajo.
