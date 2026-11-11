@@ -51,7 +51,14 @@ function type(input, value) {
 async function settled(condition) {
   await vi.waitFor(async () => { await act(async () => {}); condition() }, { timeout: 3000 })
 }
-afterEach(() => { act(() => root?.unmount()); container?.remove(); vi.clearAllMocks();authState.user.role='admin' })
+afterEach(() => { act(() => root?.unmount()); container?.remove(); vi.clearAllMocks(); vi.unstubAllGlobals(); authState.user.role='admin' })
+
+function setViewport(width) {
+  vi.stubGlobal('matchMedia', vi.fn(query => ({
+    matches: width <= Number(query.match(/\d+/)[0]), addEventListener: vi.fn(), removeEventListener: vi.fn(),
+  })))
+  vi.stubGlobal('scrollTo', vi.fn())
+}
 
 describe('controles numéricos del checkout y de Inventario', () => {
   it('bloquea un ajuste con saldo negativo y permite corregirlo sin guardar', () => {
@@ -173,6 +180,28 @@ it('cierra las notificaciones al navegar, con el botón y con Escape', () => {
   toggle()
   act(() => root.render(<AppShell page="Promociones" setPage={navigate} onSale={() => {}}/>))
   expect(element.querySelector('.notice-panel')).toBeNull()
+})
+
+it('La navegación móvil del administrador abre las secciones restantes desde Más', () => {
+  setViewport(768)
+  const navigate = vi.fn()
+  const onSale = vi.fn()
+  const element = render(<AppShell page="Resumen" setPage={navigate} onSale={onSale}><p>Contenido</p></AppShell>)
+  const shortcuts = element.querySelector('.bottom-nav')
+  expect([...shortcuts.querySelectorAll('button')].map(button => button.textContent)).toEqual([
+    'Resumen', 'Ventas', 'Inventario', 'Reservas', 'Más',
+  ])
+  const more = shortcuts.querySelector('[aria-controls="app-menu"]')
+  act(() => more.click())
+  expect(more.getAttribute('aria-expanded')).toBe('true')
+  const menu = element.querySelector('#app-menu')
+  expect(menu.classList.contains('open')).toBe(true)
+  const buy = [...menu.querySelectorAll('nav button')].find(button => button.textContent === 'Compras')
+  act(() => buy.click())
+  expect(navigate).toHaveBeenCalledWith('Compras')
+  expect(more.getAttribute('aria-expanded')).toBe('false')
+  act(() => element.querySelector('.mini-sale').click())
+  expect(onSale).toHaveBeenCalledTimes(1)
 })
 
 const savedSale = {
@@ -337,6 +366,33 @@ it('CU-005: catálogo sin foto permite solicitar con cantidad decimal y consulta
   expect(navigate).toHaveBeenCalledWith('Reservas')
 })
 
+it('El cliente abre Mi lista en el celular, vuelve al catálogo y conserva la cantidad', async () => {
+  setViewport(360)
+  authState.user.role = 'client'
+  api.products.mockResolvedValue([{ id: 1, name: 'Cafetal QA', unit: 'Unidad', category: 'Abarrotes',
+    sale_price: 8.4, regular_price: 10.4, current_stock: 4 }])
+  api.preferences.mockResolvedValue({ favorites: [], list: [1] })
+  api.requestReservation.mockResolvedValue({ pickup_code: 'NZ-MOBILE-QA', estimated_total: 16.8, pickup_deadline: '2026-11-12T18:00:00Z' })
+  const element = render(<Products/>)
+  await settled(() => expect(element.querySelector('.mobile-list-bar').textContent).toContain('1'))
+  const catalog = element.querySelector('.catalog-products')
+  const list = element.querySelector('.shopping-list-panel')
+  expect(list.hidden).toBe(true)
+  const showList = () => act(() => element.querySelector('.mobile-list-bar button').click())
+  showList()
+  expect(catalog.hidden).toBe(true)
+  expect(list.hidden).toBe(false)
+  type(list.querySelector('[aria-label="Cantidad para separar Cafetal QA"]'), '2')
+  act(() => element.querySelector('.mobile-catalog-back').click())
+  expect(catalog.hidden).toBe(false)
+  showList()
+  expect(list.querySelector('[aria-label="Cantidad para separar Cafetal QA"]').value).toBe('2')
+  const send = [...list.querySelectorAll('button')].find(button => button.textContent.includes('Solicitar separación'))
+  await act(async () => send.click())
+  expect(list.textContent).toContain('NZ-MOBILE-QA')
+  expect(api.requestReservation).toHaveBeenCalledWith(expect.objectContaining({ expectedTotal: '16.80' }))
+})
+
 it('El cliente ve el precio anterior y el actual en ofertas, catálogo y lista; revisa un cambio antes de reservar', async () => {
   authState.user.role = 'client'
   api.promotions.mockResolvedValue([{ id: 1, product: 'Cafetal QA', regularPrice: 10.4, currentPrice: 8.4,
@@ -397,6 +453,29 @@ it('CU-001 digital: un QR para todas las billeteras e importe confirmado manualm
   await settled(()=>expect(element.querySelector('.sale-success')).not.toBeNull())
   expect(api.createSale.mock.calls[0][0]).toMatchObject({paymentMethod:'otro_digital',digitalReceived:'6.70',paymentConfirmed:true})
   expect(api.createSale.mock.calls[0][0]).not.toHaveProperty('paymentReference')
+})
+
+it('La venta móvil conserva los productos al volver desde Cobro', async () => {
+  setViewport(390)
+  api.products.mockResolvedValue([{ id: 1, name: 'Arroz QA', category: 'Abarrotes', unit: 'Kg', sale_price: 6.7, current_stock: 10 }])
+  api.quoteSale.mockResolvedValue({ ...savedSale, units: 1, total: 6.7, quoteId: 'a'.repeat(64),
+    items: [{ ...savedSale.items[0], productId: 1, quantity: 1, subtotal: 6.7 }] })
+  const element = render(<SaleDrawer close={() => {}}/>)
+  const checkout = element.querySelector('.checkout-panel')
+  const catalog = element.querySelector('.pos-catalog')
+  const next = () => element.querySelector('.mobile-sale-next button')
+  expect(checkout.hidden).toBe(true)
+  expect(next().disabled).toBe(true)
+  await settled(() => expect(catalog.querySelector('.pos-products button')).not.toBeNull())
+  act(() => catalog.querySelector('.pos-products button').click())
+  act(() => next().click())
+  expect(checkout.hidden).toBe(false)
+  expect(catalog.hidden).toBe(true)
+  expect(checkout.querySelector('.pos-lines article').textContent).toContain('Arroz QA')
+  act(() => checkout.querySelector('.mobile-sale-back').click())
+  expect(catalog.hidden).toBe(false)
+  expect(checkout.hidden).toBe(true)
+  expect(next().disabled).toBe(false)
 })
 
 it('CU-006: foto opcional valida formato, carga y permite quitar antes de guardar',async()=>{
@@ -605,6 +684,24 @@ it('Inventario separa los archivados y protege el borrado definitivo con confirm
     expect(dialog.querySelector('[type="submit"]').disabled).toBe(false)
     act(() => dialog.querySelector('.confirmation-actions button').click())
     expect(api.deleteProduct).not.toHaveBeenCalled()
+  } finally {
+    inventoryState.data = previousData
+  }
+})
+
+it('Inventario a 320 px presenta tarjetas y agrupa las acciones', () => {
+  setViewport(320)
+  const previousData = inventoryState.data
+  inventoryState.data = { categories: [], products: [{ id: 1, name: 'Cafetal QA', category: 'Abarrotes',
+    unit: 'Unidad', stock: 8, available: 6, held: 2, minimum: 5, cost: 5, price: 8, isActive: true }] }
+  try {
+    const element = render(<Inventory/>)
+    expect(element.querySelector('table')).toBeNull()
+    const card = element.querySelector('.product-grid .card')
+    expect(card.querySelector('.inventory-stock-available').textContent).toContain('6 Unidades')
+    const actions = card.querySelector('details')
+    expect(actions.querySelector('summary').textContent).toBe('Acciones')
+    expect(actions.querySelector('[aria-label="Archivar Cafetal QA"]')).not.toBeNull()
   } finally {
     inventoryState.data = previousData
   }

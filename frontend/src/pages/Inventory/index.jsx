@@ -6,6 +6,7 @@ import { api } from '../../services/api'
 import { Card } from '../../components/ui/Card'
 import { Skeleton, EmptyState } from '../../components/ui/States'
 import { useInventory } from '../../context/InventoryContext'
+import { usePhoneLayout } from '../../hooks/usePhoneLayout'
 import { currency, margin, quantityLabel } from '../../utils/format'
 import { ProductDrawer, AdjustmentDrawer, HistoryDrawer } from './InventoryDrawers'
 
@@ -23,8 +24,8 @@ function InventoryStock({ product }) {
   </dl>
 }
 
-function ProductActions({ product, open }) {
-  return <div className="inventory-actions">
+function ProductActions({ product, open, compact = false }) {
+  const actions = <div className="inventory-actions">
     {!product.archivedAt && <>
       <button className="icon-btn" type="button" onClick={() => open('edit', product)} aria-label={'Editar ' + product.name} title="Editar producto"><Pencil/></button>
       <button className="icon-btn" type="button" onClick={() => open('adjust', product)} aria-label={'Ajustar stock de ' + product.name} title="Ajustar stock"><SlidersHorizontal/></button>
@@ -36,10 +37,12 @@ function ProductActions({ product, open }) {
     <button className="icon-btn" type="button" onClick={() => open('delete', product)}
       aria-label={'Eliminar definitivamente ' + product.name} title="Eliminar definitivamente"><Trash2/></button>
   </div>
+  return compact ? <details className="mobile-inventory-actions"><summary>Acciones</summary>{actions}</details> : actions
 }
 
 export default function Inventory() {
   const { data, setData, loading, error, setRevision } = useInventory()
+  const phone = usePhoneLayout()
   useEffect(() => { setRevision(value => value + 1) }, [setRevision])
   const [notice, setNotice] = useState('')
   const [archived, setArchived] = useState(false)
@@ -116,22 +119,22 @@ export default function Inventory() {
       </div>
       <label className="search compact"><Search/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar" aria-label="Buscar producto"/></label>
       {!archived && <button className={alertsOnly ? 'primary' : 'secondary'} aria-pressed={alertsOnly} onClick={() => setAlertsOnly((value) => !value)}>Solo alertas</button>}
-      <div className="view-toggle">
+      {!phone && <div className="view-toggle">
         <button onClick={() => setView('list')} className={view === 'list' ? 'active' : ''} aria-label="Vista de lista" aria-pressed={view === 'list'}><List/></button>
         <button onClick={() => setView('grid')} className={view === 'grid' ? 'active' : ''} aria-label="Vista de tarjetas" aria-pressed={view === 'grid'}><Grid2X2/></button>
-      </div>
+      </div>}
     </div>
     {error ? <Card><p className="form-error" role="alert">{error}</p><button className="secondary" onClick={() => setRevision((value) => value + 1)}>Reintentar</button></Card> :
       loading ? <Card><Skeleton rows={5}/></Card> :
       !shown.length ? <Card><EmptyState icon={<PackagePlus/>} title={archived ? 'Sin productos archivados' : 'Sin productos'} copy={archived ? 'Los productos archivados que coincidan con la búsqueda aparecerán aquí.' : products.length ? 'No hay productos que coincidan con los filtros.' : 'Registra un producto para comenzar el inventario.'}/></Card> :
-      view === 'list' ? <Card className="data-card"><div className="table-wrap"><table>
+      !phone && view === 'list' ? <Card className="data-card"><div className="table-wrap"><table>
         <thead><tr><th>Producto</th><th>Código</th><th>Categoría</th><th>Existencias</th><th>Costo promedio por unidad</th><th>Precio</th><th>Margen</th><th>Acciones</th></tr></thead>
         <tbody>{shown.map((product) => <tr key={product.id}>
           <td><div className="product-cell"><span>{product.name[0]}</span><div><strong>{product.name}</strong>{!product.isActive && <small className="inventory-detail">{product.archivedAt ? 'Archivado' : 'Inactivo'}</small>}</div></div></td>
           <td>#{String(product.id).padStart(4, '0')}</td><td>{product.category}</td>
           <td><InventoryStock product={product}/></td>
           <td>{currency(product.cost)}</td><td><strong>{currency(product.price)}</strong></td><td><span className="margin">{margin(product.cost, product.price)}%</span></td>
-          <td><ProductActions product={product} open={open}/></td>
+          <td><ProductActions product={product} open={open} compact={phone}/></td>
         </tr>)}</tbody>
       </table></div></Card> : <div className="product-grid premium-products">{shown.map((product) => <Card key={product.id}>
         <div className="product-card-top"><span className="product-letter">{product.name[0]}</span></div>
@@ -139,7 +142,7 @@ export default function Inventory() {
         <h3>{product.name}</h3><InventoryStock product={product}/>
         <small>Costo promedio por unidad · {currency(product.cost)}</small>
         <div className="price-row"><strong>{currency(product.price)}</strong><span>{margin(product.cost, product.price)}% margen</span></div>
-        <ProductActions product={product} open={open}/>
+        <ProductActions product={product} open={open} compact={phone}/>
       </Card>)}</div>}
     {['archive', 'restore', 'delete'].includes(panel?.type) && <ConfirmationDrawer
       title={{ archive: 'Archivar producto', restore: 'Restaurar producto', delete: 'Eliminar producto definitivamente' }[panel.type]}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { X, Search, Plus, Trash2, ArrowRight, UserRound, Tag, WalletCards, Banknote, Check, ChevronDown, ShoppingBasket, ShieldCheck, ReceiptText } from 'lucide-react'
+import { X, Search, Plus, Trash2, ArrowRight, ArrowLeft, UserRound, Tag, WalletCards, Banknote, Check, ChevronDown, ShoppingBasket, ShieldCheck, ReceiptText } from 'lucide-react'
 import { api } from '../../services/api'
 import AmountInput from './AmountInput'
 import { currency, countLabel, quantityLabel } from '../../utils/format'
@@ -9,12 +9,20 @@ import DecimalInput from './DecimalInput'
 import { Skeleton, EmptyState } from './States'
 
 import { digitalPaymentMethods, paymentNames } from '../../../../shared/paymentMethods.mjs'
+import { usePhoneLayout } from '../../hooks/usePhoneLayout'
 
 function quantityUnits(value) {
   try { return decimalUnits(value) } catch { return 0 }
 }
 
 export default function SaleDrawer({ close, onCreated, reservation = null }) {
+  const phone = usePhoneLayout()
+  const [step, setStep] = useState(reservation ? 'payment' : 'products')
+  const phonePayment = phone && step === 'payment'
+  const phoneProducts = phone && step === 'products'
+  const stepHeading = useRef(null)
+  const catalogHeading = useRef(null)
+  const grid = useRef(null)
   const [products, setProducts] = useState([])
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [catalogError, setCatalogError] = useState('')
@@ -50,6 +58,13 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
     dialog.current?.focus()
     return () => { document.body.style.overflow = overflow; previousFocus?.focus() }
   }, [])
+
+  useEffect(() => {
+    if (!phone) return
+    if (grid.current) grid.current.scrollTop = 0
+    const heading = phonePayment ? stepHeading.current : catalogHeading.current
+    heading?.focus({ preventScroll: true })
+  }, [phone, phonePayment])
 
   useEffect(() => {
     let active = true
@@ -118,7 +133,7 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
 
   async function confirmSale(event) {
     event.preventDefault()
-    if (submitting.current || !quoteCurrent || invalidCart || !payment.ready) return
+    if (phoneProducts || submitting.current || !quoteCurrent || invalidCart || !payment.ready) return
     submitting.current = true
     setBusy(true)
     setError('')
@@ -153,6 +168,7 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
     if (event.key === 'Escape' && !busy) close()
     if (event.key !== 'Tab') return
     const elements = [...dialog.current.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled)')]
+      .filter(element => !element.closest('[hidden]'))
     if (event.shiftKey && (document.activeElement === elements[0] || document.activeElement === dialog.current)) { event.preventDefault(); elements.at(-1)?.focus() }
     else if (!event.shiftKey && document.activeElement === elements.at(-1)) { event.preventDefault(); elements[0]?.focus() }
   }
@@ -163,14 +179,15 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
       <div className="success-receipt"><div><span>Venta</span><strong>#{createdSale.id}</strong></div><div><span>Pago</span><strong>{paymentNames[createdSale.paymentMethod]}</strong></div><div><span>Unidades</span><strong>{createdSale.items.reduce((sum, item) => sum + item.quantity, 0)}</strong></div></div>
       <div className="success-actions">{receipt && <button onClick={printReceipt}><ReceiptText/>Imprimir comprobante</button>}<button className="primary" onClick={close}>Volver a ventas <ArrowRight/></button></div>
     </div>
+
   </section></div>
 
   return <div className="drawer-backdrop"><section className="sale-drawer pos-v2" role="dialog" aria-modal="true" aria-labelledby="sale-title" ref={dialog} tabIndex={-1} onKeyDown={keyDown}>
-    <header className="pos-header"><div><p className="eyebrow">Punto de venta · Caja principal</p><h2 id="sale-title">Registrar venta</h2></div><div className="pos-progress"><span className="active"><i>1</i>Productos</span><em/><span className={cart.length ? 'active' : ''}><i>2</i>Cobro</span><em/><span><i>3</i>Confirmación</span></div><button className="icon-btn" disabled={busy} onClick={close} aria-label="Cerrar venta"><X/></button></header>
-    <div className="drawer-grid pos-grid">
-      <section className="catalog pos-catalog" aria-label="Catálogo de productos"><div className="pos-tools"><label className="search"><Search/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Busca por nombre, categoría o código" aria-label="Buscar producto en el catálogo"/></label></div>
+    <header className="pos-header"><div><p className="eyebrow">Punto de venta · Caja principal</p><h2 id="sale-title">Registrar venta</h2></div><div className="pos-progress"><span className={phonePayment ? '' : 'active'} aria-current={phoneProducts ? 'step' : undefined}><i>1</i>Productos</span><em/><span className={phonePayment || (!phone && cart.length) ? 'active' : ''} aria-current={phonePayment ? 'step' : undefined}><i>2</i>Cobro</span><em/><span><i>3</i>Confirmación</span></div><button className="icon-btn" disabled={busy} onClick={close} aria-label="Cerrar venta"><X/></button></header>
+    <div className="drawer-grid pos-grid" ref={grid}>
+      <section className="catalog pos-catalog" aria-label="Catálogo de productos" hidden={phonePayment}><div className="pos-tools"><label className="search"><Search/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Busca por nombre, categoría o código" aria-label="Buscar producto en el catálogo"/></label></div>
         <div className="pos-categories">{categories.map((item) => <button className={category === item ? 'active' : ''} onClick={() => setCategory(item)} key={item}>{item}</button>)}</div>
-        <div className="catalog-meta"><div><p className="eyebrow">Catálogo</p><h3>{countLabel(visible.length, 'producto', 'productos')}</h3></div><span>Precios con IGV incluido</span></div>
+        <div className="catalog-meta"><div><p className="eyebrow">Catálogo</p><h3 ref={catalogHeading} tabIndex={phoneProducts ? -1 : undefined}>{countLabel(visible.length, 'producto', 'productos')}</h3></div><span>Precios con IGV incluido</span></div>
         {catalogLoading ? <Skeleton/> : catalogError ? <div><p className="form-error" role="alert">{catalogError}</p><button className="secondary" onClick={() => setRefresh((value) => value + 1)}>Reintentar</button></div> :
           !visible.length ? <EmptyState icon={<ShoppingBasket/>} title="Sin productos" copy="Revisa el catálogo o cambia la búsqueda."/> :
           <div className="catalog-grid pos-products">{visible.map((product) => {
@@ -181,9 +198,11 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
             </button>
           })}</div>}
       </section>
-      <form className="checkout-panel" onSubmit={confirmSale} aria-busy={busy}>
+      <form className="checkout-panel" hidden={phoneProducts} onSubmit={confirmSale} aria-busy={busy}>
         <div className="checkout-scroll">
-        <div className="checkout-top"><div><p className="eyebrow">Nueva venta</p><h3>Detalle del pedido</h3></div><span>{quote ? countLabel(quote.units, 'unidad', 'unidades') : '— unidades'}</span></div>
+        {phonePayment && !reservation && <button className="secondary mobile-sale-back" type="button" disabled={busy}
+          onClick={() => setStep('products')}><ArrowLeft aria-hidden="true"/>Volver a productos</button>}
+        <div className="checkout-top"><div><p className="eyebrow">Nueva venta</p><h3 ref={stepHeading} tabIndex={phonePayment ? -1 : undefined}>Detalle del pedido</h3></div><span>{quote ? countLabel(quote.units, 'unidad', 'unidades') : '— unidades'}</span></div>
         <button type="button" className="customer-select" disabled={busy || Boolean(reservation)} onClick={() => setChoosingCustomer((value) => !value)} aria-expanded={choosingCustomer}><UserRound/><div><span>Cliente</span><strong>{customer?.name || 'Venta sin cliente'}</strong></div><ChevronDown/></button>
         {choosingCustomer && <div className="sale-customer-search"><label className="search"><Search/><input aria-label="Buscar cliente registrado" placeholder="Nombre, correo o teléfono" value={customerQuery} onChange={(event) => setCustomerQuery(event.target.value)}/></label>
           <button className="text-btn" type="button" onClick={() => { changed(); setCustomer(null); setChoosingCustomer(false) }}>Continuar sin cliente</button>
@@ -242,6 +261,12 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
         </footer>
       </form>
     </div>
+    {phoneProducts && <footer className="mobile-sale-next">
+      <div aria-live="polite"><span>Total a cobrar</span><strong>{quoteCurrent ? currency(quote.total) : '—'}</strong></div>
+      <button type="button" className="primary" disabled={!cart.length || busy} onClick={() => setStep('payment')}>
+        Ir a cobro <ArrowRight aria-hidden="true"/>
+      </button>
+    </footer>}
   </section></div>
 }
 
