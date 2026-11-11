@@ -354,7 +354,12 @@
 .sales-page .sale-timestamp small { color: #625e56; font-variant-numeric: tabular-nums; }
 .product-catalog-page .catalog-hero .catalog-hero-description { color: #e1ece3; font-size: clamp(14px, 1.2vw, 17px); line-height: 1.5; }
 
-.purchase-header-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.purchase-header-actions .primary { white-space: normal; }
 .inventory-current-stock { align-content: start; }
 .inventory-current-stock strong { color: #213d2c; font-size: 16px; }
+
+.purchase-create-product { display: inline-flex; align-items: center; gap: 5px; margin: 6px 0 12px; }
+.purchase-create-product svg { width: 14px; height: 14px; }
+.inventory-drawer .purchase-reception { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.inventory-drawer .purchase-reception legend { padding: 0 4px; font-weight: 600; }
+.inventory-drawer .purchase-reception label { display: inline-flex; align-items: center; }
+.inventory-drawer .purchase-reception input[type="radio"] { width: 16px; height: 16px; margin: 0; accent-color: var(--forest); }

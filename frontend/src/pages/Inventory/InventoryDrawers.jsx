@@ -43,7 +43,7 @@ export function InventoryDrawer({ title, kicker, close, busy = false, children }
   </div>
 }
 
-export function ProductDrawer({ product, categories, close, saved }) {
+export function ProductDrawer({ product, categories, close, saved, fromPurchase = false }) {
   const editing = Boolean(product)
   const [form, setForm] = useState(() => ({
     name: product?.name ?? '', categoryId: product?.categoryId ?? categories[0]?.id ?? '',
@@ -100,7 +100,8 @@ export function ProductDrawer({ product, categories, close, saved }) {
           <strong>{quantityLabel(product.stock, product.unit)}</strong>
         </div> : <div className="quantity-field">
           <span>Stock inicial</span>
-          <DecimalInput label="Stock inicial" value={form.initialStock} onChange={value=>field('initialStock',value)} disabled={busy}/>
+          {fromPurchase ? <strong>0 · El stock se ingresará al recibir la compra.</strong>
+            : <DecimalInput label="Stock inicial" value={form.initialStock} onChange={value=>field('initialStock',value)} disabled={busy}/>}
         </div>}
         <div className="quantity-field">
           <span>Stock mínimo para alerta</span>
@@ -112,7 +113,7 @@ export function ProductDrawer({ product, categories, close, saved }) {
       <label className="access-toggle"><input type="checkbox" checked={form.isActive} onChange={(event) => field('isActive', event.target.checked)}/><span><strong>Producto activo</strong></span></label>
       {error && <p className="form-error" role="alert">{error}</p>}
       {!categories.length && <p className="form-error" role="alert">El catálogo aún no tiene categorías disponibles.</p>}
-      <button className="primary" disabled={busy || uploading || !categories.length}>{busy ? 'Guardando…' : 'Guardar producto'}</button>
+      <button className="primary" disabled={busy || uploading || !categories.length}>{busy ? 'Guardando…' : fromPurchase ? 'Crear producto y volver a la compra' : 'Guardar producto'}</button>
     </form>
   </InventoryDrawer>
 }

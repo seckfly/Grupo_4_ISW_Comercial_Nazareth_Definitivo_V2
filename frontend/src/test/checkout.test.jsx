@@ -467,7 +467,7 @@ it('Compras envía la mercadería ya recibida en una sola operación y conserva 
   const element = render(<Purchases/>)
   const button = label => [...element.querySelectorAll('button')].find(control => control.textContent === label)
   await settled(() => expect(element.textContent).toContain('Aún no hay compras registradas.'))
-  act(() => button('Registrar compra en mayorista').click())
+  act(() => button('Registrar compra').click())
   const form = element.querySelector('[role="dialog"] form')
   const data = { name: 'Mayorista QA', ruc: 'RUC QA', phone: '999999999', reference: 'BOLETA-QA-001' }
   for (const [key, value] of Object.entries(data)) type(form.elements[key], value)
@@ -484,9 +484,25 @@ it('Compras envía la mercadería ya recibida en una sola operación y conserva 
   })
   expect(api.createOrder).not.toHaveBeenCalled()
   expect(element.textContent).toContain('Compra registrada e ingresada al inventario.')
-  act(() => button('Nueva orden').click())
-  expect(button('Guardar orden')).toBeDefined()
+  act(() => button('Registrar compra').click())
+  act(() => element.querySelectorAll('input[name="received"]')[1].click())
   expect(element.querySelector('input[name="reference"]')).toBeNull()
+  api.createOrder.mockResolvedValue({ id: 9, status: 'pending' })
+  const pending = element.querySelector('[role="dialog"] form')
+  for (const name of ['name', 'ruc', 'phone']) type(pending.elements[name], data[name])
+  const pendingProduct = pending.querySelectorAll('select')[1]
+  act(() => {
+    pendingProduct.value = '1'
+    pendingProduct.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+  type(pending.querySelector('input[type="number"]'), '5.00')
+  await act(async () => button('Guardar orden pendiente').click())
+  expect(api.createOrder).toHaveBeenCalledWith({
+    supplierName: data.name, supplierRuc: data.ruc, supplierPhone: data.phone,
+    items: [{ productId: '1', quantity: '1', cost: '5.00' }],
+  })
+  expect(api.registerDirectPurchase).toHaveBeenCalledTimes(1)
+  expect(element.textContent).toContain('Orden registrada como pendiente.')
 })
 
 it('Editar producto presenta el stock actual como texto y mantiene el umbral editable', () => {
@@ -496,4 +512,42 @@ it('Editar producto presenta el stock actual como texto y mantiene el umbral edi
   expect(stock.textContent).toContain('4 Unidades')
   expect(stock.querySelector('input')).toBeNull()
   expect(element.querySelector('[aria-label="Stock mínimo para alerta"]')).not.toBeNull()
+})
+
+it('Compras conserva el formulario al crear un producto con stock cero y lo selecciona en su línea', async () => {
+  const previousData = inventoryState.data
+  inventoryState.data = { categories: [{ id: 1, name: 'Abarrotes' }], products: [] }
+  api.orders.mockResolvedValue([])
+  api.products.mockResolvedValue([])
+  api.createProduct.mockResolvedValue({ id: 9, name: 'Aceite nuevo', unit: 'Unidad', category: 'Abarrotes', cost: 5 })
+  try {
+    const element = render(<Purchases/>)
+    const button = label => [...element.querySelectorAll('button')].find(control => control.textContent === label)
+    await settled(() => expect(element.textContent).toContain('Aún no hay compras registradas.'))
+    act(() => button('Registrar compra').click())
+    const form = () => element.querySelector('[role="dialog"] form')
+    type(form().elements.name, 'Mayorista QA')
+    type(form().elements.ruc, 'RUC QA')
+    type(form().elements.phone, '999999999')
+    type(form().elements.reference, 'BOLETA-QA-002')
+    type(form().querySelector('[role="spinbutton"]'), '12')
+    act(() => button('Crear producto nuevo').click())
+    type(form().querySelector('input[placeholder^="Ej. Harina"]'), 'Aceite nuevo')
+    const [cost, price] = form().querySelectorAll('input[type="number"]')
+    type(cost, '5')
+    type(price, '7')
+    await act(async () => button('Crear producto y volver a la compra').click())
+
+    expect(api.createProduct).toHaveBeenCalledWith(expect.objectContaining({ name: 'Aceite nuevo', initialStock: 0 }))
+    expect(form().elements.name.value).toBe('Mayorista QA')
+    expect(form().elements.ruc.value).toBe('RUC QA')
+    expect(form().elements.phone.value).toBe('999999999')
+    expect(form().elements.reference.value).toBe('BOLETA-QA-002')
+    expect(form().querySelector('[role="spinbutton"]').value).toBe('12')
+    expect(form().querySelectorAll('select')[1].value).toBe('9')
+    expect(form().querySelector('input[type="number"]').value).toBe('5')
+    expect(api.registerDirectPurchase).not.toHaveBeenCalled()
+  } finally {
+    inventoryState.data = previousData
+  }
 })
