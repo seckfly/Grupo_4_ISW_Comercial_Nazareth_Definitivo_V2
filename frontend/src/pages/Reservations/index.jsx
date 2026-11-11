@@ -1,5 +1,6 @@
 import { useEffect,useState } from 'react'
 import PageHeader from '../../components/ui/PageHeader'
+import ProductPicker from '../../components/ui/ProductPicker'
 import { Card } from '../../components/ui/Card'
 import { InventoryDrawer } from '../Inventory/InventoryDrawers'
 import { api } from '../../services/api'
@@ -59,8 +60,24 @@ export default function Reservations({openSale}) {
   const [rows,setRows]=useState(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[revision,setRevision]=useState(0),[editing,setEditing]=useState(null),[items,setItems]=useState([]),[products,setProducts]=useState([])
   useEffect(()=>{let active=true;setError('');api.reservations().then(rows=>{if(active)setRows(rows)}).catch(error=>{if(active)setError(error.message)});return()=>{active=false}},[revision])
   async function act(id,input){if(busy)return;setBusy(true);setError('');try{await api.changeReservation(id,input);setEditing(null);setRevision(value=>value+1);refreshStock(value=>value+1)}catch(error){setError(error.message)}finally{setBusy(false)}}
-  async function edit(row){setError('');try{setProducts(await api.products());setItems(row.items.map(item=>({productId:item.productId,quantity:String(item.quantity)})));setEditing(row)}catch(error){setError(error.message)}}
-  function field(index,key,value){setItems(items.map((item,i)=>index===i?{...item,[key]:value}:item))}
+  async function edit(row) {
+    setError('')
+    try {
+      setProducts(await api.products())
+      setItems(row.items.map(item => ({
+        key: crypto.randomUUID(), productId: item.productId, query: item.name, quantity: String(item.quantity),
+      })))
+      setEditing(row)
+    } catch (error) { setError(error.message) }
+  }
+  function updateLine(key, changes) {
+    setItems(current => current.map(item => item.key === key ? { ...item, ...changes } : item))
+  }
+  function saveEdit(event) {
+    event.preventDefault()
+    if (!items.length || items.some(item => !item.productId)) return
+    act(editing.id, { action: 'edit', items: items.map(({ productId, quantity }) => ({ productId, quantity })) })
+  }
   const shown = rows?.filter(row => view === 'active' ? isActive(row) : !isActive(row))
   return <div className="page reservations-page"><PageHeader title="Reservas" kicker={admin?'Atención en tienda':'Mis solicitudes'} description="Solicitud, confirmación del apartado y recojo en tienda"/>
     {error&&<p className="form-error" role="alert">{error}</p>}
@@ -75,10 +92,26 @@ export default function Reservations({openSale}) {
       !shown.length ? <Card><p>{view === 'active' ? 'Aún no hay reservas activas.' : 'Aún no hay reservas en el historial.'}</p></Card> :
       shown.map(row => <ReservationCard key={row.id} row={row} admin={admin} busy={busy}
         onChange={act} onEdit={edit} onPickup={openSale}/>)}
-    {editing&&<InventoryDrawer title="Ajustar solicitud" close={()=>setEditing(null)} busy={busy}><form onSubmit={event=>{event.preventDefault();act(editing.id,{action:'edit',items})}}>
+    {editing && <InventoryDrawer title="Ajustar solicitud" close={() => setEditing(null)} busy={busy}><form onSubmit={saveEdit}>
       <p>Al guardar se libera cualquier apartado anterior y la solicitud vuelve a Pendiente de confirmación.</p>
-      {items.map((item,index)=>{const whole=usesWholeQuantity(products.find(product=>product.id===Number(item.productId))?.unit);return <div className="form-row" key={index}><label>Producto<select value={item.productId} onChange={event=>field(index,'productId',event.target.value)} required><option value="">Selecciona</option>{products.map(product=><option value={product.id} key={product.id}>{product.name} · {product.unit}</option>)}</select></label><div className="quantity-field">Cantidad<DecimalInput label={'Cantidad de la línea '+(index+1)} minUnits={whole?100:1} whole={whole} value={item.quantity} onChange={value=>field(index,'quantity',value)} disabled={busy}/></div><button className="text-btn" type="button" onClick={()=>setItems(items.filter((_,i)=>i!==index))}>Retirar producto</button></div>})}
-      <button className="secondary" type="button" disabled={items.length>=3} onClick={()=>setItems([...items,{productId:'',quantity:'1'}])}>Agregar producto</button>
+      {items.map((item, index) => {
+        const product = products.find(product => product.id === Number(item.productId))
+        const whole = usesWholeQuantity(product?.unit)
+        return <div className="purchase-line" key={item.key}>
+          <ProductPicker productId={item.productId} query={item.query} products={products} disabled={busy}
+            onSearch={query => updateLine(item.key, { query, productId: '' })}
+            onChoose={product => updateLine(item.key, { query: product.name, productId: product.id })}/>
+          <div className="reservation-edit-quantity">
+            <div className="quantity-field">Cantidad<DecimalInput label={'Cantidad de la línea ' + (index + 1)}
+              minUnits={whole ? 100 : 1} whole={whole} value={item.quantity}
+              onChange={quantity => updateLine(item.key, { quantity })} disabled={busy}/></div>
+            <button className="text-btn" type="button" disabled={busy}
+              onClick={() => setItems(current => current.filter(line => line.key !== item.key))}>Retirar producto</button>
+          </div>
+        </div>
+      })}
+      <button className="secondary" type="button" disabled={busy || items.length >= 3}
+        onClick={() => setItems(current => [...current, { key: crypto.randomUUID(), productId: '', query: '', quantity: '1' }])}>Agregar producto</button>
       {error&&<p className="form-error" role="alert">{error}</p>}<button className="primary" disabled={busy||!items.length}>Guardar solicitud</button>
     </form></InventoryDrawer>}
   </div>

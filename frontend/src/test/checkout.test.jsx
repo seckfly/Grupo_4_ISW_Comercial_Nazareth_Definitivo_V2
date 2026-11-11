@@ -21,7 +21,7 @@ vi.mock('../services/api', () => ({ api: {
   products: vi.fn(), quoteSale: vi.fn(), createSale: vi.fn(), saleCustomers: vi.fn(),
   sales: vi.fn(), productHistory: vi.fn(), updateProduct: vi.fn(), createProduct: vi.fn(),
   adjustInventory: vi.fn(),
-  promotions: vi.fn(), customers: vi.fn(),
+  promotions: vi.fn(), createPromotion: vi.fn(), customers: vi.fn(),
   dashboard: vi.fn(), users: vi.fn(), createUser: vi.fn(),
   orders: vi.fn(), receiveOrder: vi.fn(), registerDirectPurchase: vi.fn(),
   preferences:vi.fn(),savePreferences:vi.fn(),requestReservation:vi.fn(),reservations:vi.fn(),changeReservation:vi.fn(),uploadPhoto:vi.fn(),
@@ -233,6 +233,31 @@ it('Promociones distingue un monto fijo con centavos de un porcentaje máximo de
   expect(amount.closest('label').textContent).toContain('%')
 })
 
+it('Campañas encuentra productos al escribir y permite elegir del catálogo completo', async () => {
+  api.promotions.mockResolvedValue([])
+  api.products.mockResolvedValue([{ id: 1, name: 'Aceite QA', regular_price: 8 }, { id: 2, name: 'Arroz QA', regular_price: 10 }])
+  api.createPromotion.mockResolvedValue({})
+  const element = render(<Promotions/>)
+  await settled(() => expect(element.textContent).toContain('Aún no hay campañas'))
+  await act(async () => element.querySelector('.promo-create').click())
+  const form = element.querySelector('.campaign-modal-v5 form')
+  const search = form.querySelector('input[type="search"]')
+  const names = () => [...form.querySelectorAll('.product-picker-results button')].map(button => button.textContent)
+  type(search, 'aceite')
+  expect(names()).toEqual(['Aceite QA'])
+  expect(search.checkValidity()).toBe(false)
+  act(() => form.querySelector('.product-picker-browse').click())
+  expect(names()).toEqual(['Aceite QA', 'Arroz QA'])
+  act(() => form.querySelectorAll('.product-picker-results button')[1].click())
+  expect(search.value).toBe('Arroz QA')
+  expect(search.checkValidity()).toBe(true)
+  type(form.elements.discountValue, '10')
+  type(form.elements.startDate, '2026-11-11')
+  type(form.elements.endDate, '2026-11-12')
+  await act(async () => form.querySelector('.primary').click())
+  expect(api.createPromotion).toHaveBeenCalledWith(expect.objectContaining({ productId: 2, discountValue: '10' }))
+})
+
 it('Promociones no recupera campañas de muestra desde localStorage', async () => {
   localStorage.setItem('nazareth_campaigns', JSON.stringify([{ id: 1, product: 'Muestra antigua' }]))
   api.promotions.mockResolvedValue([])
@@ -434,6 +459,27 @@ it.each(['admin', 'client'])('Reservas separa solicitudes activas e historial pa
   expect(api.reservations).toHaveBeenCalledTimes(1)
 })
 
+it('Reservas conserva el producto al abrir el ajuste y guarda el que se elige al buscar', async () => {
+  const products = [{ id: 1, name: 'Aceite QA', unit: 'Unidad' }, { id: 2, name: 'Arroz QA', unit: 'Kg' }]
+  api.reservations.mockResolvedValue([{ id: 7, status: 'pending', pickup_code: 'NZ-QA',
+    pickup_deadline: '2026-11-12T18:00:00Z', estimated_total: 8, customerName: 'Cliente Demo',
+    items: [{ productId: 1, name: 'Aceite QA', unit: 'Unidad', quantity: 1 }] }])
+  api.products.mockResolvedValue(products)
+  api.changeReservation.mockResolvedValue({})
+  const element = render(<Reservations/>)
+  await settled(() => expect(element.textContent).toContain('NZ-QA'))
+  await act(async () => [...element.querySelectorAll('button')].find(button => button.textContent === 'Ajustar solicitud').click())
+  const form = element.querySelector('[role="dialog"] form')
+  const search = form.querySelector('input[type="search"]')
+  expect(search.value).toBe('Aceite QA')
+  type(search, 'arroz')
+  expect(search.checkValidity()).toBe(false)
+  act(() => form.querySelector('.product-picker-results button').click())
+  type(form.querySelector('[role="spinbutton"]'), '1.25')
+  await act(async () => form.querySelector('.primary').click())
+  expect(api.changeReservation).toHaveBeenCalledWith(7, { action: 'edit', items: [{ productId: 2, quantity: '1.25' }] })
+})
+
 it('Inventario muestra disponible, físico, apartado y mínimo en lista y tarjetas', () => {
   const previousData = inventoryState.data
   inventoryState.data = { categories: [], products: [{
@@ -525,7 +571,7 @@ it('Compras registra la mercadería en una sola operación', async () => {
   const data = { name: 'Mayorista QA', ruc: 'RUC QA', phone: '999999999', reference: 'BOLETA-QA-001' }
   for (const [key, value] of Object.entries(data)) type(form.elements[key], value)
   const product = form.querySelector('input[type="search"]')
-  const browse = form.querySelector('.purchase-browse-products')
+  const browse = form.querySelector('.product-picker-browse')
   act(() => browse.click())
   expect(browse.getAttribute('aria-expanded')).toBe('true')
   expect(form.querySelector('[aria-label="Todos los productos"] button').textContent).toBe('Aceite QA')
@@ -536,11 +582,11 @@ it('Compras registra la mercadería en una sola operación', async () => {
   expect(form.textContent).toContain('No encontramos ese producto.')
   expect(product.checkValidity()).toBe(false)
   type(product, 'aceite')
-  expect(form.querySelector('.purchase-product-results button').textContent).toBe('Aceite QA')
+  expect(form.querySelector('.product-picker-results button').textContent).toBe('Aceite QA')
   expect(product.checkValidity()).toBe(false)
   act(() => button('Aceite QA').click())
   expect(product.checkValidity()).toBe(true)
-  expect(form.querySelector('.purchase-product-results')).toBeNull()
+  expect(form.querySelector('.product-picker-results')).toBeNull()
   type(form.querySelector('input[type="number"]'), '5.00')
   expect(form.querySelector('.purchase-remove-product')).toBeNull()
   act(() => button('Agregar otro producto').click())

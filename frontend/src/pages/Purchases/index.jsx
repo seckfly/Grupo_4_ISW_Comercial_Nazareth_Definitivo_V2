@@ -1,9 +1,10 @@
-import { useEffect, useId, useRef, useState } from 'react'
-import { ChevronDown, Plus, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Plus, X } from 'lucide-react'
 import { decimalUnits, lineAmount } from '../../../../shared/numbers.mjs'
 import DecimalInput from '../../components/ui/DecimalInput'
 import AmountInput from '../../components/ui/AmountInput'
 import PageHeader from '../../components/ui/PageHeader'
+import ProductPicker from '../../components/ui/ProductPicker'
 import { Card } from '../../components/ui/Card'
 import { InventoryDrawer, ProductDrawer } from '../Inventory/InventoryDrawers'
 import { api } from '../../services/api'
@@ -17,58 +18,6 @@ const purchaseLine = () => ({
   cost: '',
 })
 const emptySupplier = { name: '', ruc: '', phone: '', reference: '' }
-
-function PurchaseProductField({ item, products, disabled, onSearch, onChoose, onCreate }) {
-  const input = useRef(null)
-  const resultsId = useId()
-  const [view, setView] = useState(null)
-  const term = item.query.trim().toLocaleLowerCase('es')
-  const needsSelection = !item.productId && Boolean(item.query)
-  const matches = view === 'all' ? products : products.filter(product => product.name.toLocaleLowerCase('es').includes(term))
-
-  useEffect(() => {
-    input.current?.setCustomValidity(needsSelection ? 'Selecciona un producto de la lista.' : '')
-  }, [needsSelection])
-
-  return <div className="purchase-product-field" onBlur={event => {
-    if (!event.currentTarget.contains(event.relatedTarget)) setView(null)
-  }} onKeyDown={event => {
-    if (event.key === 'Escape' && view) {
-      event.stopPropagation()
-      setView(null)
-      input.current?.focus()
-    }
-  }}>
-    <div className="purchase-product-controls">
-      <label>Producto<input ref={input} type="search" required autoComplete="off"
-        placeholder="Escribe el nombre del producto" value={item.query} disabled={disabled}
-        onFocus={event => { if (item.productId) event.currentTarget.select() }}
-        onChange={event => {
-          onSearch(event.target.value)
-          setView(event.target.value.trim() ? 'search' : null)
-        }}/></label>
-      <button type="button" className="secondary purchase-browse-products" disabled={disabled}
-        aria-expanded={view === 'all'} aria-controls={resultsId}
-        onClick={() => setView(view === 'all' ? null : 'all')}>
-        Ver productos <ChevronDown aria-hidden="true"/>
-      </button>
-    </div>
-    <div id={resultsId} hidden={!view}>
-      {view && (matches.length > 0
-        ? <ul className="purchase-product-results" aria-label={view === 'all' ? 'Todos los productos' : 'Productos encontrados'}>
-          {matches.map(product => <li key={product.id}>
-            <button type="button" disabled={disabled} onClick={() => {
-              onChoose(product)
-              setView(null)
-              input.current?.focus()
-            }}>{product.name}</button>
-          </li>)}
-        </ul>
-        : <p className="purchase-product-empty" role="status">{view === 'all' ? 'Aún no hay productos registrados.' : 'No encontramos ese producto.'}</p>)}
-    </div>
-    <button type="button" className="text-btn purchase-create-product" disabled={disabled} onClick={onCreate}><Plus/>Crear producto nuevo</button>
-  </div>
-}
 
 const purchaseStatuses = { pending: 'Pendiente', received: 'Recibida', cancelled: 'Anulada' }
 const purchaseTotals = { pending: 'Total estimado', received: 'Total de la compra', cancelled: 'Total de la orden' }
@@ -190,10 +139,11 @@ export default function Purchases() {
             <X aria-hidden="true"/>Quitar
           </button>}
         </div>
-        <PurchaseProductField item={item} products={products} disabled={busy}
+        <ProductPicker productId={item.productId} query={item.query} products={products} disabled={busy}
           onSearch={query => updateLine(item.key, { query, productId: '' })}
-          onChoose={product => updateLine(item.key, { query: product.name, productId: product.id })}
-          onCreate={() => setNewProductLine(item.key)}/>
+          onChoose={product => updateLine(item.key, { query: product.name, productId: product.id })}/>
+        <button type="button" className="text-btn purchase-create-product" disabled={busy}
+          onClick={() => setNewProductLine(item.key)}><Plus/>Crear producto nuevo</button>
         <div className="form-row">
           <div className="quantity-field">Cantidad<DecimalInput label={'Cantidad de la línea ' + (index + 1)}
             minUnits={1} value={item.quantity} onChange={quantity => updateLine(item.key, { quantity })} disabled={busy}/></div>

@@ -2,6 +2,7 @@ import AmountInput from '../../components/ui/AmountInput'
 import { useEffect, useState } from 'react'
 import { ArrowRight, BadgePercent, CalendarDays, Plus, Search, X } from 'lucide-react'
 import PageHeader from '../../components/ui/PageHeader'
+import ProductPicker from '../../components/ui/ProductPicker'
 import { EmptyState, Skeleton } from '../../components/ui/States'
 import { useAuth } from '../../context/AuthContext'
 import { api } from '../../services/api'
@@ -59,11 +60,13 @@ function CampaignModal({ campaign, close, saved }) {
   const [discountType, setDiscountType] = useState(campaign?.discountType || 'percentage')
   const [error, setError] = useState('')
   const [products, setProducts] = useState([])
-  const [productId,setProductId]=useState(campaign?.productId||'')
+  const [selection, setSelection] = useState({ productId: campaign?.productId ?? '', query: campaign?.product ?? '' })
   const [discountValue,setDiscountValue]=useState(campaign?.discountValue??'')
   let preview=null
-  const product=products.find(product=>product.id===Number(productId))
-  try {if(product||campaign)preview=promotionPrice(product?.regular_price??product?.sale_price??campaign.regularPrice,discountType,discountValue)}catch{}
+  const product = products.find(product => product.id === Number(selection.productId))
+  const regularPrice = product?.regular_price ?? product?.sale_price ??
+    (selection.productId === campaign?.productId ? campaign?.regularPrice : undefined)
+  try { if (regularPrice !== undefined) preview = promotionPrice(regularPrice, discountType, discountValue) } catch {}
   useEffect(() => {
     let active = true
     api.products().then(rows => { if (active) setProducts(rows) }).catch(failure => { if (active) setError(failure.message) })
@@ -71,9 +74,11 @@ function CampaignModal({ campaign, close, saved }) {
   }, [])
   const [busy,setBusy]=useState(false)
   async function save(event) {
-    event.preventDefault();setError('');setBusy(true)
+    event.preventDefault()
+    if (busy || !selection.productId) return
+    setError('');setBusy(true)
     const form=new FormData(event.currentTarget)
-    const data={productId:Number(form.get('productId')),discountType,discountValue:form.get('discountValue'),startDate:form.get('startDate')+'T00:00:00-05:00',endDate:form.get('endDate')+'T23:59:59-05:00',status:form.get('status')}
+    const data={productId:Number(selection.productId),discountType,discountValue:form.get('discountValue'),startDate:form.get('startDate')+'T00:00:00-05:00',endDate:form.get('endDate')+'T23:59:59-05:00',status:form.get('status')}
     try{if(campaign)await api.updatePromotion(campaign.id,data);else await api.createPromotion(data);saved()}catch(error){setError(error.message)}finally{setBusy(false)}
   }
   return <div className="promo-modal campaign-modal-v5" onMouseDown={(event) => event.target === event.currentTarget && close()}>
@@ -81,7 +86,9 @@ function CampaignModal({ campaign, close, saved }) {
       <button type="button" onClick={close} aria-label="Cerrar campaña"><X/></button>
       {<>
         <p className="eyebrow">Nueva campaña</p><h3>{campaign ? 'Editar promoción' : 'Crear promoción'}</h3>
-        <label>Producto<select name="productId" required value={productId} onChange={event=>setProductId(event.target.value)}><option value="">Selecciona un producto</option>{campaign&&!products.some(product=>product.id===campaign.productId)&&<option value={campaign.productId}>{campaign.product}</option>}{products.map((product) => <option value={product.id} key={product.id}>{product.name}</option>)}</select></label>
+        <ProductPicker productId={selection.productId} query={selection.query} products={products} disabled={busy}
+          onSearch={query => setSelection({ query, productId: '' })}
+          onChoose={product => setSelection({ query: product.name, productId: product.id })}/>
         <div><label>{discountType === 'percentage' ? 'Descuento (%)' : 'Descuento (S/)'}<AmountInput name="discountValue" min="0.01" step="0.01" max={discountType === 'percentage' ? 100 : 99999999.99} value={discountValue} onChange={event=>setDiscountValue(event.target.value)} required/></label>
           <label>Tipo<select name="discountType" value={discountType} onChange={(event) => setDiscountType(event.target.value)}><option value="percentage">Porcentaje</option><option value="fixed">Monto fijo</option></select></label></div>
         <div><label>Inicio<input name="startDate" type="date" defaultValue={dateInput(campaign?.startDate)} required/></label><label>Fin<input name="endDate" type="date" defaultValue={dateInput(campaign?.endDate)} required/></label></div>
