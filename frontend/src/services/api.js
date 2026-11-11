@@ -37,7 +37,11 @@ export const api = {
   profile: (token, signal) => request('/auth/me', { token, signal }),
   products: () => request('/products'),
   inventory: (signal) => request('/inventory', { signal }),
-  createProduct: (product) => request('/inventory/products', { method: 'POST', body: JSON.stringify(product) }),
+  createProduct: async (product) => {
+    const created = await request('/inventory/products', { method: 'POST', body: JSON.stringify(product) })
+    if (!created?.id) throw new TypeError('No se recibió la confirmación del producto')
+    return created
+  },
   updateProduct: (id, product) => request('/inventory/products/' + id, { method: 'PUT', body: JSON.stringify(product) }),
   productHistory: (id, signal) => request('/inventory/products/' + id + '/history', { signal }),
   adjustInventory: (id, adjustment) => request('/inventory/products/' + id + '/adjustments', { method: 'POST', body: JSON.stringify(adjustment) }),

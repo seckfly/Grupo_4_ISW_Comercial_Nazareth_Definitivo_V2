@@ -43,6 +43,10 @@ export function InventoryDrawer({ title, kicker, close, busy = false, children }
   </div>
 }
 
+function productConnectionError(error) {
+  return error instanceof TypeError || [502, 503, 504].includes(error.status)
+}
+
 export function ProductDrawer({ product, categories, close, saved, fromPurchase = false }) {
   const editing = Boolean(product)
   const [form, setForm] = useState(() => ({
@@ -55,6 +59,7 @@ export function ProductDrawer({ product, categories, close, saved, fromPurchase 
   const [uploading,setUploading]=useState(false)
   const [error, setError] = useState('')
   const submitting = useRef(false)
+  const creation = useRef(null)
   const units = [...new Set(['Unidad', 'Paquete', 'Kg', ...(product ? [product.unit] : [])])]
 
   function field(key, value) { setForm((current) => ({ ...current, [key]: value })) }
@@ -63,6 +68,20 @@ export function ProductDrawer({ product, categories, close, saved, fromPurchase 
     if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>2*1024*1024){setError('Usa JPEG, PNG o WebP de hasta 2 MiB.');return}
     setUploading(true);setError('')
     try {const result=await api.uploadPhoto(file);field('imageUrl',result.url)}catch(error){setError(error.message)}finally{setUploading(false)}
+  }
+  async function create() {
+    const signature = JSON.stringify(form)
+    if (creation.current?.signature !== signature) {
+      creation.current = { signature, requestId: crypto.randomUUID() }
+    }
+    const data = { ...form, requestId: creation.current.requestId }
+    try {
+      return await api.createProduct(data)
+    } catch (error) {
+      if (!productConnectionError(error)) throw error
+      await new Promise(resolve => setTimeout(resolve, 350))
+      return api.createProduct(data)
+    }
   }
   async function submit(event) {
     event.preventDefault()
@@ -74,9 +93,13 @@ export function ProductDrawer({ product, categories, close, saved, fromPurchase 
       for (const key of ['cost', 'price', 'minimum', ...(!editing ? ['initialStock'] : [])]) {
         decimalUnits(form[key], { label: key === 'cost' ? 'El costo' : key === 'price' ? 'El precio' : key === 'minimum' ? 'El mínimo' : 'El stock inicial' })
       }
-      const result = editing ? await api.updateProduct(product.id, form) : await api.createProduct(form)
+      const result = editing ? await api.updateProduct(product.id, form) : await create()
       saved(result, editing ? 'Producto actualizado.' : 'Producto registrado.')
-    } catch (error) { setError(error.message) } finally { submitting.current = false; setBusy(false) }
+    } catch (error) {
+      setError(productConnectionError(error)
+        ? 'No pudimos confirmar el guardado. Tus datos siguen aquí. Pulsa el botón para volver a intentar.'
+        : error.message)
+    } finally { submitting.current = false; setBusy(false) }
   }
 
   return <InventoryDrawer title={editing ? 'Editar producto' : 'Agregar producto'} kicker={editing ? 'Mantenimiento' : 'Nuevo registro'} close={close} busy={busy||uploading}>

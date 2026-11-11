@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { ChevronDown, Plus } from 'lucide-react'
 import { decimalUnits } from '../../../../shared/numbers.mjs'
 import DecimalInput from '../../components/ui/DecimalInput'
 import AmountInput from '../../components/ui/AmountInput'
@@ -20,28 +20,52 @@ const emptySupplier = { name: '', ruc: '', phone: '', reference: '' }
 
 function PurchaseProductField({ item, products, disabled, onSearch, onChoose, onCreate }) {
   const input = useRef(null)
+  const resultsId = useId()
+  const [view, setView] = useState(null)
   const term = item.query.trim().toLocaleLowerCase('es')
   const needsSelection = !item.productId && Boolean(item.query)
-  const searching = needsSelection && Boolean(term)
-  const matches = searching ? products.filter(product => product.name.toLocaleLowerCase('es').includes(term)) : []
+  const matches = view === 'all' ? products : products.filter(product => product.name.toLocaleLowerCase('es').includes(term))
 
   useEffect(() => {
-    input.current?.setCustomValidity(needsSelection ? 'Selecciona un producto de los resultados.' : '')
+    input.current?.setCustomValidity(needsSelection ? 'Selecciona un producto de la lista.' : '')
   }, [needsSelection])
 
-  return <div className="purchase-product-field">
-    <label>Producto<input ref={input} type="search" required autoComplete="off"
-      placeholder="Escribe el nombre del producto" value={item.query} disabled={disabled}
-      onFocus={event => { if (item.productId) event.currentTarget.select() }}
-      onChange={event => onSearch(event.target.value)}/></label>
-    {searching && (matches.length > 0
-      ? <ul className="purchase-product-results" aria-label="Productos encontrados">
-        {matches.slice(0, 6).map(product => <li key={product.id}>
-          <button type="button" disabled={disabled} onClick={() => onChoose(product)}>{product.name}</button>
-        </li>)}
-      </ul>
-      : <p className="purchase-product-empty" role="status">No encontramos ese producto.</p>)}
-    {matches.length > 6 && <p className="purchase-product-empty">Escribe más letras para acotar la búsqueda.</p>}
+  return <div className="purchase-product-field" onBlur={event => {
+    if (!event.currentTarget.contains(event.relatedTarget)) setView(null)
+  }} onKeyDown={event => {
+    if (event.key === 'Escape' && view) {
+      event.stopPropagation()
+      setView(null)
+      input.current?.focus()
+    }
+  }}>
+    <div className="purchase-product-controls">
+      <label>Producto<input ref={input} type="search" required autoComplete="off"
+        placeholder="Escribe el nombre del producto" value={item.query} disabled={disabled}
+        onFocus={event => { if (item.productId) event.currentTarget.select() }}
+        onChange={event => {
+          onSearch(event.target.value)
+          setView(event.target.value.trim() ? 'search' : null)
+        }}/></label>
+      <button type="button" className="secondary purchase-browse-products" disabled={disabled}
+        aria-expanded={view === 'all'} aria-controls={resultsId}
+        onClick={() => setView(view === 'all' ? null : 'all')}>
+        Ver productos <ChevronDown aria-hidden="true"/>
+      </button>
+    </div>
+    <div id={resultsId} hidden={!view}>
+      {view && (matches.length > 0
+        ? <ul className="purchase-product-results" aria-label={view === 'all' ? 'Todos los productos' : 'Productos encontrados'}>
+          {matches.map(product => <li key={product.id}>
+            <button type="button" disabled={disabled} onClick={() => {
+              onChoose(product)
+              setView(null)
+              input.current?.focus()
+            }}>{product.name}</button>
+          </li>)}
+        </ul>
+        : <p className="purchase-product-empty" role="status">{view === 'all' ? 'Aún no hay productos registrados.' : 'No encontramos ese producto.'}</p>)}
+    </div>
     <button type="button" className="text-btn purchase-create-product" disabled={disabled} onClick={onCreate}><Plus/>Crear producto nuevo</button>
   </div>
 }

@@ -36,7 +36,7 @@ before(async () => {
   await postgres.admin.query(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
     CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY, email text NOT NULL);
     CREATE TABLE auth.sessions (id uuid PRIMARY KEY, user_id uuid, not_after timestamptz)`)
-  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql']) {
+  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql']) {
     await postgres.admin.query(await readFile(new URL('../../database/migrations/' + file, import.meta.url), 'utf8'))
   }
   pool = await postgres.applicationPool()
@@ -99,6 +99,22 @@ async function salePayload(id, changes = {}) {
   assert.equal(quote.status, 200, JSON.stringify(quote.body))
   return { ...payload, quoteId: quote.body.quoteId }
 }
+
+test('Reintentar un alta concurrente devuelve el mismo producto y registra una sola entrada', async () => {
+  const body = { name: 'Producto QA', categoryId: 1, unit: 'Unidad', cost: 4, price: '6.70',
+    initialStock: 10, minimum: 5, requestId: randomUUID() }
+  const create = payload => request('/api/inventory/products', { method: 'POST', body: payload })
+  const [first, retry] = await Promise.all([create(body), create(body)])
+  assert.equal(first.status, 201, JSON.stringify(first.body))
+  assert.equal(retry.status, 201, JSON.stringify(retry.body))
+  assert.equal(first.body.id, retry.body.id)
+  const inventory = await request('/api/inventory')
+  assert.equal(inventory.body.products.length, 1)
+  assert.equal(inventory.body.products[0].stock, 10)
+  const history = await request('/api/inventory/products/' + first.body.id + '/history')
+  assert.equal(history.body.movements.length, 1)
+  assert.equal((await create({ ...body, name: 'Otro producto' })).status, 409)
+})
 
 test('PRU-005/006/008: proveedor, orden sin stock, recepción parcial, exceso, duplicados y anulación',async()=>{
   const p=await product({initialStock:4,minimum:5}),q=await product({name:'Segundo QA'})

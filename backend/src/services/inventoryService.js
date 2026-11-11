@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { decimalUnits, decimalText, positiveId, inputError as invalid } from '../../../shared/numbers.mjs'
 import { lockStock, heldSql } from './stockService.js'
 import { photoUrl } from './photoService.js'
@@ -29,11 +30,13 @@ export function productInput(input, creating) {
   }
 }
 
+const requestIdPattern = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i
+
 export function adjustmentInput(input) {
   if (!input || typeof input.reason !== 'string' || !input.reason.trim()) {
     throw invalid('Ingresa un motivo con al menos un carácter distinto de espacios')
   }
-  if (typeof input.requestId !== 'string' || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(input.requestId)) {
+  if (typeof input.requestId !== 'string' || !requestIdPattern.test(input.requestId)) {
     throw invalid('La solicitud de ajuste no es válida')
   }
   const change = decimal(input.change, 'La variación', true)
@@ -87,19 +90,32 @@ export async function productHistory(db, productId) {
 
 export async function createProduct(db, input, userId) {
   const data = productInput(input, true)
+  const { requestId } = input
+  if (requestId !== undefined && (typeof requestId !== 'string' || !requestIdPattern.test(requestId))) {
+    throw invalid('La solicitud de creación no es válida')
+  }
+  const values = [data.categoryId, data.name, data.unit, data.cost, data.price, data.initialStock,
+    data.minimum, data.isActive, data.imageUrl ?? null]
+  const fingerprint = requestId && createHash('sha256').update(JSON.stringify([userId, ...values])).digest('hex')
   const connection = await db.connect()
   try {
     await connection.query('BEGIN')
     const { rows: [created] } = await connection.query(`INSERT INTO nazareth.products
-      (category_id, name, unit, cost_price, sale_price, current_stock, min_stock_threshold, is_active,image_url)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8,$9) RETURNING id`,
-    [data.categoryId, data.name, data.unit, data.cost, data.price, data.initialStock, data.minimum, data.isActive,data.imageUrl??null])
-    if (Number(data.initialStock) > 0) {
+      (category_id, name, unit, cost_price, sale_price, current_stock, min_stock_threshold, is_active, image_url${requestId ? ', creation_request_id, creation_request_fingerprint' : ''})
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9${requestId ? ', $10, $11' : ''})
+      ${requestId ? 'ON CONFLICT (creation_request_id) DO NOTHING' : ''} RETURNING id`,
+    requestId ? [...values, requestId, fingerprint] : values)
+    const record = created ?? (await connection.query(`SELECT id, creation_request_fingerprint
+      FROM nazareth.products WHERE creation_request_id = $1`, [requestId])).rows[0]
+    if (!created && record?.creation_request_fingerprint !== fingerprint) {
+      throw invalid('La solicitud de creación ya se utilizó con otros datos', 409)
+    }
+    if (created && Number(data.initialStock) > 0) {
       await connection.query(`INSERT INTO nazareth.inventory_movements
         (product_id, type, quantity_change, stock_before, stock_after, reason, created_by)
         VALUES ($1, 'entry', $2, 0, $2, 'Stock inicial', $3)`, [created.id, data.initialStock, userId])
     }
-    const product = await productById(connection, created.id)
+    const product = await productById(connection, record.id)
     await connection.query('COMMIT')
     return product
   } catch (error) {

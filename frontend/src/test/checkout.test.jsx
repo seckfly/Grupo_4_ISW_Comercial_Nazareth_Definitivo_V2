@@ -472,6 +472,13 @@ it('Compras envía la mercadería ya recibida en una sola operación y conserva 
   const data = { name: 'Mayorista QA', ruc: 'RUC QA', phone: '999999999', reference: 'BOLETA-QA-001' }
   for (const [key, value] of Object.entries(data)) type(form.elements[key], value)
   const product = form.querySelector('input[type="search"]')
+  const browse = form.querySelector('.purchase-browse-products')
+  act(() => browse.click())
+  expect(browse.getAttribute('aria-expanded')).toBe('true')
+  expect(form.querySelector('[aria-label="Todos los productos"] button').textContent).toBe('Aceite QA')
+  act(() => button('Aceite QA').click())
+  expect(product.value).toBe('Aceite QA')
+  expect(browse.getAttribute('aria-expanded')).toBe('false')
   type(product, 'sin coincidencias')
   expect(form.textContent).toContain('No encontramos ese producto.')
   expect(product.checkValidity()).toBe(false)
@@ -525,11 +532,13 @@ it('Editar producto presenta el stock actual como texto y mantiene el umbral edi
   expect(element.querySelector('[aria-label="Stock mínimo para alerta"]')).not.toBeNull()
 })
 
-it('Compras conserva el formulario al crear un producto con stock cero y lo selecciona en su línea', async () => {
+it.each([false, true])('Compras conserva la solicitud y la línea al reintentar (reintento manual: %s)', async manualRetry => {
   const previousData = inventoryState.data
   inventoryState.data = { categories: [{ id: 1, name: 'Abarrotes' }], products: [] }
   api.orders.mockResolvedValue([])
   api.products.mockResolvedValue([])
+  api.createProduct.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+  if (manualRetry) api.createProduct.mockRejectedValueOnce(new TypeError('Failed to fetch'))
   api.createProduct.mockResolvedValue({ id: 9, name: 'Aceite nuevo', unit: 'Unidad', category: 'Abarrotes', cost: 5 })
   try {
     const element = render(<Purchases/>)
@@ -547,9 +556,22 @@ it('Compras conserva el formulario al crear un producto con stock cero y lo sele
     const [cost, price] = form().querySelectorAll('input[type="number"]')
     type(cost, '5')
     type(price, '7')
-    await act(async () => button('Crear producto y volver a la compra').click())
+    const createButton = () => button('Crear producto y volver a la compra')
+    vi.useFakeTimers()
+    await act(async () => {
+      createButton().click()
+      await vi.advanceTimersByTimeAsync(350)
+    })
 
-    expect(api.createProduct).toHaveBeenCalledWith(expect.objectContaining({ name: 'Aceite nuevo', initialStock: 0 }))
+    if (manualRetry) {
+      expect(form().querySelector('[role="alert"]')?.textContent).toContain('No pudimos confirmar el guardado')
+      expect(form().textContent).not.toContain('Failed to fetch')
+      expect(form().querySelector('input[placeholder^="Ej. Harina"]').value).toBe('Aceite nuevo')
+      await act(async () => createButton().click())
+    }
+    expect(api.createProduct).toHaveBeenCalledTimes(manualRetry ? 3 : 2)
+    expect(api.createProduct).toHaveBeenCalledWith(expect.objectContaining({ name: 'Aceite nuevo', initialStock: 0, requestId: expect.any(String) }))
+    for (const [payload] of api.createProduct.mock.calls) expect(payload).toEqual(api.createProduct.mock.calls[0][0])
     expect(form().elements.name.value).toBe('Mayorista QA')
     expect(form().elements.ruc.value).toBe('RUC QA')
     expect(form().elements.phone.value).toBe('999999999')
@@ -559,6 +581,7 @@ it('Compras conserva el formulario al crear un producto con stock cero y lo sele
     expect(form().querySelector('input[type="number"]').value).toBe('5')
     expect(api.registerDirectPurchase).not.toHaveBeenCalled()
   } finally {
+    vi.useRealTimers()
     inventoryState.data = previousData
   }
 })
