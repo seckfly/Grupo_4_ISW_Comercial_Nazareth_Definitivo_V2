@@ -258,6 +258,7 @@ it('Resumen distingue error y vacío y vuelve a consultar las operaciones al ent
   await settled(() => expect(element.textContent).toContain('No hay productos en alerta de stock.'))
   expect(element.textContent).toContain('Aún no hay datos suficientes')
   expect(element.textContent).toContain('0 operaciones')
+  expect(element.textContent).toContain('Productos con stock bajo')
   api.dashboard.mockResolvedValue({ ...empty, today: { ...empty.today, total: 20.1, saleCount: 1, cashTotal: 20.1 } })
   act(() => root.render(null))
   act(() => root.render(<Overview/>))
@@ -276,6 +277,8 @@ it('CU-005: catálogo sin foto permite solicitar con cantidad decimal y consulta
   expect(element.querySelector('.photo-neutral')).not.toBeNull()
   expect(element.querySelector('.product-copy').firstElementChild.textContent).toBe('Producto real QA')
   expect(element.querySelector('.catalog-product-stock').textContent).toContain('3 Kg en tienda')
+  expect(element.querySelector('.catalog-hero-description').textContent).toContain('recoger en tienda')
+  expect(element.querySelector('.catalog-hero').textContent).not.toContain('Catálogo registrado')
   await act(async()=>element.querySelector('.product-copy button').click())
   type(element.querySelector('[aria-label="Cantidad para separar Producto real QA"]'),'0.25')
   await act(async()=>[...element.querySelectorAll('button')].find(button=>button.textContent.includes('Solicitar separación')).click())
@@ -418,7 +421,7 @@ it('Inventario muestra disponible, físico, apartado y mínimo en lista y tarjet
     const element = render(<Inventory/>)
     const checkStock = () => {
       const stock = element.querySelector('.inventory-stock')
-      expect([...stock.querySelectorAll('dt')].map(label => label.textContent)).toEqual(['Disponible', 'Físico', 'Apartado', 'Mínimo'])
+      expect([...stock.querySelectorAll('dt')].map(label => label.textContent)).toEqual(['Disponible', 'Físico', 'Apartado', 'Stock mínimo para alerta'])
       expect([...stock.querySelectorAll('dd')].map(value => value.firstChild.textContent)).toEqual(['4 Unidades', '4 Unidades', '0 Unidades', '5 Unidades'])
       expect(stock.querySelector('.inventory-stock-alert').textContent).toBe('Requiere atención')
     }
@@ -428,4 +431,28 @@ it('Inventario muestra disponible, físico, apartado y mínimo en lista y tarjet
   } finally {
     inventoryState.data = previousData
   }
+})
+
+it('Ventas muestra fecha y hora de Lima para ventas de distintos días en la última semana', async () => {
+  const summary = { total: 40.2, cashTotal: 40.2, digitalTotal: 0, saleCount: 2 }
+  api.sales.mockImplementation(async period => ({
+    summary,
+    sales: period === 'week' ? [
+      { ...savedSale, createdAt: '2026-11-11T03:40:00Z' },
+      { ...savedSale, id: 356, createdAt: '2026-11-10T03:40:00Z' },
+    ] : [],
+  }))
+  const element = render(<Sales/>)
+  const period = element.querySelector('[aria-label="Periodo de ventas"]')
+  act(() => {
+    period.value = 'week'
+    period.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+  await settled(() => expect(element.querySelectorAll('tbody time')).toHaveLength(2))
+  expect(element.querySelector('th:nth-child(2)').textContent).toBe('Fecha y hora')
+  const dates = [...element.querySelectorAll('tbody time')].map(time => [...time.children].map(part => part.textContent))
+  expect(dates).toEqual([
+    ['10 de noviembre de 2026', '22:40:00'],
+    ['9 de noviembre de 2026', '22:40:00'],
+  ])
 })

@@ -96,7 +96,11 @@ export function ProductDrawer({ product, categories, close, saved }) {
       </div>
       <div className="form-row">
         <div className="quantity-field">{editing ? 'Stock actual' : 'Stock inicial'}{editing ? <input value={product.stock} readOnly/> : <DecimalInput label="Stock inicial" value={form.initialStock} onChange={value=>field('initialStock',value)} disabled={busy}/>}</div>
-        <div className="quantity-field">Alerta mínima<DecimalInput label="Alerta mínima" value={form.minimum} onChange={value=>field('minimum',value)} disabled={busy}/></div>
+        <div className="quantity-field">
+          <span>Stock mínimo para alerta</span>
+          <DecimalInput label="Stock mínimo para alerta" describedBy="stock-alert-help" value={form.minimum} onChange={value=>field('minimum',value)} disabled={busy}/>
+          <small className="muted" id="stock-alert-help">La alerta se activa cuando el stock físico llega a esta cantidad o baja de ella.</small>
+        </div>
       </div>
       {editing && <small className="muted">Para cambiar las existencias, usa Ajustar stock e indica el motivo.</small>}
       <label className="access-toggle"><input type="checkbox" checked={form.isActive} onChange={(event) => field('isActive', event.target.checked)}/><span><strong>Producto activo</strong></span></label>
@@ -165,7 +169,7 @@ export function HistoryDrawer({ product, close }) {
   return <InventoryDrawer title="Historial de stock" kicker={product.name} close={close}>
     <div className="inventory-history">
       {error ? <div><p className="form-error" role="alert">{error}</p><button className="secondary" onClick={() => setRetry((value) => value + 1)}>Reintentar</button></div> : !data ? <Skeleton rows={4}/> : <>
-        <p className="muted">Stock actual: {quantityLabel(data.product.stock, data.product.unit)} · Mínimo: {quantityLabel(data.product.minimum, data.product.unit)}</p>
+        <p className="muted">Stock actual: {quantityLabel(data.product.stock, data.product.unit)} · Stock mínimo para alerta: {quantityLabel(data.product.minimum, data.product.unit)}</p>
         {!data.movements.length ? <EmptyState icon={<History/>} title="Sin movimientos" copy="Los movimientos de este producto aparecerán aquí."/> : data.movements.map((movement) => <article className="inventory-movement stock-movement" key={movement.id}>
           <header><strong>{movementNames[movement.type] ?? movement.type}</strong><strong className={movement.change < 0 ? 'stock-decrease' : 'stock-increase'}>{movement.change > 0 ? '+' : ''}{quantityLabel(movement.change, data.product.unit)}</strong></header>
           {movement.reason && movement.reason.trim() !== movementNames[movement.type] && <p>{movement.reason}</p>}

@@ -15,7 +15,7 @@ function InventoryStock({ product }) {
     <div><dt>Físico</dt><dd>{quantityLabel(product.stock, product.unit)}</dd></div>
     <div><dt>Apartado</dt><dd>{quantityLabel(product.held, product.unit)}</dd></div>
     <div className="inventory-stock-minimum">
-      <dt>Mínimo</dt>
+      <dt>Stock mínimo para alerta</dt>
       <dd>{quantityLabel(product.minimum, product.unit)}{product.lowStock && <span className="inventory-stock-alert">Requiere atención</span>}</dd>
     </div>
   </dl>

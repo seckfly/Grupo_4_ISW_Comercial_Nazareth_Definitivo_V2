@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Minus, Plus } from 'lucide-react'
 import { decimalUnits, decimalText, QUANTITY_MAX_UNITS } from '../../../../shared/numbers.mjs'
 
-export default function DecimalInput({ value, onChange, label, name, signed = false, whole = false, minUnits = signed ? -QUANTITY_MAX_UNITS : 0, maxUnits = QUANTITY_MAX_UNITS, disabled = false, required = true }) {
+export default function DecimalInput({ value, onChange, label, name, describedBy, signed = false, whole = false, minUnits = signed ? -QUANTITY_MAX_UNITS : 0, maxUnits = QUANTITY_MAX_UNITS, disabled = false, required = true }) {
   const input = useRef(null)
   let units
   let error = ''
@@ -33,7 +33,7 @@ export default function DecimalInput({ value, onChange, label, name, signed = fa
 
   return <div className="qty decimal-stepper">
     <button type="button" disabled={disabled || !canMove(-1)} onClick={() => move(-1)} aria-label={'Restar 1 a ' + label}><Minus/></button>
-    <input ref={input} type="text" inputMode={whole ? 'numeric' : 'decimal'} role="spinbutton" name={name} aria-label={label} aria-invalid={Boolean(error)}
+    <input ref={input} type="text" inputMode={whole ? 'numeric' : 'decimal'} role="spinbutton" name={name} aria-label={label} aria-describedby={describedBy} aria-invalid={Boolean(error)}
       aria-valuemin={minUnits / 100} aria-valuemax={maxUnits / 100} aria-valuenow={units === undefined ? undefined : units / 100}
       value={value} onChange={(event) => onChange(event.target.value)} onKeyDown={keyDown} disabled={disabled} required={required}/>
     <button type="button" disabled={disabled || !canMove(1)} onClick={() => move(1)} aria-label={'Sumar 1 a ' + label}><Plus/></button>

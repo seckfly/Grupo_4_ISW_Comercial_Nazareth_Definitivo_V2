@@ -348,3 +348,8 @@
 
 .reservation-view-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; }
 .reservation-view-controls .seg button { min-height: 38px; font-weight: 600; }
+
+.sales-page .sale-timestamp { display: grid; gap: 3px; line-height: 1.35; }
+.sales-page .sale-timestamp span { font-weight: 600; }
+.sales-page .sale-timestamp small { color: #625e56; font-variant-numeric: tabular-nums; }
+.product-catalog-page .catalog-hero .catalog-hero-description { color: #e1ece3; font-size: clamp(14px, 1.2vw, 17px); line-height: 1.5; }

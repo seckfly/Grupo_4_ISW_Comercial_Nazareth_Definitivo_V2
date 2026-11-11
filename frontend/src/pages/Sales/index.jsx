@@ -56,12 +56,17 @@ export default function Sales({ openSale, revision = 0 }) {
     </div>
     <Card className="data-card">
       {loading ? <Skeleton rows={5}/> : error ? <div className="sales-feedback"><p className="form-error" role="alert">{error}</p><button className="secondary" onClick={() => setRetry((value) => value + 1)}>Reintentar</button></div> :
-        rows.length ? <div className="table-wrap"><table><thead><tr><th>Venta</th><th>Hora</th><th>Detalle</th><th>Pago</th><th>Total</th><th/></tr></thead><tbody>
-          {rows.map((sale) => <tr key={sale.id}><td><span className="sale-number">#{sale.id}</span></td><td title={formatSaleCreatedAt(sale.createdAt).date}>{formatSaleCreatedAt(sale.createdAt).time}</td>
-            <td><strong>{sale.items.map((item) => item.name + ' × ' + item.quantity).join(', ')}</strong>{sale.customerName && <small className="inventory-detail">{sale.customerName}</small>}</td>
-            <td><span className="payment">{paymentNames[sale.paymentMethod]}</span></td><td><strong>{currency(sale.total)}</strong></td>
-            <td><button className="icon-btn" onClick={() => setSelected(sale)} aria-label={'Ver venta ' + sale.id}><ChevronRight/></button></td>
-          </tr>)}
+        rows.length ? <div className="table-wrap"><table><thead><tr><th>Venta</th><th>Fecha y hora</th><th>Detalle</th><th>Pago</th><th>Total</th><th/></tr></thead><tbody>
+          {rows.map((sale) => {
+            const { date, time } = formatSaleCreatedAt(sale.createdAt)
+            return <tr key={sale.id}>
+              <td><span className="sale-number">#{sale.id}</span></td>
+              <td><time className="sale-timestamp" dateTime={sale.createdAt}><span>{date}</span><small>{time}</small></time></td>
+              <td><strong>{sale.items.map((item) => item.name + ' × ' + item.quantity).join(', ')}</strong>{sale.customerName && <small className="inventory-detail">{sale.customerName}</small>}</td>
+              <td><span className="payment">{paymentNames[sale.paymentMethod]}</span></td><td><strong>{currency(sale.total)}</strong></td>
+              <td><button className="icon-btn" onClick={() => setSelected(sale)} aria-label={'Ver venta ' + sale.id}><ChevronRight/></button></td>
+            </tr>
+          })}
         </tbody></table></div> : <EmptyState icon={<ReceiptText/>} title="No encontramos ventas" copy="Prueba con otro producto o cambia los filtros para ampliar la búsqueda."/>}
     </Card>
     {selected && <InventoryDrawer title={'Venta #' + selected.id} kicker={formatSaleCreatedAt(selected.createdAt).date} close={() => setSelected(null)}>
