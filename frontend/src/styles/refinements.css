@@ -716,3 +716,55 @@
   .premium-app :is(.sales-summary, .report-kpis) { grid-template-columns: minmax(0, 1fr); }
   .inventory-drawer .form-row, .credential-form .form-row { grid-template-columns: minmax(0, 1fr); }
 }
+
+@media (max-width: 900px) {
+  html { overflow-x: clip; }
+  .premium-app { inline-size: 100%; max-inline-size: 100%; }
+  .premium-app > main { inline-size: 100%; margin-inline: 0; }
+  .premium-app .mobile-head { inline-size: 100%; }
+  .premium-app .mobile-head .mini-sale {
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: #f3ebdb;
+    color: #28442f;
+    white-space: nowrap;
+  }
+  .admin-overview .command-hero { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .admin-overview .command-copy { padding: 24px 22px; }
+  .admin-overview .command-copy h2 { margin: 0 0 10px; overflow-wrap: anywhere; }
+  .admin-overview .command-cash { min-width: 0; padding: 18px; }
+  .admin-overview .command-cash .cash-detail {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 12px 8px;
+  }
+  .admin-overview .cash-detail > div { min-width: 0; }
+  .admin-overview .cash-detail b { font-size: 14px; overflow-wrap: anywhere; }
+  .admin-overview .cash-detail span { color: #c2d1c6; font-size: 12px; line-height: 1.25; overflow-wrap: anywhere; }
+  .admin-overview .pulse-strip { margin: 12px 0 16px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .admin-overview .pulse-metric { min-width: 0; padding: 12px; }
+  .admin-overview .pulse-metric > div { color: #625e56; font-size: 12px; }
+  .admin-overview .pulse-metric > strong { font-size: 15px; overflow-wrap: anywhere; }
+  .premium-app :is(.admin-overview, .reports-page) .overview-grid { grid-template-columns: minmax(0, 1fr); }
+  .admin-overview .intel-grid { grid-template-columns: minmax(0, 1fr); }
+  .premium-app :is(.admin-overview, .reports-page) :is(.overview-grid, .intel-grid) > .card { min-width: 0; }
+  .premium-app :is(.admin-overview, .reports-page) .report-kpis article { min-width: 0; }
+}
+
+@media (max-width: 720px) {
+  .premium-app .mobile-head b { min-width: 0; }
+  .premium-app .mobile-admin-actions { flex-shrink: 0; }
+  .premium-app main > .admin-overview .premium-title { margin-bottom: 18px; }
+  .admin-overview .command-copy { padding: 18px 14px; }
+  .admin-overview .command-copy h2 { font-size: clamp(24px, 6.5vw, 32px); }
+  .admin-overview .command-cash { padding: 14px; }
+  .admin-overview .command-cash > strong { margin: 5px 0 12px; font-size: clamp(28px, 8vw, 38px); }
+  .admin-overview .command-cash .cash-detail { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-block: 10px; }
+  .admin-overview .pulse-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .premium-app :is(.admin-overview, .reports-page) .report-kpis article {
+    grid-template-columns: 22px minmax(0, 1fr);
+    padding: 14px;
+  }
+  .premium-app :is(.admin-overview, .reports-page) .card { padding: 14px; }
+}
