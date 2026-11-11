@@ -11,6 +11,10 @@ import { createProduct, adjustInventory } from '../src/services/inventoryService
 import { createSale, quoteSale } from '../src/services/saleService.js'
 import { dashboard } from '../src/services/dashboardService.js'
 import { listSales, customerSales } from '../src/services/saleService.js'
+import { fullScopeRouter } from '../src/routes/fullScopeRoutes.js'
+import { createPromotionRouter } from '../src/routes/promotionRouter.js'
+import { Product } from '../src/models/Product.js'
+import { customerDirectory,customerForUser,preferences,savePreferences } from '../src/services/customerService.js'
 
 let postgres, pool, server, base, app
 const apiErrors = []
@@ -29,7 +33,7 @@ before(async () => {
   await postgres.admin.query(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
     CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY, email text NOT NULL);
     CREATE TABLE auth.sessions (id uuid PRIMARY KEY, user_id uuid, not_after timestamptz)`)
-  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql']) {
+  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql']) {
     await postgres.admin.query(await readFile(new URL('../../database/migrations/' + file, import.meta.url), 'utf8'))
   }
   pool = await postgres.applicationPool()
@@ -43,6 +47,12 @@ before(async () => {
   app.use(express.json())
   app.use('/api/sales', createSalesRouter({ db: pool, authenticate }))
   app.use('/api/inventory', createInventoryRouter({ db: pool, authenticate }))
+  app.use('/api/promotions',createPromotionRouter({db:pool,authenticate}))
+  app.get('/api/customer-sales',authenticate,async(req,res)=>{
+    if(req.user.role!=='client')return res.sendStatus(403)
+    res.json(await customerSales(pool,req.user.id))
+  })
+  app.use('/api',fullScopeRouter({db:pool,authenticate}))
   app.use((error, _req, res, _next) => {
     apiErrors.push(error)
     res.status(error.statusCode || 500).json({ message: error.statusCode ? error.message : 'No se pudo completar la operación' })
@@ -61,7 +71,7 @@ beforeEach(async () => {
   await postgres.admin.query(`TRUNCATE nazareth.categories, auth.users RESTART IDENTITY CASCADE;
     INSERT INTO auth.users VALUES ('${adminIdentity}', 'admin@example.test'), ('${clientIdentity}', 'cliente@example.test');
     INSERT INTO nazareth.profiles (auth_user_id, name, role, is_protected) VALUES
-      ('${adminIdentity}', 'Administrador QA', 'admin', true), ('${clientIdentity}', 'Cliente QA', 'client', false);
+      ('${adminIdentity}', 'Administrador QA', 'admin', true), ('${clientIdentity}', 'Cliente Demo', 'client', false);
     INSERT INTO nazareth.customers (user_id, name, phone) VALUES (2, 'Cliente QA', 'Contacto QA');
     INSERT INTO nazareth.categories (name) VALUES ('Abarrotes')`)
 })
@@ -84,6 +94,67 @@ async function salePayload(id, changes = {}) {
   assert.equal(quote.status, 200, JSON.stringify(quote.body))
   return { ...payload, quoteId: quote.body.quoteId }
 }
+
+test('PRU-005/006/008: proveedor, orden sin stock, recepción parcial, exceso, duplicados y anulación',async()=>{
+  const p=await product(),q=await product({name:'Segundo QA'})
+  const order=await request('/api/purchase-orders',{method:'POST',body:{supplierName:'Proveedor QA',supplierRuc:'RUC QA',supplierPhone:'Teléfono QA',items:[{productId:p.id,quantity:2,cost:'4.25'},{productId:q.id,quantity:1,cost:3}]}})
+  assert.equal(order.status,200,JSON.stringify(order.body));assert.equal(Number(order.body.estimated_total),11.5)
+  let orders=(await request('/api/purchase-orders')).body
+  assert.equal(orders[0].supplier_ruc,'RUC QA');assert.equal(orders[0].supplier_phone,'Teléfono QA')
+  assert.equal((await request('/api/inventory')).body.products.find(i=>i.id===p.id).stock,10)
+  const line=orders[0].items[0]
+  const payload={reference:'REF-QA',items:[{itemId:line.id,quantity:1}]}
+  assert.equal((await request('/api/purchase-orders/'+order.body.id+'/receipts',{method:'POST',body:payload})).status,200)
+  assert.equal((await request('/api/purchase-orders/'+order.body.id+'/receipts',{method:'POST',body:payload})).status,409)
+  assert.equal((await request('/api/purchase-orders/'+order.body.id+'/receipts',{method:'POST',body:{reference:'EXCESO',items:[{itemId:line.id,quantity:5}]}})).status,409)
+  assert.equal((await request('/api/purchase-orders/'+order.body.id+'/cancel',{method:'POST'})).status,409)
+  orders=(await request('/api/purchase-orders')).body;assert.equal(orders[0].status,'pending')
+  assert.equal(Number(orders[0].items[0].received_quantity),1)
+  const rest=orders[0].items.map(item=>({itemId:item.id,quantity:Number(item.quantity)-Number(item.received_quantity)}))
+  assert.equal((await request('/api/purchase-orders/'+order.body.id+'/receipts',{method:'POST',body:{reference:'FINAL',items:rest}})).status,200)
+  assert.equal((await request('/api/purchase-orders')).body[0].status,'received')
+  assert.equal((await request('/api/purchase-orders',{role:'client-fixture'})).status,403)
+})
+
+test('PRU-010: campañas CRUD persistidas y mismo precio promocional en catálogo y venta',async()=>{
+  const p=await product()
+  const input={productId:p.id,discountType:'percentage',discountValue:10,startDate:'2020-01-01',endDate:'2090-01-01',status:'active'}
+  const result=await request('/api/promotions',{method:'POST',body:input});assert.equal(result.status,200)
+  let products=await Product.list(pool);assert.equal(products[0].sale_price,6.03)
+  assert.equal((await quoteSale(pool,{items:[{productId:p.id,quantity:1}]})).total,6.03)
+  assert.equal((await request('/api/promotions/'+result.body.id,{method:'PUT',body:{...input,discountType:'fixed',discountValue:1.25}})).status,200)
+  assert.equal((await Product.list(pool))[0].sale_price,5.45)
+  assert.equal((await request('/api/promotions/'+result.body.id+'/status',{method:'PATCH',body:{status:'paused'}})).status,200)
+  assert.equal((await Product.list(pool))[0].sale_price,6.7)
+  assert.equal((await request('/api/promotions/'+result.body.id+'/status',{method:'PATCH',body:{status:'active'}})).status,200)
+  assert.equal((await request('/api/promotions/'+result.body.id,{method:'DELETE'})).status,200)
+  assert.equal((await request('/api/promotions')).body.length,0)
+  assert.equal((await request('/api/promotions',{method:'POST',role:'client-fixture',body:input})).status,403)
+})
+
+test('PRU-004/012/015: Cliente Demo, venta sin cliente, portal propio, frecuencia y puntos persistidos',async()=>{
+  const p=await product()
+  const linked=await request('/api/sales',{method:'POST',body:await salePayload(p.id,{customerId:1})})
+  const anonymous=await request('/api/sales',{method:'POST',body:await salePayload(p.id)})
+  assert.equal(linked.status,201);assert.equal(anonymous.status,201)
+  assert.equal(anonymous.body.customerId,null)
+  const purchases=await request('/api/customer-sales',{role:'client-fixture'})
+  assert.deepEqual(purchases.body.map(s=>s.id),[linked.body.id])
+  await postgres.admin.query('UPDATE nazareth.customers SET points=37 WHERE id=1')
+  const account=await request('/api/customer-account',{role:'client-fixture'})
+  assert.equal(account.body.points,37)
+  const clients=(await request('/api/customers')).body
+  assert.equal(clients[0].visits,1);assert.equal(clients[0].purchases[0].id,linked.body.id)
+  const report=await dashboard(pool,'week');assert.equal(report.today.total,40.2);assert.equal(report.activity.filter(a=>a.kind==='sale').length,2)
+  assert.equal((await request('/api/inventory')).body.products[0].stock,4)
+})
+
+test('PRU-007: favoritos y lista persistidos y aislados por cuenta',async()=>{
+  const p=await product()
+  await savePreferences(pool,2,{favorites:[p.id],list:[p.id]})
+  assert.deepEqual(await preferences(pool,2),{favorites:[p.id],list:[p.id]})
+  assert.equal((await request('/api/preferences',{role:'admin-fixture'})).status,403)
+})
 
 test('Resumen y Reportes: vacío, venta real, Lima, caja neta, demanda, actividad y alerta por ajuste', async () => {
   let report = await dashboard(pool, 'week')

@@ -22,7 +22,7 @@ async function inventoryFixture(t, { legacyProduct = false } = {}) {
     INSERT INTO public.preexisting_data VALUES (42);
   `)
   let legacySnapshot
-  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql']) {
+  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql']) {
     await database.exec(await readFile(new URL('../../database/migrations/' + file, import.meta.url), 'utf8'))
     if (file === '002_express_access.sql' && legacyProduct) {
       await database.exec(`
@@ -44,6 +44,7 @@ async function inventoryFixture(t, { legacyProduct = false } = {}) {
   // PGlite usa una conexión. Esta cola emula el préstamo exclusivo de pool.connect().
   let connectionReady = Promise.resolve()
   const query = async (sql, params) => {
+    if(sql==='SELECT pg_advisory_xact_lock(73642)')return {rows:[],rowCount:0} // PGlite fixture already serializes its sole connection.
     const result = await database.query(sql, params)
     return { rows: result.rows, rowCount: result.affectedRows }
   }

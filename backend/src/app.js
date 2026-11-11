@@ -1,6 +1,7 @@
 import { dashboard } from './services/dashboardService.js'
 import { customerSales } from './services/saleService.js'
 import cors from 'cors'
+import { fullScopeRouter } from './routes/fullScopeRoutes.js'
 import express from 'express'
 import { env } from './config/runtime.js'
 import { pool } from './config/db.js'
@@ -26,6 +27,7 @@ app.use('/api/products', productRoutes)
 app.use('/api/sales', saleRoutes)
 app.use('/api/promotions', promotionRoutes)
 app.use('/api/inventory', createInventoryRouter({ db: pool, authenticate: auth }))
+app.use('/api', fullScopeRouter({db:pool,authenticate:auth}))
 
 app.get('/api/dashboard', auth, requireRole('admin'), async (req,res,next) => {
   try { res.set('Cache-Control','no-store'); res.json(await dashboard(pool,req.query.period || 'week')) } catch(error) { next(error) }

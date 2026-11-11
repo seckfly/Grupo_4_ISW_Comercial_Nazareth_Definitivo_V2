@@ -1,5 +1,5 @@
-export function visibleNavigation(role) { return role === 'admin' ? ['Resumen','Ventas','Inventario','Promociones','Clientes','Reportes','Configuración'] : ['Resumen','Productos','Promociones','Mi hogar','Mi cuenta'] }
-const COMMANDS=[
+export function visibleNavigation(role) { return role === 'admin' ? ['Resumen','Ventas','Inventario','Promociones','Clientes','Reportes','Configuración','Compras','Reservas','Mi cuenta'] : ['Resumen','Productos','Promociones','Mi hogar','Mi cuenta'] }
+const COMMANDS=[{page:'Compras',label:'Registrar compras',hint:'Proveedor, orden y recepción'},{page:'Reservas',label:'Consultar reservas',hint:'Solicitudes y apartados'},
   {page:'Resumen',label:'Ir al resumen',hint:'Vista general del negocio'},
   {page:'Productos',label:'Explorar productos',hint:'Catálogo, precios y favoritos'},
   {page:'Mi hogar',label:'Abrir mi hogar',hint:'Reposición, presupuesto y planificación'},

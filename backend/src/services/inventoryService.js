@@ -1,4 +1,5 @@
 import { decimalUnits, decimalText, positiveId, inputError as invalid } from '../../../shared/numbers.mjs'
+import { lockStock, heldSql } from './stockService.js'
 
 export const inventoryId = positiveId
 
@@ -38,7 +39,8 @@ export function adjustmentInput(input) {
   return { reason: input.reason.trim(), change, requestId: input.requestId }
 }
 
-const productFields = `p.id, p.category_id AS "categoryId", c.name AS category, p.name, p.unit,
+const productFields = `p.id, p.category_id AS "categoryId", c.name AS category, p.name, p.unit,p.image_url AS "imageUrl",
+  ${heldSql()}::float8 AS held,(p.current_stock-${heldSql()})::float8 AS available,
   p.cost_price::float8 AS cost, p.sale_price::float8 AS price, p.current_stock::float8 AS stock,
   p.min_stock_threshold::float8 AS minimum, p.is_active AS "isActive",
   (p.is_active AND p.current_stock <= p.min_stock_threshold) AS "lowStock"`
@@ -128,6 +130,7 @@ export async function adjustInventory(db, productId, input, userId) {
   const connection = await db.connect()
   try {
     await connection.query('BEGIN')
+    await lockStock(connection)
     const { rows: [locked] } = await connection.query('SELECT id FROM nazareth.products WHERE id = $1 FOR UPDATE', [id])
     if (!locked) throw invalid('Producto no encontrado', 404)
 
@@ -145,9 +148,9 @@ export async function adjustInventory(db, productId, input, userId) {
 
     const { rows: [balance] } = await connection.query(`UPDATE nazareth.products
       SET current_stock = current_stock + $1::numeric
-      WHERE id = $2 AND current_stock + $1::numeric >= 0
+      WHERE id = $2 AND current_stock + $1::numeric >= ${heldSql('nazareth.products')}
       RETURNING (current_stock - $1::numeric)::text AS before, current_stock::text AS after`, [data.change, id])
-    if (!balance) throw invalid('El ajuste produciría un stock negativo', 409)
+    if (!balance) throw invalid('El ajuste produciría un stock negativo o afectaría unidades apartadas', 409)
     const { rows: [movement] } = await connection.query(`INSERT INTO nazareth.inventory_movements
       (product_id, type, quantity_change, stock_before, stock_after, reason, created_by, adjustment_request_id)
       VALUES ($1, 'adjustment', $2, $3, $4, $5, $6, $7)

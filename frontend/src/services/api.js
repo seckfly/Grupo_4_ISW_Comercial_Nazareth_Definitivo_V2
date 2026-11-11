@@ -21,7 +21,17 @@ async function request(path, { token, headers, ...options } = {}) {
 }
 
 export const api = {
-  customers: (signal) => request('/sales/customers?all=true', { signal }),
+  customers: (signal) => request('/customers', { signal }),
+  customerAccount: (signal) => request('/customer-account', { signal }),
+  preferences: (signal) => request('/preferences', { signal }),
+  savePreferences: (data) => request('/preferences', { method:'PUT',body:JSON.stringify(data) }),
+  orders: () => request('/purchase-orders'),
+  createOrder: data => request('/purchase-orders',{method:'POST',body:JSON.stringify(data)}),
+  cancelOrder: id => request('/purchase-orders/'+id+'/cancel',{method:'POST'}),
+  receiveOrder: (id,data) => request('/purchase-orders/'+id+'/receipts',{method:'POST',body:JSON.stringify(data)}),
+  reservations: () => request('/reservations'),
+  requestReservation: data => request('/reservations',{method:'POST',body:JSON.stringify(data)}),
+  changeReservation: (id,data) => request('/reservations/'+id,{method:'POST',body:JSON.stringify(data)}),
   profile: (token, signal) => request('/auth/me', { token, signal }),
   products: () => request('/products'),
   inventory: (signal) => request('/inventory', { signal }),

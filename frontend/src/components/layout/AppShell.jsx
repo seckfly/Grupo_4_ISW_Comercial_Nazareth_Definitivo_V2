@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useInventory } from '../../context/InventoryContext'
 import { useLiveDateTime } from '../../hooks/useLiveDateTime'
 import { searchCommands,visibleNavigation } from '../../utils/auth'
-const icons={Resumen:LayoutDashboard,Productos:Store,Ventas:ShoppingCart,Inventario:Package,Promociones:BadgePercent,Clientes:Users,Reportes:ChartNoAxesCombined,Configuración:Settings,'Mi hogar':House,'Mi cuenta':Users}
+const icons={Compras:Package,Reservas:Package,Resumen:LayoutDashboard,Productos:Store,Ventas:ShoppingCart,Inventario:Package,Promociones:BadgePercent,Clientes:Users,Reportes:ChartNoAxesCombined,Configuración:Settings,'Mi hogar':House,'Mi cuenta':Users}
 export default function AppShell({page,setPage,onSale,children}){
   const {alertCount, data: inventory, loading: stockLoading, error: stockError}=useInventory();
   useEffect(()=>{setNotices(false)},[page])

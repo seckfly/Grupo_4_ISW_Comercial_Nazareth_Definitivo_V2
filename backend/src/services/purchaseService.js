@@ -1,0 +1,56 @@
+import { decimalUnits, decimalText, lineAmount, positiveId, inputError } from '../../../shared/numbers.mjs'
+import { transaction } from './stockService.js'
+const text = (value, label) => { if(typeof value !== 'string' || !value.trim()) throw inputError('Completa '+label); return value.trim() }
+const positive = value => { const n=decimalUnits(value); if(n<=0) throw inputError('La cantidad y el costo deben ser positivos'); return n }
+export async function purchaseOrders(db) {
+  const {rows}=await db.query(`SELECT o.*, COALESCE((SELECT json_agg(i ORDER BY i.id) FROM
+    (SELECT oi.*,p.name,p.unit FROM nazareth.purchase_order_items oi JOIN nazareth.products p ON p.id=oi.product_id WHERE oi.order_id=o.id) i),'[]') AS items
+    FROM nazareth.purchase_orders o ORDER BY o.created_at DESC,o.id DESC`)
+  return rows
+}
+export async function createOrder(pool,input,userId) {
+  const supplier=[text(input.supplierName,'razón social'),text(input.supplierRuc,'RUC'),text(input.supplierPhone,'teléfono')]
+  if(!Array.isArray(input.items)||!input.items.length) throw inputError('Agrega líneas a la orden')
+  const items=input.items.map(i=>({productId:positiveId(i.productId),quantity:positive(i.quantity),cost:positive(i.cost)}))
+  return transaction(pool,async db=>{
+    const total=items.reduce((sum,i)=>sum+lineAmount(i.quantity,i.cost),0)
+    const {rows:[order]}=await db.query(`INSERT INTO nazareth.purchase_orders(supplier_name,supplier_ruc,supplier_phone,estimated_total,created_by)
+      VALUES($1,$2,$3,$4,$5) RETURNING *`,[...supplier,decimalText(total),userId])
+    for(const item of items) await db.query(`INSERT INTO nazareth.purchase_order_items(order_id,product_id,quantity,unit_cost) VALUES($1,$2,$3,$4)`,[order.id,item.productId,decimalText(item.quantity),decimalText(item.cost)])
+    return order
+  })
+}
+export async function cancelOrder(pool,id) {
+  return transaction(pool,async db=>{
+    const {rows:[order]}=await db.query('SELECT * FROM nazareth.purchase_orders WHERE id=$1 FOR UPDATE',[positiveId(id)])
+    if(!order) throw inputError('Orden no encontrada',404)
+    if(order.status==='cancelled') return order
+    const {rows}=await db.query('SELECT id FROM nazareth.receipts WHERE order_id=$1',[order.id])
+    if(order.status!=='pending'||rows.length) throw inputError('Una orden con recepciones no puede anularse',409)
+    const {rows:[saved]}=await db.query(`UPDATE nazareth.purchase_orders SET status='cancelled' WHERE id=$1 RETURNING *`,[order.id]); return saved
+  },true)
+}
+export async function receiveOrder(pool,id,input,userId) {
+  const reference=text(input.reference,'referencia de recepción')
+  if(!Array.isArray(input.items)||!input.items.length) throw inputError('Indica las cantidades recibidas')
+  const ids=new Set()
+  const lines=input.items.map(i=>{const id=positiveId(i.itemId);if(ids.has(id))throw inputError('Línea duplicada');ids.add(id);return {id,quantity:positive(i.quantity)}})
+  return transaction(pool,async db=>{
+    const {rows:[order]}=await db.query('SELECT * FROM nazareth.purchase_orders WHERE id=$1 FOR UPDATE',[positiveId(id)])
+    if(!order||order.status!=='pending') throw inputError('La orden no está pendiente',409)
+    const {rows:duplicate}=await db.query('SELECT id FROM nazareth.receipts WHERE reference=$1',[reference])
+    if(duplicate.length) throw inputError('Referencia de recepción ya utilizada',409)
+    const {rows:[receipt]}=await db.query('INSERT INTO nazareth.receipts(order_id,reference,received_by) VALUES($1,$2,$3) RETURNING *',[order.id,reference,userId])
+    for(const line of lines) {
+      const {rows:[item]}=await db.query('SELECT * FROM nazareth.purchase_order_items WHERE id=$1 AND order_id=$2 FOR UPDATE',[line.id,order.id])
+      if(!item||line.quantity>decimalUnits(item.quantity)-decimalUnits(item.received_quantity))throw inputError('La cantidad supera el saldo por recibir',409)
+      const quantity=decimalText(line.quantity)
+      await db.query('UPDATE nazareth.purchase_order_items SET received_quantity=received_quantity+$1 WHERE id=$2',[quantity,item.id])
+      const {rows:[stock]}=await db.query(`UPDATE nazareth.products SET current_stock=current_stock+$1 WHERE id=$2 RETURNING current_stock-$1::numeric AS before,current_stock AS after`,[quantity,item.product_id])
+      await db.query('INSERT INTO nazareth.receipt_items(order_id,receipt_id,order_item_id,quantity) VALUES($1,$2,$3,$4)',[order.id,receipt.id,item.id,quantity])
+      await db.query(`INSERT INTO nazareth.inventory_movements(product_id,type,quantity_change,stock_before,stock_after,receipt_id,created_by) VALUES($1,'entry',$2,$3,$4,$5,$6)`,[item.product_id,quantity,stock.before,stock.after,receipt.id,userId])
+    }
+    await db.query(`UPDATE nazareth.purchase_orders SET status=CASE WHEN EXISTS(SELECT 1 FROM nazareth.purchase_order_items WHERE order_id=$1 AND received_quantity<quantity) THEN 'pending' ELSE 'received' END WHERE id=$1`,[order.id])
+    return receipt
+  },true)
+}

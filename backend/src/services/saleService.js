@@ -1,4 +1,7 @@
 import { createHash } from 'node:crypto'
+import { lockStock, heldSql } from './stockService.js'
+import { validatePickup } from './reservationService.js'
+import { priceSql } from './priceService.js'
 import { decimalUnits, decimalText, lineAmount, positiveId, MONEY_MAX_UNITS, QUANTITY_MAX_UNITS, inputError } from '../../../shared/numbers.mjs'
 
 const uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i
@@ -40,15 +43,15 @@ export function validateSaleInput(payload) {
   const cash = payload.paymentMethod === 'efectivo'
     ? decimalUnits(payload.cashReceived, { maxUnits: MONEY_MAX_UNITS, label: 'El monto recibido' })
     : null
-  return { ...cart, userId, customerId, requestId: payload.requestId, quoteId: payload.quoteId, paymentMethod: payload.paymentMethod, paymentReference, cash }
+  return { ...cart, userId, customerId, reservationId: payload.reservationId == null ? null : positiveId(payload.reservationId), requestId: payload.requestId, quoteId: payload.quoteId, paymentMethod: payload.paymentMethod, paymentReference, cash }
 }
 
 export function saleResponse(id, total, createdAt) { return { id, total, createdAt } }
 
 async function loadCart(db, cart, lock = false) {
-  const { rows } = await db.query(`SELECT p.id, p.name, p.unit, p.sale_price::text AS price, p.current_stock::text AS stock,
+  const { rows } = await db.query(`SELECT p.id, p.name, p.unit, ${priceSql()}::text AS price, (p.current_stock-${heldSql('p','$2')})::text AS stock,
     p.is_active, c.name AS category FROM nazareth.products p JOIN nazareth.categories c ON c.id = p.category_id
-    WHERE p.id = ANY($1::integer[]) ORDER BY p.id ${lock ? 'FOR UPDATE OF p' : ''}`, [cart.items.map((item) => item.productId)])
+    WHERE p.id = ANY($1::integer[]) ORDER BY p.id ${lock ? 'FOR UPDATE OF p' : ''}`, [cart.items.map((item) => item.productId),cart.reservationId??null])
   return new Map(rows.map((row) => [row.id, row]))
 }
 
@@ -78,10 +81,11 @@ function priceCart(cart, products) {
 
 export async function quoteSale(db, payload) {
   const cart = cartInput(payload)
+  cart.reservationId=payload.reservationId==null?null:positiveId(payload.reservationId)
   return priceCart(cart, await loadCart(db, cart))
 }
 
-const saleFields = `s.id, s.created_at AS "createdAt", s.user_id AS "userId", s.customer_id AS "customerId",
+const saleFields = `s.id, s.reservation_id AS "reservationId",s.digital_received::float8 AS "digitalReceived",s.created_at AS "createdAt", s.user_id AS "userId", s.customer_id AS "customerId",
   c.name AS "customerName", s.payment_method AS "paymentMethod", s.payment_reference AS "paymentReference",
   COALESCE(s.subtotal_amount, (SELECT SUM(subtotal) FROM nazareth.sale_items WHERE sale_id = s.id), s.total_amount)::float8 AS subtotal,
   s.discount_amount::float8 AS discount, s.total_amount::float8 AS total,
@@ -140,6 +144,7 @@ export async function createSale(pool, payload) {
   const connection = await pool.connect()
   try {
     await connection.query('BEGIN')
+    await lockStock(connection)
     const products = await loadCart(connection, data, true)
     const { rows: [previous] } = await connection.query(
       'SELECT id, request_fingerprint FROM nazareth.sales WHERE request_id = $1', [data.requestId])
@@ -150,6 +155,11 @@ export async function createSale(pool, payload) {
       return { ...sale, replayed: true }
     }
 
+    if(data.reservationId!==null) {
+      const {rows:[collected]}=await connection.query('SELECT id FROM nazareth.sales WHERE reservation_id=$1',[data.reservationId])
+      if(collected)throw inputError('El apartado ya tiene una venta registrada',409)
+      await validatePickup(connection,data.reservationId,data.items,data.customerId)
+    }
     const quote = priceCart(data, products)
     if (quote.quoteId !== data.quoteId) throw inputError('El precio cambió. Revisa el cálculo actualizado antes de confirmar.', 409)
     if (data.cash !== null && data.cash < decimalUnits(quote.total, { maxUnits: MONEY_MAX_UNITS })) {
@@ -184,6 +194,10 @@ export async function createSale(pool, payload) {
         VALUES ($1,'sale',-$2::numeric,$3,$4,$5,$6)`, [item.productId, amount, balance.before, balance.after, created.id, data.userId])
     }
     const sale = await getSale(connection, created.id)
+    if(data.reservationId!==null) {
+      await connection.query('UPDATE nazareth.sales SET reservation_id=$1 WHERE id=$2',[data.reservationId,created.id])
+      await connection.query(`UPDATE nazareth.reservations SET status='collected' WHERE id=$1`,[data.reservationId])
+    }
     await connection.query('COMMIT')
     return { ...sale, replayed: false }
   } catch (error) {

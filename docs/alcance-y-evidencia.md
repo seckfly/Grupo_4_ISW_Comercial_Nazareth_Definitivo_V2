@@ -84,3 +84,9 @@ Se conservan los 23 identificadores; son escenarios documentados, no aprobacione
 
 Las extensiones de apartado confirmado, QR de demostración, fotos y contraseña propia deberán incorporarse en una futura actualización documental del SRS. No sustituyen CU-001/005 ni CR-001. Ninguna migración nueva se aplicará a la base de trabajo durante las pruebas.
 
+
+## Etapa 2: alcance aprobado y base transaccional
+
+Implementados servicios y pantallas de compras, recepción parcial, estados y proveedor dentro de la orden. Promociones tiene CRUD real y precio de campaña compartido entre catálogo, cotización y venta. El historial/frecuencia y puntos se consultan desde registros reales, sin fórmula de acumulación inventada. Favoritos y listas se guardan por cliente en PostgreSQL. La migración aditiva 005 prepara también la estructura del apartado; su recorrido se completa en la etapa siguiente.
+
+Evidencia inicial de esta etapa: PRU-005/006/008, PRU-010, PRU-004/012/015 pasan en PostgreSQL aislado. PRU-007 detectó un permiso innecesario en el bloqueo de clientes; se reemplazó por un bloqueo asesor específico sin ampliar privilegios y pasó al repetirla. Frontend: 42 pruebas y compilación correctas. No se aplicó la migración a la base de trabajo. La política de campañas coincidentes aplica el precio menor sin acumular descuentos, como criterio explícito de implementación pendiente de reflejar en el SRS.
