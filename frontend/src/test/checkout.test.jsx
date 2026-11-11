@@ -11,6 +11,7 @@ import Promotions from '../pages/Promotions'
 import Customers from '../pages/Customers'
 import Overview from '../pages/Overview'
 import Products from '../pages/Products'
+import Inventory from '../pages/Inventory'
 import Settings from '../pages/Settings'
 import Reservations from '../pages/Reservations'
 import { api } from '../services/api'
@@ -273,6 +274,8 @@ it('CU-005: catálogo sin foto permite solicitar con cantidad decimal y consulta
   const navigate=vi.fn(),element=render(<Products onNavigate={navigate}/>)
   await settled(()=>expect(element.querySelector('.product-copy strong').textContent).toContain('6.70'))
   expect(element.querySelector('.photo-neutral')).not.toBeNull()
+  expect(element.querySelector('.product-copy').firstElementChild.textContent).toBe('Producto real QA')
+  expect(element.querySelector('.catalog-product-stock').textContent).toContain('3 Kg en tienda')
   await act(async()=>element.querySelector('.product-copy button').click())
   type(element.querySelector('[aria-label="Cantidad para separar Producto real QA"]'),'0.25')
   await act(async()=>[...element.querySelectorAll('button')].find(button=>button.textContent.includes('Solicitar separación')).click())
@@ -374,4 +377,55 @@ it('Configuración cambia entre credenciales y seguridad, y muestra al cliente r
   expect(row.textContent).toContain('Cliente nuevo')
   expect(row.querySelector('.role-badge').textContent).toBe('Cliente')
   expect(row.querySelector('.status-dot').textContent).toBe('Activo')
+})
+
+it.each(['admin', 'client'])('Reservas separa solicitudes activas e historial para %s', async (role) => {
+  authState.user.role = role
+  const reservation = { pickup_deadline: '2026-11-12T18:00:00Z', estimated_total: 6.7, items: [], customerName: 'Cliente Demo' }
+  const rows = ['pending', 'confirmed', 'expired', 'cancelled', 'rejected', 'collected']
+    .map((status, id) => ({ ...reservation, id, status, pickup_code: 'NZ-' + status }))
+  api.reservations.mockResolvedValue(rows)
+
+  const element = render(<Reservations/>)
+  const button = name => [...element.querySelectorAll('button')].find(item => item.textContent === name)
+  await settled(() => expect(element.textContent).toContain('NZ-pending'))
+  expect(button('Activas').getAttribute('aria-pressed')).toBe('true')
+  expect(element.textContent).toContain('NZ-confirmed')
+  for (const status of ['expired', 'cancelled', 'rejected', 'collected']) {
+    expect(element.textContent).not.toContain('NZ-' + status)
+  }
+  expect(button('Cancelar')).toBeDefined()
+  expect(Boolean(button('Recoger y pagar'))).toBe(role === 'admin')
+
+  act(() => button('Historial').click())
+  expect(element.textContent).not.toContain('NZ-pending')
+  expect(element.textContent).not.toContain('NZ-confirmed')
+  for (const status of ['expired', 'cancelled', 'rejected', 'collected']) {
+    expect(element.textContent).toContain('NZ-' + status)
+  }
+  expect(button('Cancelar')).toBeUndefined()
+  expect(button('Recoger y pagar')).toBeUndefined()
+  expect(api.reservations).toHaveBeenCalledTimes(1)
+})
+
+it('Inventario muestra disponible, físico, apartado y mínimo en lista y tarjetas', () => {
+  const previousData = inventoryState.data
+  inventoryState.data = { categories: [], products: [{
+    id: 1, name: 'Aceite cocinero', unit: 'Unidad', category: 'Abarrotes', isActive: true,
+    stock: 4, held: 0, available: 4, minimum: 5, cost: 5, price: 7, lowStock: true,
+  }] }
+  try {
+    const element = render(<Inventory/>)
+    const checkStock = () => {
+      const stock = element.querySelector('.inventory-stock')
+      expect([...stock.querySelectorAll('dt')].map(label => label.textContent)).toEqual(['Disponible', 'Físico', 'Apartado', 'Mínimo'])
+      expect([...stock.querySelectorAll('dd')].map(value => value.firstChild.textContent)).toEqual(['4 Unidades', '4 Unidades', '0 Unidades', '5 Unidades'])
+      expect(stock.querySelector('.inventory-stock-alert').textContent).toBe('Requiere atención')
+    }
+    checkStock()
+    act(() => element.querySelector('[aria-label="Vista de tarjetas"]').click())
+    checkStock()
+  } finally {
+    inventoryState.data = previousData
+  }
 })

@@ -1,11 +1,25 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Plus, List, Grid2X2, Search, PackagePlus, Pencil, SlidersHorizontal, History } from 'lucide-react'
 import PageHeader from '../../components/ui/PageHeader'
-import { Card, StockPill } from '../../components/ui/Card'
+import { Card } from '../../components/ui/Card'
 import { Skeleton, EmptyState } from '../../components/ui/States'
 import { useInventory } from '../../context/InventoryContext'
 import { currency, margin, quantityLabel } from '../../utils/format'
 import { ProductDrawer, AdjustmentDrawer, HistoryDrawer } from './InventoryDrawers'
+
+function InventoryStock({ product }) {
+  return <dl className="inventory-stock">
+    <div className="inventory-stock-available">
+      <dt>Disponible</dt><dd>{quantityLabel(product.available, product.unit)}</dd>
+    </div>
+    <div><dt>Físico</dt><dd>{quantityLabel(product.stock, product.unit)}</dd></div>
+    <div><dt>Apartado</dt><dd>{quantityLabel(product.held, product.unit)}</dd></div>
+    <div className="inventory-stock-minimum">
+      <dt>Mínimo</dt>
+      <dd>{quantityLabel(product.minimum, product.unit)}{product.lowStock && <span className="inventory-stock-alert">Requiere atención</span>}</dd>
+    </div>
+  </dl>
+}
 
 function ProductActions({ product, open, buy }) {
   return <div className="inventory-actions">
@@ -73,18 +87,18 @@ export default function Inventory({onNavigate}) {
       loading ? <Card><Skeleton rows={5}/></Card> :
       !shown.length ? <Card><EmptyState icon={<PackagePlus/>} title="Sin productos" copy={products.length ? 'No hay productos que coincidan con los filtros.' : 'Registra un producto para comenzar el inventario.'}/></Card> :
       view === 'list' ? <Card className="data-card"><div className="table-wrap"><table>
-        <thead><tr><th>Producto</th><th>Código</th><th>Categoría</th><th>Stock físico / mínimo</th><th>Costo</th><th>Precio</th><th>Margen</th><th>Acciones</th></tr></thead>
+        <thead><tr><th>Producto</th><th>Código</th><th>Categoría</th><th>Existencias</th><th>Costo</th><th>Precio</th><th>Margen</th><th>Acciones</th></tr></thead>
         <tbody>{shown.map((product) => <tr key={product.id}>
           <td><div className="product-cell"><span>{product.name[0]}</span><div><strong>{product.name}</strong>{!product.isActive && <small className="inventory-detail">Inactivo</small>}</div></div></td>
           <td>#{String(product.id).padStart(4, '0')}</td><td>{product.category}</td>
-          <td><StockPill unit={product.unit} stock={product.stock} minimum={product.minimum} isActive={product.isActive}/><small className="inventory-detail">Físico · Apartado: {quantityLabel(product.held,product.unit)} · Disponible: {quantityLabel(product.available,product.unit)}</small><small className="inventory-detail">Mínimo: {quantityLabel(product.minimum, product.unit)}{product.lowStock ? ' · Requiere atención' : ''}</small></td>
+          <td><InventoryStock product={product}/></td>
           <td>{currency(product.cost)}</td><td><strong>{currency(product.price)}</strong></td><td><span className="margin">{margin(product.cost, product.price)}%</span></td>
           <td><ProductActions product={product} open={open} buy={product=>onNavigate?.('Compras',product)}/></td>
         </tr>)}</tbody>
       </table></div></Card> : <div className="product-grid premium-products">{shown.map((product) => <Card key={product.id}>
-        <div className="product-card-top"><span className="product-letter">{product.name[0]}</span><StockPill unit={product.unit} stock={product.stock} minimum={product.minimum} isActive={product.isActive}/></div>
+        <div className="product-card-top"><span className="product-letter">{product.name[0]}</span></div>
         <small>{product.category} · #{String(product.id).padStart(4, '0')}{!product.isActive ? ' · Inactivo' : ''}</small>
-        <h3>{product.name}</h3><small className="inventory-detail">Físico: {quantityLabel(product.stock,product.unit)} · Apartado: {quantityLabel(product.held,product.unit)} · Disponible: {quantityLabel(product.available,product.unit)}</small><small className="inventory-detail">Mínimo: {quantityLabel(product.minimum, product.unit)}{product.lowStock ? ' · Requiere atención' : ''}</small>
+        <h3>{product.name}</h3><InventoryStock product={product}/>
         <div className="price-row"><strong>{currency(product.price)}</strong><span>{margin(product.cost, product.price)}% margen</span></div>
         <ProductActions product={product} open={open} buy={product=>onNavigate?.('Compras',product)}/>
       </Card>)}</div>}

@@ -307,3 +307,44 @@
   border-radius: 8px;
 }
 .sale-drawer .payment-demo figcaption { color: #655f56; font-size: 12px; text-align: center; }
+
+.inventory-stock {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+  margin: 0;
+}
+.inventory-stock dt { color: #625e56; font-size: 12px; }
+.inventory-stock dd { margin: 2px 0 0; color: #273a2d; font-size: 13px; font-variant-numeric: tabular-nums; }
+.inventory-stock-available { grid-column: 1 / -1; }
+.inventory-stock-available dd { color: #213d2c; font-size: 16px; font-weight: 700; }
+.inventory-stock-minimum { grid-column: 1 / -1; }
+.inventory-stock-minimum dd { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
+.inventory-stock-alert { padding: 3px 7px; border-radius: 8px; background: #fff4d9; color: #784d0a; font-size: 11px; font-weight: 600; }
+.inventory-page .product-grid .inventory-stock { margin: 0 0 12px; }
+
+.catalog-photo-grid .product-copy h4 {
+  margin: 0 0 6px;
+  min-height: 0;
+  color: #213d2c;
+  font-size: clamp(16px, 1.25vw, 20px);
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.catalog-photo-grid .catalog-product-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  margin-bottom: 12px;
+  color: #625e56;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.catalog-photo-grid .catalog-product-stock { color: #365942; font-weight: 600; }
+
+.reservation-view-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; }
+.reservation-view-controls .seg button { min-height: 38px; font-weight: 600; }
