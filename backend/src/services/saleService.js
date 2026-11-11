@@ -38,12 +38,13 @@ export function validateSaleInput(payload) {
   const customerId = payload.customerId == null ? null : positiveId(payload.customerId)
   if (typeof payload.requestId !== 'string' || !uuid.test(payload.requestId)) throw inputError('La solicitud de venta no es válida')
   if (typeof payload.quoteId !== 'string' || !/^[a-f0-9]{64}$/.test(payload.quoteId)) throw inputError('Vuelve a calcular la venta antes de confirmar')
-  const paymentReference = payload.paymentMethod === 'efectivo' ? null : typeof payload.paymentReference === 'string' ? payload.paymentReference.trim() : ''
-  if (payload.paymentMethod !== 'efectivo' && !paymentReference) throw inputError('Ingresa la referencia del pago digital')
+  const paymentReference = payload.paymentMethod === 'efectivo' ? null : (typeof payload.paymentReference === 'string' ? payload.paymentReference.trim() : '') || null
+  const digitalReceived=payload.paymentMethod==='efectivo'?null:decimalUnits(payload.digitalReceived,{maxUnits:MONEY_MAX_UNITS,label:'El importe recibido'})
+  if(payload.paymentMethod!=='efectivo'&&payload.paymentConfirmed!==true)throw inputError('Confirma manualmente el abono recibido')
   const cash = payload.paymentMethod === 'efectivo'
     ? decimalUnits(payload.cashReceived, { maxUnits: MONEY_MAX_UNITS, label: 'El monto recibido' })
     : null
-  return { ...cart, userId, customerId, reservationId: payload.reservationId == null ? null : positiveId(payload.reservationId), requestId: payload.requestId, quoteId: payload.quoteId, paymentMethod: payload.paymentMethod, paymentReference, cash }
+  return { ...cart, userId, customerId, digitalReceived, reservationId: payload.reservationId == null ? null : positiveId(payload.reservationId), requestId: payload.requestId, quoteId: payload.quoteId, paymentMethod: payload.paymentMethod, paymentReference, cash }
 }
 
 export function saleResponse(id, total, createdAt) { return { id, total, createdAt } }
@@ -162,6 +163,7 @@ export async function createSale(pool, payload) {
     }
     const quote = priceCart(data, products)
     if (quote.quoteId !== data.quoteId) throw inputError('El precio cambió. Revisa el cálculo actualizado antes de confirmar.', 409)
+    if(data.digitalReceived!==null&&data.digitalReceived!==decimalUnits(quote.total,{maxUnits:MONEY_MAX_UNITS}))throw inputError('El importe digital recibido debe coincidir con el total a dos decimales')
     if (data.cash !== null && data.cash < decimalUnits(quote.total, { maxUnits: MONEY_MAX_UNITS })) {
       throw inputError('El monto recibido es insuficiente')
     }
@@ -174,11 +176,11 @@ export async function createSale(pool, payload) {
     const change = data.cash === null ? null : decimalText(data.cash - decimalUnits(quote.total, { maxUnits: MONEY_MAX_UNITS }))
     const { rows: [created] } = await connection.query(`INSERT INTO nazareth.sales
       (user_id, customer_id, subtotal_amount, discount_amount, total_amount, payment_method, payment_reference,
-       cash_received, change_amount, request_id, request_fingerprint)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
+       cash_received, change_amount, request_id, request_fingerprint,digital_received)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
     [data.userId, data.customerId, decimalText(decimalUnits(quote.subtotal, { maxUnits: MONEY_MAX_UNITS })),
       decimalText(data.discount), decimalText(decimalUnits(quote.total, { maxUnits: MONEY_MAX_UNITS })),
-      data.paymentMethod, data.paymentReference, cash, change, data.requestId, requestFingerprint])
+      data.paymentMethod, data.paymentReference, cash, change, data.requestId, requestFingerprint,data.digitalReceived===null?null:decimalText(data.digitalReceived)])
 
     for (const item of quote.items) {
       const amount = decimalText(decimalUnits(item.quantity))
@@ -193,11 +195,11 @@ export async function createSale(pool, payload) {
         (product_id, type, quantity_change, stock_before, stock_after, sale_id, created_by)
         VALUES ($1,'sale',-$2::numeric,$3,$4,$5,$6)`, [item.productId, amount, balance.before, balance.after, created.id, data.userId])
     }
-    const sale = await getSale(connection, created.id)
     if(data.reservationId!==null) {
       await connection.query('UPDATE nazareth.sales SET reservation_id=$1 WHERE id=$2',[data.reservationId,created.id])
       await connection.query(`UPDATE nazareth.reservations SET status='collected' WHERE id=$1`,[data.reservationId])
     }
+    const sale = await getSale(connection, created.id)
     await connection.query('COMMIT')
     return { ...sale, replayed: false }
   } catch (error) {

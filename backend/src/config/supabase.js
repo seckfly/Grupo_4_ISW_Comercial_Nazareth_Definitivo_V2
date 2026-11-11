@@ -7,3 +7,4 @@ export const supabaseAuth = createClient(env.supabaseUrl, env.publishableKey, op
 export const supabaseAdmin = env.secretKey
   ? createClient(env.supabaseUrl, env.secretKey, options).auth.admin
   : null
+export const supabaseStorage = env.secretKey ? createClient(env.supabaseUrl,env.secretKey,options).storage : null

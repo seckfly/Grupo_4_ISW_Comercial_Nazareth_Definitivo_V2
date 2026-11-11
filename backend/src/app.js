@@ -1,6 +1,8 @@
 import { dashboard } from './services/dashboardService.js'
 import { customerSales } from './services/saleService.js'
 import cors from 'cors'
+import { supabaseStorage } from './config/supabase.js'
+import { photoRouter } from './routes/photoRoutes.js'
 import { fullScopeRouter } from './routes/fullScopeRoutes.js'
 import express from 'express'
 import { env } from './config/runtime.js'
@@ -28,6 +30,7 @@ app.use('/api/sales', saleRoutes)
 app.use('/api/promotions', promotionRoutes)
 app.use('/api/inventory', createInventoryRouter({ db: pool, authenticate: auth }))
 app.use('/api', fullScopeRouter({db:pool,authenticate:auth}))
+app.use('/api/product-photos',photoRouter({authenticate:auth,storage:supabaseStorage}))
 
 app.get('/api/dashboard', auth, requireRole('admin'), async (req,res,next) => {
   try { res.set('Cache-Control','no-store'); res.json(await dashboard(pool,req.query.period || 'week')) } catch(error) { next(error) }
@@ -38,7 +41,7 @@ app.get('/api/customer-sales', auth, requireRole('client'), async (req,res,next)
 
 app.use((_req, res) => res.status(404).json({ message: 'Ruta no encontrada' }))
 app.use((error, _req, res, _next) => {
-  const status = error.statusCode || (error.message === 'Stock insuficiente' ? 409 : 500)
+  const status = error.statusCode || error.status || (error.message === 'Stock insuficiente' ? 409 : 500)
   if (status === 500 && env.nodeEnv !== 'test') console.error('Error en API:', error.code || error.name)
   res.status(status).json({ message: status === 500 ? 'No se pudo completar la operación' : error.message })
 })

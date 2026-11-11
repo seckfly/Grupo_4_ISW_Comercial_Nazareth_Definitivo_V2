@@ -1,4 +1,14 @@
 /* Ajustes de presentación sobre los componentes y la identidad existentes. */
+.product-photo-preview { width:160px; height:160px; object-fit:cover; border-radius:12px; background:var(--green-soft); }
+.catalog-thumb { width:100%; height:100%; object-fit:cover; border-radius:inherit; }
+.photo-neutral { display:grid;place-items:center;width:100%;min-height:180px;color:var(--forest);background:var(--green-soft);font-size:48px; }
+.reservations-page > .card, .purchases-page > .card { margin-top: 18px; }
+.reservations-page .toolbar { flex-wrap: wrap; }
+.shopping-list-lines label { display: grid; gap: 5px; font-size: 12px; }
+.shopping-list-lines input { width: 100%; max-width: 140px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; }
+.shopping-list-panel footer .form-success strong { font-size: 20px; overflow-wrap: anywhere; }
+.shopping-list-panel footer button.secondary { background: #fff; color: var(--forest); }
+@media (max-width:680px) { .reservations-page .card-head { flex-wrap:wrap; gap:12px; }.reservations-page .toolbar > button { flex:1 1 140px; }.shopping-list-panel footer { position:static; } }
 .pulse-metric .analytics-value { font-size: 18px; line-height: 1.4; }
 .history-row > div { min-width: 0; }
 .history-row small, .history-row p { display: block; font-size: 12px; color: #625e56; margin-top: 6px; overflow-wrap: anywhere; }
@@ -195,3 +205,6 @@
   .sale-drawer .checkout-footer { position: sticky; bottom: 0; z-index: 2; }
   .sale-drawer .checkout-scroll { padding-bottom: 24px; }
 }
+
+.sale-drawer .payment-qr { display:block; width:180px; height:180px; margin:12px auto; background:white; }
+.sale-drawer .digital-payment p { font-size:12px;line-height:1.5;color:#625e56; }

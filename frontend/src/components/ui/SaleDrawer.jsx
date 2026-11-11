@@ -13,17 +13,18 @@ function quantityUnits(value) {
   try { return decimalUnits(value) } catch { return 0 }
 }
 
-export default function SaleDrawer({ close, onCreated }) {
+export default function SaleDrawer({ close, onCreated, reservation = null }) {
   const [products, setProducts] = useState([])
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [catalogError, setCatalogError] = useState('')
-  const [cart, setCart] = useState([])
+  const [cart, setCart] = useState(()=>reservation?reservation.items.map(item=>({...item,id:item.productId,qty:String(item.quantity),price:item.price,stock:item.quantity})):[])
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('Todos')
   const [pay, setPay] = useState('efectivo')
   const [discount, setDiscount] = useState('')
   const [cash, setCash] = useState('')
   const [operation, setOperation] = useState('')
+  const [verified,setVerified]=useState(false)
   const [receipt, setReceipt] = useState(true)
   const [createdSale, setCreatedSale] = useState(null)
   const [quote, setQuote] = useState(null)
@@ -34,7 +35,7 @@ export default function SaleDrawer({ close, onCreated }) {
   const [refresh, setRefresh] = useState(0)
   const [requestId, setRequestId] = useState(() => crypto.randomUUID())
   const [choosingCustomer, setChoosingCustomer] = useState(false)
-  const [customer, setCustomer] = useState(null)
+  const [customer, setCustomer] = useState(()=>reservation?{id:reservation.customer_id,name:reservation.customerName}:null)
   const [customerQuery, setCustomerQuery] = useState('')
   const [customers, setCustomers] = useState([])
   const [customerError, setCustomerError] = useState('')
@@ -55,7 +56,7 @@ export default function SaleDrawer({ close, onCreated }) {
     setCatalogLoading(true)
     setCatalogError('')
     api.products().then((rows) => {
-      if (active) setProducts(rows.map((product) => ({ id: product.id, name: product.name, unit: product.unit, category: product.category, price: product.sale_price, stock: product.current_stock, sku: String(product.id) })))
+      if (active) setProducts(rows.map((product) => ({ id: product.id, name: product.name, unit: product.unit, category: product.category, price: product.sale_price, stock: Number(product.current_stock)+Number(reservation?.items.find(item=>item.productId===product.id)?.quantity||0), imageUrl:product.image_url,sku: String(product.id) })))
     }).catch((error) => { if (active) setCatalogError(error.message) })
       .finally(() => { if (active) setCatalogLoading(false) })
     return () => { active = false }
@@ -69,7 +70,7 @@ export default function SaleDrawer({ close, onCreated }) {
     const controller = new AbortController()
     setQuoting(true)
     const timer = setTimeout(() => {
-      api.quoteSale({ items: JSON.parse(cartPayload), discount: discount || '0' }, controller.signal)
+      api.quoteSale({ items: JSON.parse(cartPayload), discount: discount || '0',reservationId:reservation?.id }, controller.signal)
         .then((result) => setQuote({ ...result, inputKey: cartPayload + '|' + discount })).catch((error) => { if (!controller.signal.aborted) setQuoteError(error.message) })
         .finally(() => { if (!controller.signal.aborted) setQuoting(false) })
     }, 180)
@@ -107,11 +108,11 @@ export default function SaleDrawer({ close, onCreated }) {
     changed()
     setCart((current) => current.map((item) => item.id === id ? { ...item, qty: value } : item))
   }
-  function selectPay(method) { changed(); setPay(method); setCash(''); setOperation('') }
+  function selectPay(method) { changed(); setPay(method); setCash(''); setOperation('');setVerified(false) }
 
   const categories = ['Todos', ...new Set(products.map((product) => product.category))]
   const visible = useMemo(() => filterSaleProducts(products, query).filter((product) => category === 'Todos' || product.category === category), [products, query, category])
-  const payment = quote ? paymentState(pay, quote.total, cash, operation) : { ready: false, message: 'Espera el cálculo del servicio' }
+  const payment = quote ? paymentState(pay, quote.total, cash, operation,verified) : { ready: false, message: 'Espera el cálculo del servicio' }
   const quoteCurrent = quote && quote.inputKey === cartPayload + '|' + discount && !quoting && !quoteError
   const invalidCart = cart.some((item) => quantityUnits(item.qty) <= 0 || quantityUnits(item.qty) > decimalUnits(products.find((product) => product.id === item.id)?.stock ?? item.stock))
 
@@ -124,8 +125,8 @@ export default function SaleDrawer({ close, onCreated }) {
     try {
       const sale = await api.createSale({
         items: JSON.parse(cartPayload), discount: discount || '0', customerId: customer?.id ?? null,
-        paymentMethod: pay, cashReceived: cash, paymentReference: operation,
-        requestId, quoteId: quote.quoteId,
+        paymentMethod: pay, cashReceived: cash, paymentReference: operation,digitalReceived:cash,paymentConfirmed:verified,
+        requestId, quoteId: quote.quoteId,reservationId:reservation?.id,
       })
       setCreatedSale(sale)
       onCreated?.(sale)
@@ -175,15 +176,15 @@ export default function SaleDrawer({ close, onCreated }) {
           <div className="catalog-grid pos-products">{visible.map((product) => {
             const inCart = cart.find((item) => item.id === product.id)
             const full = quantityUnits(inCart?.qty ?? 0) + 100 > decimalUnits(product.stock)
-            return <button key={product.id} onClick={() => add(product)} disabled={busy || product.stock <= 0 || Boolean(inCart && full)} className={inCart ? 'selected' : ''}>
-              <span className="product-letter">{product.name[0]}</span><div><strong>{product.name}</strong><small>{product.category} · <b>{quantityLabel(product.stock, product.unit)}</b></small></div><b>{currency(quote?.items.find((item) => item.productId === product.id)?.unitPrice ?? product.price)}</b><span className="add-product">{inCart ? <Check/> : <Plus/>}</span>
+            return <button key={product.id} onClick={() => add(product)} disabled={Boolean(reservation) || busy || product.stock <= 0 || Boolean(inCart && full)} className={inCart ? 'selected' : ''}>
+              <span className="product-letter">{product.imageUrl?<img className="catalog-thumb" src={product.imageUrl} alt=""/>:product.name[0]}</span><div><strong>{product.name}</strong><small>{product.category} · <b>{quantityLabel(product.stock, product.unit)}</b></small></div><b>{currency(quote?.items.find((item) => item.productId === product.id)?.unitPrice ?? product.price)}</b><span className="add-product">{inCart ? <Check/> : <Plus/>}</span>
             </button>
           })}</div>}
       </section>
       <form className="checkout-panel" onSubmit={confirmSale} aria-busy={busy}>
         <div className="checkout-scroll">
         <div className="checkout-top"><div><p className="eyebrow">Nueva venta</p><h3>Detalle del pedido</h3></div><span>{quote ? countLabel(quote.units, 'unidad', 'unidades') : '— unidades'}</span></div>
-        <button type="button" className="customer-select" disabled={busy} onClick={() => setChoosingCustomer((value) => !value)} aria-expanded={choosingCustomer}><UserRound/><div><span>Cliente</span><strong>{customer?.name || 'Venta sin cliente'}</strong></div><ChevronDown/></button>
+        <button type="button" className="customer-select" disabled={busy || Boolean(reservation)} onClick={() => setChoosingCustomer((value) => !value)} aria-expanded={choosingCustomer}><UserRound/><div><span>Cliente</span><strong>{customer?.name || 'Venta sin cliente'}</strong></div><ChevronDown/></button>
         {choosingCustomer && <div className="sale-customer-search"><label className="search"><Search/><input aria-label="Buscar cliente registrado" placeholder="Nombre, correo o teléfono" value={customerQuery} onChange={(event) => setCustomerQuery(event.target.value)}/></label>
           <button className="text-btn" type="button" onClick={() => { changed(); setCustomer(null); setChoosingCustomer(false) }}>Continuar sin cliente</button>
           {searching && <small role="status">Buscando…</small>}{customerError && <p className="form-error" role="alert">{customerError}</p>}
@@ -192,9 +193,9 @@ export default function SaleDrawer({ close, onCreated }) {
         </div>}
         <div className="ticket-lines pos-lines">{cart.length ? cart.map((item) => <article key={item.id}>
           <span className="line-thumb">{item.name[0]}</span><div><strong>{item.name}</strong><small>{currency(quote?.items.find((line) => line.productId === item.id)?.unitPrice ?? item.price)} / {item.unit}</small></div>
-          <DecimalInput label={'Cantidad de ' + item.name} value={item.qty} onChange={(value) => quantity(item.id, value)} minUnits={1} maxUnits={decimalUnits(products.find((product) => product.id === item.id)?.stock ?? item.stock)} disabled={busy}/>
+          <DecimalInput label={'Cantidad de ' + item.name} value={item.qty} onChange={(value) => quantity(item.id, value)} minUnits={1} maxUnits={decimalUnits(products.find((product) => product.id === item.id)?.stock ?? item.stock)} disabled={busy || Boolean(reservation)}/>
           <b>{quoteCurrent ? currency(quote.items.find((line) => line.productId === item.id)?.subtotal ?? 0) : '—'}</b>
-          <button className="trash" type="button" disabled={busy} aria-label={'Retirar ' + item.name} onClick={() => { changed(); setCart((current) => current.filter((product) => product.id !== item.id)) }}><Trash2/></button>
+          <button className="trash" type="button" disabled={busy || Boolean(reservation)} aria-label={'Retirar ' + item.name} onClick={() => { changed(); setCart((current) => current.filter((product) => product.id !== item.id)) }}><Trash2/></button>
         </article>) : <div className="empty-cart"><ShoppingBasket/><strong>La venta está vacía</strong><span>Selecciona productos del catálogo para comenzar.</span></div>}</div>
         <div className="discount-row"><Tag/><span>Descuento</span><input aria-label="Descuento de la venta en soles" type="number" min="0" max={quote?.subtotal ?? '9999999999.99'} step="0.01" inputMode="decimal" value={discount} disabled={busy} onChange={(event) => { changed(); setDiscount(event.target.value) }} placeholder="S/ 0.00"/></div>
         {quoteError && <p className="form-error" role="alert">{quoteError}</p>}
@@ -202,7 +203,7 @@ export default function SaleDrawer({ close, onCreated }) {
         <div className="payment-studio"><div className="ticket-pay pos-pay"><span>Método de pago</span><div>{[['efectivo', Banknote], ['yape', WalletCards], ['plin', WalletCards]].map(([method, Icon]) => <button type="button" className={pay === method ? 'active' : ''} disabled={busy} onClick={() => selectPay(method)} key={method}><Icon/><span>{method[0].toUpperCase() + method.slice(1)}</span>{pay === method && <Check/>}</button>)}</div></div>
           {pay === 'efectivo' ? <div className="cash-studio"><div className="quick-cash"><span>Pago rápido</span><div>{quickCashSuggestions(quote?.total).map((amount) => <button type="button" disabled={busy || !quoteCurrent} key={amount} onClick={() => { changed(); setCash(String(amount)) }}>S/ {amount}</button>)}</div></div>
             <div className="cash-input premium-cash"><label>Monto recibido<input value={cash} disabled={busy} onChange={(event) => { changed(); setCash(event.target.value) }} type="number" min="0" max={MONEY_MAX_UNITS / 100} step="0.01" inputMode="decimal" placeholder="S/ 0.00" required/></label><div><span>Vuelto para el cliente</span><strong>{quoteCurrent && payment.ready ? currency((decimalUnits(cash, { maxUnits: MONEY_MAX_UNITS }) - decimalUnits(quote.total, { maxUnits: MONEY_MAX_UNITS })) / 100) : '—'}</strong></div></div>
-          </div> : <div className="digital-payment"><div className={'wallet-mark ' + pay}><WalletCards/><strong>{pay.toUpperCase()}</strong><span>Pago indicado en tienda</span></div><label><span>Referencia de operación</span><input value={operation} disabled={busy} onChange={(event) => { changed(); setOperation(event.target.value) }} placeholder="Referencia del pago" required/></label></div>}
+          </div> : <div className="digital-payment"><div className={'wallet-mark '+pay}><WalletCards/><strong>{pay.toUpperCase()} ? Demostración</strong></div><img className="payment-qr" src={'/qr-demo-'+pay+'.svg'} alt={'QR de demostración '+pay+', destino de prueba sin cobro'}/><p>Demostración: destino de prueba sin solicitud de dinero. Escanear no confirma el pago.</p><label>Importe recibido<input type="number" min="0" max={MONEY_MAX_UNITS/100} step=".01" inputMode="decimal" required disabled={busy} value={cash} onChange={event=>{changed();setCash(event.target.value);setVerified(false)}}/></label><label>Referencia de operación (opcional)<input value={operation} disabled={busy} onChange={event=>{changed();setOperation(event.target.value)}} placeholder="Referencia opcional"/></label><label className="access-toggle"><input type="checkbox" checked={verified} disabled={busy} onChange={event=>{changed();setVerified(event.target.checked)}}/><span>He comprobado el abono y el importe recibido</span></label></div>}
           <button type="button" className={'receipt-toggle ' + (receipt ? 'active' : '')} disabled={busy} onClick={() => setReceipt((value) => !value)}><ReceiptText/><div><strong>Emitir comprobante</strong><span>Ticket de venta al confirmar</span></div><i>{receipt ? <Check/> : null}</i></button>
           <div className={'payment-status ' + (payment.ready ? 'ready' : 'pending')}><ShieldCheck/><div><strong>{payment.ready ? 'Datos de pago listos' : 'Completa el cobro'}</strong><span>{payment.message}</span></div></div>
         </div>

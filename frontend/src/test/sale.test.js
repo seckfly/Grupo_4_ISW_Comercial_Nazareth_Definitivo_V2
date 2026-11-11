@@ -7,8 +7,8 @@ describe('sale checkout logic',()=>{
   it('calculates cash change without returning negative values',()=>expect(cartSummary([{price:4.8,qty:1}],0,10).change).toBe(5.2))
   it('finds products by name, category or sku',()=>expect(filterSaleProducts(products,'beb-003').map(p=>p.name)).toEqual(['Inca Kola 1.5 L']))
   it('requires enough cash before confirming',()=>expect(paymentState('efectivo',4.8,4)).toEqual({ready:false,message:'Faltan S/ 0.80'}))
-  it('accepts a nonempty digital reference without an invented length rule',()=>expect(paymentState('yape',14.5,0,'YP-123')).toEqual({ready:true,message:'Referencia registrada'}))
-  it('rejects empty digital references',()=>expect(paymentState('plin',14.5,0,'   ')).toEqual({ready:false,message:'Ingresa la referencia del pago'}))
+  it('acepta importe digital exacto y confirmación manual con referencia opcional',()=>expect(paymentState('yape',14.5,'14.50','',true).ready).toBe(true))
+  it('no considera el QR ni la referencia una confirmación del abono',()=>expect(paymentState('plin',14.5,'14.50','ABC',false).ready).toBe(false))
   it('offers practical cash amounts without values below the total',()=>expect(quickCashSuggestions(17.1)).toEqual([20,50,100]))
   it('uses the exact total as the first option when it is already practical',()=>expect(quickCashSuggestions(20)).toEqual([20,50,100]))
   it('builds a printable receipt with items and payment details',()=>{

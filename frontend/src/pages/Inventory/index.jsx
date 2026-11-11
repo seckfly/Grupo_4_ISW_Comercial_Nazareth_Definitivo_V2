@@ -76,7 +76,7 @@ export default function Inventory() {
         <tbody>{shown.map((product) => <tr key={product.id}>
           <td><div className="product-cell"><span>{product.name[0]}</span><div><strong>{product.name}</strong>{!product.isActive && <small className="inventory-detail">Inactivo</small>}</div></div></td>
           <td>#{String(product.id).padStart(4, '0')}</td><td>{product.category}</td>
-          <td><StockPill unit={product.unit} stock={product.stock} minimum={product.minimum} isActive={product.isActive}/><small className="inventory-detail">Mínimo: {quantityLabel(product.minimum, product.unit)}{product.lowStock ? ' · Requiere atención' : ''}</small></td>
+          <td><StockPill unit={product.unit} stock={product.stock} minimum={product.minimum} isActive={product.isActive}/><small className="inventory-detail">Físico · Apartado: {quantityLabel(product.held,product.unit)} · Disponible: {quantityLabel(product.available,product.unit)}</small><small className="inventory-detail">Mínimo: {quantityLabel(product.minimum, product.unit)}{product.lowStock ? ' · Requiere atención' : ''}</small></td>
           <td>{currency(product.cost)}</td><td><strong>{currency(product.price)}</strong></td><td><span className="margin">{margin(product.cost, product.price)}%</span></td>
           <td><ProductActions product={product} open={open}/></td>
         </tr>)}</tbody>

@@ -10,6 +10,8 @@ import { ProductDrawer, HistoryDrawer, AdjustmentDrawer } from '../pages/Invento
 import Promotions from '../pages/Promotions'
 import Customers from '../pages/Customers'
 import Overview from '../pages/Overview'
+import Products from '../pages/Products'
+import Reservations from '../pages/Reservations'
 import { api } from '../services/api'
 
 vi.mock('../services/api', () => ({ api: {
@@ -18,8 +20,10 @@ vi.mock('../services/api', () => ({ api: {
   adjustInventory: vi.fn(),
   promotions: vi.fn(), customers: vi.fn(),
   dashboard: vi.fn(),
+  preferences:vi.fn(),savePreferences:vi.fn(),requestReservation:vi.fn(),reservations:vi.fn(),changeReservation:vi.fn(),uploadPhoto:vi.fn(),
 } }))
-vi.mock('../context/AuthContext', () => ({ useAuth: () => ({ user: { role: 'admin', name: 'Prueba' } }) }))
+const authState=vi.hoisted(()=>({user:{role:'admin',name:'Prueba'}}))
+vi.mock('../context/AuthContext', () => ({ useAuth: () => authState }))
 const inventoryState = vi.hoisted(() => ({ alertCount: 0, data: { products: [] }, loading: false, error: '', setRevision: vi.fn() }))
 vi.mock('../context/InventoryContext', () => ({ useInventory: () => inventoryState }))
 vi.mock('../components/charts/SalesTrend', () => ({ default: () => <div>Gráfico de ventas</div> }))
@@ -43,7 +47,7 @@ function type(input, value) {
 async function settled(condition) {
   await vi.waitFor(async () => { await act(async () => {}); condition() }, { timeout: 3000 })
 }
-afterEach(() => { act(() => root?.unmount()); container?.remove(); vi.clearAllMocks() })
+afterEach(() => { act(() => root?.unmount()); container?.remove(); vi.clearAllMocks();authState.user.role='admin' })
 
 describe('controles numéricos del checkout y de Inventario', () => {
   it('bloquea un ajuste con saldo negativo y permite corregirlo sin guardar', () => {
@@ -236,4 +240,58 @@ it('Resumen distingue error y vacío y vuelve a consultar las operaciones al ent
   act(() => root.render(<Overview/>))
   await settled(() => expect(element.textContent).toContain('20.10'))
   expect(api.dashboard).toHaveBeenCalledTimes(3)
+})
+
+it('CU-005: catálogo sin foto permite solicitar con cantidad decimal y consultar código y vigencia',async()=>{
+  authState.user.role='client'
+  api.products.mockResolvedValue([{id:1,name:'Producto real QA',unit:'Kg',category:'Abarrotes',sale_price:6.7,current_stock:3,image_url:null}])
+  api.preferences.mockResolvedValue({favorites:[],list:[]})
+  api.savePreferences.mockImplementation(async value=>value)
+  api.requestReservation.mockResolvedValue({pickup_code:'NZ-TEST-QA',estimated_total:1.68,pickup_deadline:'2026-11-12T18:00:00Z'})
+  const navigate=vi.fn(),element=render(<Products onNavigate={navigate}/>)
+  await settled(()=>expect(element.querySelector('.product-copy strong').textContent).toContain('6.70'))
+  expect(element.querySelector('.photo-neutral')).not.toBeNull()
+  await act(async()=>element.querySelector('.product-copy button').click())
+  type(element.querySelector('[aria-label="Cantidad para separar Producto real QA"]'),'0.25')
+  await act(async()=>[...element.querySelectorAll('button')].find(button=>button.textContent.includes('Solicitar separación')).click())
+  await settled(()=>expect(element.textContent).toContain('NZ-TEST-QA'))
+  expect(api.requestReservation.mock.calls[0][0].items).toEqual([{productId:1,quantity:'0.25'}])
+  expect(element.textContent).toContain('Pendiente de confirmación')
+  expect(element.textContent).not.toContain('WhatsApp')
+  expect(api.createSale).not.toHaveBeenCalled()
+  act(()=>[...element.querySelectorAll('button')].find(button=>button.textContent==='Ver mis solicitudes').click())
+  expect(navigate).toHaveBeenCalledWith('Reservas')
+})
+
+it('CU-001 digital: QR de demostración, importe exacto y confirmación manual con referencia opcional',async()=>{
+  api.products.mockResolvedValue([{id:1,name:'Arroz QA',category:'Abarrotes',unit:'Kg',sale_price:6.7,current_stock:10}])
+  api.quoteSale.mockResolvedValue({...savedSale,units:1,total:6.7,quoteId:'a'.repeat(64),items:[{...savedSale.items[0],productId:1,quantity:1,subtotal:6.7}]})
+  api.createSale.mockResolvedValue({...savedSale,id:800,total:6.7,paymentMethod:'yape',paymentReference:null})
+  const element=render(<SaleDrawer close={()=>{}}/>)
+  await settled(()=>expect(element.querySelector('.pos-products button')).not.toBeNull())
+  act(()=>element.querySelector('.pos-products button').click())
+  await act(async()=>{await new Promise(resolve=>setTimeout(resolve,250))})
+  await settled(()=>expect(element.querySelector('.grand-total').textContent).toContain('6.70'))
+  act(()=>[...element.querySelectorAll('.pos-pay button')].find(button=>button.textContent.includes('Yape')).click())
+  expect(element.querySelector('.payment-qr').getAttribute('src')).toBe('/qr-demo-yape.svg')
+  expect(element.querySelector('.digital-payment input[placeholder="Referencia opcional"]').required).toBe(false)
+  type(element.querySelector('.digital-payment input[type="number"]'),'6.70')
+  expect(element.querySelector('.pos-confirm').disabled).toBe(true)
+  act(()=>element.querySelector('.digital-payment input[type="checkbox"]').click())
+  expect(element.querySelector('.pos-confirm').disabled).toBe(false)
+  await act(async()=>element.querySelector('.pos-confirm').click())
+  await settled(()=>expect(element.querySelector('.sale-success')).not.toBeNull())
+  expect(api.createSale.mock.calls[0][0]).toMatchObject({paymentMethod:'yape',digitalReceived:'6.70',paymentConfirmed:true,paymentReference:''})
+})
+
+it('CU-006: foto opcional valida formato, carga y permite quitar antes de guardar',async()=>{
+  api.uploadPhoto.mockResolvedValue({url:'https://project.supabase.co/storage/v1/object/public/product-photos/1/photo.png'})
+  const element=render(<ProductDrawer categories={[{id:1,name:'Abarrotes'}]} close={()=>{}} saved={()=>{}}/>)
+  const input=element.querySelector('input[type="file"]')
+  act(()=>{Object.defineProperty(input,'files',{configurable:true,value:[new File(['svg'],'bad.svg',{type:'image/svg+xml'})]});input.dispatchEvent(new Event('change',{bubbles:true}))})
+  expect(api.uploadPhoto).not.toHaveBeenCalled()
+  await act(async()=>{Object.defineProperty(input,'files',{configurable:true,value:[new File(['png'],'photo.png',{type:'image/png'})]});input.dispatchEvent(new Event('change',{bubbles:true}))})
+  expect(element.querySelector('.product-photo-preview')).not.toBeNull()
+  act(()=>[...element.querySelectorAll('button')].find(button=>button.textContent==='Quitar foto').click())
+  expect(element.querySelector('.product-photo-preview')).toBeNull()
 })

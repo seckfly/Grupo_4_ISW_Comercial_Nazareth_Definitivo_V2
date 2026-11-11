@@ -30,3 +30,7 @@ supabase/.branches/
 
 # Script de origen con credenciales de demostración; conservar solo localmente.
 /database/comercial_nazareth.sql
+
+# Copias locales de negocio (no versionar datos)
+/database/backups/
+*.backup

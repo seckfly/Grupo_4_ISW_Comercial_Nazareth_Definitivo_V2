@@ -1,5 +1,6 @@
 import { decimalUnits, decimalText, positiveId, inputError as invalid } from '../../../shared/numbers.mjs'
 import { lockStock, heldSql } from './stockService.js'
+import { photoUrl } from './photoService.js'
 
 export const inventoryId = positiveId
 
@@ -23,6 +24,7 @@ export function productInput(input, creating) {
     price: decimal(input.price, 'El precio'),
     minimum: decimal(input.minimum, 'El mínimo'),
     isActive: input.isActive ?? (creating ? true : undefined),
+    imageUrl: input.imageUrl===undefined?undefined:photoUrl(input.imageUrl),
     ...(creating ? { initialStock: decimal(input.initialStock, 'El stock inicial') } : {}),
   }
 }
@@ -89,9 +91,9 @@ export async function createProduct(db, input, userId) {
   try {
     await connection.query('BEGIN')
     const { rows: [created] } = await connection.query(`INSERT INTO nazareth.products
-      (category_id, name, unit, cost_price, sale_price, current_stock, min_stock_threshold, is_active)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-    [data.categoryId, data.name, data.unit, data.cost, data.price, data.initialStock, data.minimum, data.isActive])
+      (category_id, name, unit, cost_price, sale_price, current_stock, min_stock_threshold, is_active,image_url)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8,$9) RETURNING id`,
+    [data.categoryId, data.name, data.unit, data.cost, data.price, data.initialStock, data.minimum, data.isActive,data.imageUrl??null])
     if (Number(data.initialStock) > 0) {
       await connection.query(`INSERT INTO nazareth.inventory_movements
         (product_id, type, quantity_change, stock_before, stock_after, reason, created_by)
@@ -114,8 +116,9 @@ export async function updateProduct(db, productId, input) {
   const data = productInput(input, false)
   try {
     const { rowCount } = await db.query(`UPDATE nazareth.products SET category_id = $1, name = $2,
-      unit = $3, cost_price = $4, sale_price = $5, min_stock_threshold = $6, is_active = COALESCE($7, is_active) WHERE id = $8`,
-    [data.categoryId, data.name, data.unit, data.cost, data.price, data.minimum, data.isActive, id])
+      unit = $3, cost_price = $4, sale_price = $5, min_stock_threshold = $6, is_active = COALESCE($7, is_active),
+      image_url=CASE WHEN $9::boolean THEN $10 ELSE image_url END WHERE id = $8`,
+    [data.categoryId, data.name, data.unit, data.cost, data.price, data.minimum, data.isActive, id,data.imageUrl!==undefined,data.imageUrl??null])
     if (!rowCount) throw invalid('Producto no encontrado', 404)
     return await productById(db, id)
   } catch (error) {

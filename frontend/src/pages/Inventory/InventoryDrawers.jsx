@@ -51,11 +51,18 @@ export function ProductDrawer({ product, categories, close, saved }) {
     ...(!editing ? { initialStock: 0 } : {}),
   }))
   const [busy, setBusy] = useState(false)
+  const [uploading,setUploading]=useState(false)
   const [error, setError] = useState('')
   const submitting = useRef(false)
   const units = [...new Set(['Unidad', 'Paquete', 'Kg', ...(product ? [product.unit] : [])])]
 
   function field(key, value) { setForm((current) => ({ ...current, [key]: value })) }
+  async function photo(file) {
+    if(!file)return
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>2*1024*1024){setError('Usa JPEG, PNG o WebP de hasta 2 MiB.');return}
+    setUploading(true);setError('')
+    try {const result=await api.uploadPhoto(file);field('imageUrl',result.url)}catch(error){setError(error.message)}finally{setUploading(false)}
+  }
   async function submit(event) {
     event.preventDefault()
     if (submitting.current) return
@@ -71,9 +78,13 @@ export function ProductDrawer({ product, categories, close, saved }) {
     } catch (error) { setError(error.message) } finally { submitting.current = false; setBusy(false) }
   }
 
-  return <InventoryDrawer title={editing ? 'Editar producto' : 'Agregar producto'} kicker={editing ? 'Mantenimiento' : 'Nuevo registro'} close={close} busy={busy}>
+  return <InventoryDrawer title={editing ? 'Editar producto' : 'Agregar producto'} kicker={editing ? 'Mantenimiento' : 'Nuevo registro'} close={close} busy={busy||uploading}>
     <form onSubmit={submit} aria-busy={busy}>
       <label>Nombre del producto<input value={form.name} onChange={(event) => field('name', event.target.value)} placeholder="Ej. Harina Blanca Flor 1 kg" required/></label>
+      <label>Foto opcional · JPEG, PNG o WebP · máximo 2 MiB<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy||uploading} onChange={event=>photo(event.target.files[0])}/></label>
+      {(form.imageUrl===undefined?product?.imageUrl:form.imageUrl)?<img className="product-photo-preview" src={form.imageUrl===undefined?product?.imageUrl:form.imageUrl} alt="Vista previa de la foto del producto"/>:<p>Sin foto · se mostrará una presentación neutra.</p>}
+      <button className="secondary" type="button" disabled={busy||uploading} onClick={()=>field('imageUrl',null)}>Quitar foto</button>
+      {uploading&&<p role="status">Cargando foto…</p>}
       <div className="form-row">
         <label>Categoría<select value={form.categoryId} onChange={(event) => field('categoryId', event.target.value)} required>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
         <label>Unidad<select value={form.unit} onChange={(event) => field('unit', event.target.value)}>{units.map((unit) => <option key={unit}>{unit}</option>)}</select></label>
@@ -90,7 +101,7 @@ export function ProductDrawer({ product, categories, close, saved }) {
       <label className="access-toggle"><input type="checkbox" checked={form.isActive} onChange={(event) => field('isActive', event.target.checked)}/><span><strong>Producto activo</strong></span></label>
       {error && <p className="form-error" role="alert">{error}</p>}
       {!categories.length && <p className="form-error" role="alert">El catálogo aún no tiene categorías disponibles.</p>}
-      <button className="primary" disabled={busy || !categories.length}>{busy ? 'Guardando…' : 'Guardar producto'}</button>
+      <button className="primary" disabled={busy || uploading || !categories.length}>{busy ? 'Guardando…' : 'Guardar producto'}</button>
     </form>
   </InventoryDrawer>
 }
@@ -107,7 +118,7 @@ export function AdjustmentDrawer({ product, close, saved }) {
   }
   async function submit(event) {
     event.preventDefault()
-    if (submitting.current || result < 0) return
+    if (submitting.current || result < Number(product.held||0)) return
     if (!form.reason.trim()) { setError('Ingresa un motivo con al menos un carácter distinto de espacios.'); return }
     try {
       if (decimalUnits(form.change, { signed: true, label: 'La variación' }) === 0) throw new Error('Ingresa una variación distinta de cero.')
@@ -123,12 +134,12 @@ export function AdjustmentDrawer({ product, close, saved }) {
 
   return <InventoryDrawer title="Ajustar stock" kicker={product.name} close={close} busy={busy}>
     <form onSubmit={submit} aria-busy={busy}>
-      <div className="form-row"><label>Stock consultado<input value={product.stock} readOnly/></label><label>Saldo previsto<input value={Number(result.toFixed(2))} readOnly aria-invalid={result < 0} aria-describedby={result < 0 ? 'negative-stock-warning' : undefined}/>{result < 0 && <span id="negative-stock-warning" className="form-error" role="alert">El saldo no puede ser negativo. Reduce la cantidad retirada.</span>}</label></div>
+      <div className="form-row"><label>Stock consultado<input value={product.stock} readOnly/></label><label>Saldo previsto<input value={Number(result.toFixed(2))} readOnly aria-invalid={result < Number(product.held||0)} aria-describedby={result < Number(product.held||0) ? 'negative-stock-warning' : undefined}/>{result < Number(product.held||0) && <span id="negative-stock-warning" className="form-error" role="alert">El saldo no puede ser negativo ni inferior a las unidades apartadas. Reduce la cantidad retirada.</span>}</label></div>
       <label>Variación de existencias<DecimalInput label="Variación de existencias" name="change" value={form.change} signed onChange={(value) => field('change', value)} disabled={busy}/></label>
       <small className="muted">Usa un valor positivo para agregar unidades y uno negativo para retirarlas. El saldo se comprueba al guardar.</small>
       <label>Motivo<input value={form.reason} onChange={(event) => field('reason', event.target.value)} placeholder="Ej. Producto dañado" required/></label>
       {error && <p className="form-error" role="alert">{error}</p>}
-      <button className="primary" disabled={busy || result < 0}>{busy ? 'Guardando…' : 'Confirmar ajuste'}</button>
+      <button className="primary" disabled={busy || result < Number(product.held||0)}>{busy ? 'Guardando…' : 'Confirmar ajuste'}</button>
     </form>
   </InventoryDrawer>
 }

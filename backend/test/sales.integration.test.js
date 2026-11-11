@@ -2,12 +2,14 @@ import test, { before, after, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
+import { performance } from 'node:perf_hooks'
 import { setTimeout as delay } from 'node:timers/promises'
 import express from 'express'
 import { nativePostgres } from '../test-support/nativePostgres.js'
 import { createSalesRouter } from '../src/routes/salesRouter.js'
 import { createInventoryRouter } from '../src/routes/inventoryRoutes.js'
-import { createProduct, adjustInventory } from '../src/services/inventoryService.js'
+import { createProduct, adjustInventory,updateProduct,listInventory } from '../src/services/inventoryService.js'
 import { createSale, quoteSale } from '../src/services/saleService.js'
 import { dashboard } from '../src/services/dashboardService.js'
 import { listSales, customerSales } from '../src/services/saleService.js'
@@ -156,6 +158,127 @@ test('PRU-007: favoritos y lista persistidos y aislados por cuenta',async()=>{
   assert.equal((await request('/api/preferences',{role:'admin-fixture'})).status,403)
 })
 
+test('PRU-021/022: diez ventas y diez consultas por operación bajo los umbrales locales',async()=>{
+  const p=await product({initialStock:100}),saleTimes=[],queries={products:[],stock:[],summary:[]}
+  for(let index=0;index<10;index++) {
+    const payload=await salePayload(p.id,{items:[{productId:p.id,quantity:1}]})
+    const start=performance.now(),result=await request('/api/sales',{method:'POST',body:payload})
+    saleTimes.push(performance.now()-start);assert.equal(result.status,201)
+    for(const [name,work] of [['products',()=>Product.list(pool)],['stock',()=>listInventory(pool)],['summary',()=>dashboard(pool,'week')]]) {
+      const start=performance.now();await work();queries[name].push(performance.now()-start)
+    }
+  }
+  assert.ok(saleTimes.every(time=>time<15000))
+  for(const times of Object.values(queries))assert.ok(times.every(time=>time<=3000))
+  console.log('PERFORMANCE_QA '+JSON.stringify({sales:10,queriesEach:10,maxSaleMs:Math.ceil(Math.max(...saleTimes)),maxQueryMs:Object.fromEntries(Object.entries(queries).map(([name,times])=>[name,Math.ceil(Math.max(...times))]))}))
+})
+
+test('PRU-023: pg_dump y pg_restore recuperan ventas, detalle y movimientos en otra base aislada',async t=>{
+  const dump=process.env.TEST_PG_DUMP||'C:/Program Files/PostgreSQL/18/bin/pg_dump.exe'
+  const restore=process.env.TEST_PG_RESTORE||'C:/Program Files/PostgreSQL/18/bin/pg_restore.exe'
+  if(!existsSync(dump)||!existsSync(restore)){t.skip('Configura TEST_PG_DUMP y TEST_PG_RESTORE de PostgreSQL 18');return}
+  const p=await product()
+  assert.equal((await request('/api/sales',{method:'POST',body:await salePayload(p.id,{customerId:1})})).status,201)
+  const restored=await postgres.roundTripBackup({dump,restore})
+  try {
+    for(const table of ['sales','sale_items','inventory_movements','products','customers']) {
+      const sql='SELECT * FROM nazareth.'+table+' ORDER BY id'
+      assert.deepEqual((await restored.query(sql)).rows,(await postgres.admin.query(sql)).rows)
+    }
+  } finally {await restored.end()}
+})
+
+test('Productos con y sin foto, reemplazo y retirada conservan stock e historial',async()=>{
+  const p=await product()
+  assert.equal(p.imageUrl,null)
+  const url='https://project.supabase.co/storage/v1/object/public/product-photos/1/test.png'
+  const input={name:p.name,categoryId:p.categoryId,unit:p.unit,cost:p.cost,price:p.price,minimum:p.minimum,isActive:true,imageUrl:url}
+  let updated=await updateProduct(pool,p.id,input)
+  assert.equal(updated.imageUrl,url);assert.equal(updated.stock,10)
+  const replaced=url.replace('test.png','next.png')
+  assert.equal((await updateProduct(pool,p.id,{...input,imageUrl:replaced})).imageUrl,replaced)
+  updated=await updateProduct(pool,p.id,{...input,imageUrl:null});assert.equal(updated.imageUrl,null)
+  const next=await product({name:'Con foto QA',imageUrl:url})
+  assert.equal(next.imageUrl,url)
+})
+
+test('PRU-011: solicitud hasta tres productos, 24 horas, código e idempotencia sin bloqueo ni caja',async()=>{
+  const p=await product({initialStock:3})
+  const before=await dashboard(pool,'today')
+  const payload={requestId:randomUUID(),items:[{productId:p.id,quantity:'2.25'}]}
+  const first=await request('/api/reservations',{role:'client-fixture',method:'POST',body:payload})
+  assert.equal(first.status,200,JSON.stringify(first.body))
+  const second=await request('/api/reservations',{role:'client-fixture',method:'POST',body:payload})
+  assert.equal(first.body.id,second.body.id);assert.match(first.body.pickup_code,/^NZ-/)
+  assert.equal(new Date(first.body.pickup_deadline)-new Date(first.body.created_at),24*60*60*1000)
+  assert.equal(Number(first.body.estimated_total),15.08)
+  assert.equal((await Product.list(pool))[0].current_stock,3)
+  assert.equal((await dashboard(pool,'today')).today.total,before.today.total)
+  assert.equal((await request('/api/reservations',{role:'client-fixture'})).body[0].status,'pending')
+  assert.equal((await request('/api/reservations',{method:'POST',role:'client-fixture',body:{...payload,requestId:randomUUID(),items:Array(4).fill({productId:p.id,quantity:1})}})).status,400)
+})
+
+test('Apartado: últimas unidades frente a venta concurrente; cancelación, vencimiento y ajuste',async()=>{
+  const p=await product({initialStock:3,minimum:1})
+  const requested=await request('/api/reservations',{role:'client-fixture',method:'POST',body:{requestId:randomUUID(),items:[{productId:p.id,quantity:3}]}})
+  const payload=await salePayload(p.id)
+  const results=await Promise.all([
+    request('/api/reservations/'+requested.body.id,{method:'POST',body:{action:'confirm'}}),
+    request('/api/sales',{method:'POST',body:payload})
+  ])
+  assert.equal(results.filter(result=>[200,201].includes(result.status)).length,1,JSON.stringify(results))
+  assert.equal(results.filter(result=>result.status===409).length,1)
+  if(results[0].status===200) {
+    const product=(await request('/api/inventory')).body.products[0]
+    assert.equal(product.stock,3);assert.equal(product.held,3);assert.equal(product.available,0)
+    assert.equal(product.lowStock,false) // Alert criterion is physical stock, not holds.
+    assert.equal((await Product.list(pool))[0].current_stock,0)
+    await assert.rejects(adjustInventory(pool,p.id,{change:-1,reason:'No quitar apartados',requestId:randomUUID()},1),/apartadas/)
+    assert.equal((await request('/api/reservations/'+requested.body.id,{role:'client-fixture',method:'POST',body:{action:'cancel'}})).status,200)
+    assert.equal((await Product.list(pool))[0].current_stock,3)
+    const next=await request('/api/reservations',{role:'client-fixture',method:'POST',body:{requestId:randomUUID(),items:[{productId:p.id,quantity:3}]}})
+    assert.equal((await request('/api/reservations/'+next.body.id,{method:'POST',body:{action:'confirm'}})).status,200)
+    await postgres.admin.query(`UPDATE nazareth.reservations SET created_at=now()-interval '25 hours',pickup_deadline=now()-interval '1 hour' WHERE id=$1`,[next.body.id])
+    assert.equal((await Product.list(pool))[0].current_stock,3)
+    assert.equal((await request('/api/reservations',{role:'client-fixture'})).body[0].status,'expired')
+  }
+})
+
+test('Recojo: venta vinculada y cierre conjuntos, reintentos y conexiones simultáneas descuentan una vez',async()=>{
+  const p=await product({initialStock:3})
+  const requested=await request('/api/reservations',{role:'client-fixture',method:'POST',body:{requestId:randomUUID(),items:[{productId:p.id,quantity:3}]}})
+  assert.equal((await request('/api/reservations/'+requested.body.id,{method:'POST',body:{action:'confirm'}})).status,200)
+  const payload=await salePayload(p.id,{reservationId:requested.body.id,customerId:1})
+  const results=await Promise.all([request('/api/sales',{method:'POST',body:payload}),request('/api/sales',{method:'POST',body:payload})])
+  assert.ok(results.every(result=>[200,201].includes(result.status)),JSON.stringify(results))
+  assert.equal(results[0].body.id,results[1].body.id)
+  const inventory=(await request('/api/inventory')).body.products[0]
+  assert.equal(inventory.stock,0);assert.equal(inventory.held,0)
+  assert.equal((await request('/api/reservations',{role:'client-fixture'})).body[0].status,'collected')
+  assert.equal((await request('/api/customer-sales',{role:'client-fixture'})).body.length,1)
+  const history=await request('/api/inventory/products/'+p.id+'/history')
+  assert.equal(history.body.movements.filter(row=>row.type==='sale').length,1)
+})
+
+test('Apartado: cancelación y vencimiento liberan unidades sin alterar stock físico; rechazo y edición',async()=>{
+  const p=await product({initialStock:3})
+  async function reservation(){return (await request('/api/reservations',{role:'client-fixture',method:'POST',body:{requestId:randomUUID(),items:[{productId:p.id,quantity:3}]}})).body}
+  const first=await reservation()
+  assert.equal((await request('/api/reservations/'+first.id,{method:'POST',body:{action:'confirm'}})).status,200)
+  assert.equal((await Product.list(pool))[0].current_stock,0)
+  assert.equal((await request('/api/reservations/'+first.id,{role:'client-fixture',method:'POST',body:{action:'cancel'}})).status,200)
+  assert.equal((await Product.list(pool))[0].current_stock,3)
+  const next=await reservation()
+  await request('/api/reservations/'+next.id,{method:'POST',body:{action:'confirm'}})
+  await postgres.admin.query(`UPDATE nazareth.reservations SET created_at=now()-interval '25 hours',pickup_deadline=now()-interval '1 hour' WHERE id=$1`,[next.id])
+  assert.equal((await Product.list(pool))[0].current_stock,3)
+  assert.equal((await request('/api/reservations/'+next.id,{method:'POST',body:{action:'confirm'}})).status,409)
+  const third=await reservation()
+  assert.equal((await request('/api/reservations/'+third.id,{method:'POST',body:{action:'edit',items:[{productId:p.id,quantity:1}]}})).status,200)
+  assert.equal((await request('/api/reservations/'+third.id,{method:'POST',body:{action:'reject'}})).status,200)
+  assert.equal((await request('/api/inventory')).body.products[0].stock,3)
+})
+
 test('Resumen y Reportes: vacío, venta real, Lima, caja neta, demanda, actividad y alerta por ajuste', async () => {
   let report = await dashboard(pool, 'week')
   assert.equal(report.today.total, 0)
@@ -279,13 +402,24 @@ test('PRU-004: vinculación opcional y nueva venta sin conservar el cliente ante
 test('PRU-020: Yape y Plin conservan referencia y método sin una confirmación bancaria automática', async () => {
   const item = await product()
   for (const method of ['yape', 'plin']) {
-    const result = await request('/api/sales', { method: 'POST', body: await salePayload(item.id, { paymentMethod: method, paymentReference: method + '-REF-A1' }) })
+    const result = await request('/api/sales', { method: 'POST', body: await salePayload(item.id, { paymentMethod: method, paymentReference: method + '-REF-A1',digitalReceived:'20.10',paymentConfirmed:true }) })
     assert.equal(result.status, 201)
     assert.equal(result.body.paymentMethod, method)
     assert.equal(result.body.paymentReference, method + '-REF-A1')
     assert.equal(result.body.cashReceived, null)
   }
   assert.equal((await request('/api/inventory')).body.products[0].stock, 4)
+})
+
+test('Pagos digitales: referencia opcional, monto exacto y confirmación manual obligatoria',async()=>{
+  const p=await product()
+  for(const method of ['yape','plin']) {
+    const payload=await salePayload(p.id,{items:[{productId:p.id,quantity:1}],paymentMethod:method,digitalReceived:'6.70',paymentConfirmed:true})
+    assert.equal((await request('/api/sales',{method:'POST',body:{...payload,digitalReceived:'6.71'}})).status,400)
+    assert.equal((await request('/api/sales',{method:'POST',body:{...payload,paymentConfirmed:false}})).status,400)
+    const result=await request('/api/sales',{method:'POST',body:payload})
+    assert.equal(result.status,201,JSON.stringify(result.body));assert.equal(result.body.paymentReference,null);assert.equal(result.body.digitalReceived,6.7)
+  }
 })
 
 test('validaciones, falta de stock y reintentos no dejan ventas ni salidas parciales', async () => {

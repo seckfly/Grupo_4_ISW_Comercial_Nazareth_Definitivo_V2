@@ -21,6 +21,7 @@ async function request(path, { token, headers, ...options } = {}) {
 }
 
 export const api = {
+  uploadPhoto: file => request('/product-photos',{method:'POST',headers:{'Content-Type':file.type},body:file}),
   customers: (signal) => request('/customers', { signal }),
   customerAccount: (signal) => request('/customer-account', { signal }),
   preferences: (signal) => request('/preferences', { signal }),

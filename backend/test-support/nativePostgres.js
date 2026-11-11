@@ -50,6 +50,17 @@ export async function nativePostgres() {
     await admin.connect()
     return {
       admin,
+      async roundTripBackup({dump,restore}) {
+        const backup=join(directory,'verification.backup')
+        const environment={...process.env,PGPASSWORD:password,PGSSLMODE:'disable'}
+        const common=['-h','127.0.0.1','-p',String(port),'-U','postgres']
+        await execute(dump,[...common,'-d','postgres','--format=custom','--no-owner','--no-acl','-f',backup],{env:environment,windowsHide:true,timeout:30000})
+        await admin.query('CREATE DATABASE nazareth_restore_test')
+        await execute(restore,[...common,'-d','nazareth_restore_test','--no-owner','--no-acl',backup],{env:environment,windowsHide:true,timeout:30000})
+        const restored=new pg.Client({host:'127.0.0.1',port,user:'postgres',password,database:'nazareth_restore_test'})
+        await restored.connect()
+        return restored
+      },
       async applicationPool() {
         // La contraseña aleatoria contiene exclusivamente dígitos hexadecimales.
         await admin.query("ALTER ROLE nazareth_app PASSWORD '" + password + "'")

@@ -16,5 +16,7 @@ GRANT SELECT, INSERT, UPDATE ON nazareth.reservations, nazareth.reservation_item
 GRANT DELETE ON nazareth.reservation_items, nazareth.customer_favorites, nazareth.product_list_items TO nazareth_app;
 GRANT SELECT ON nazareth.customers, nazareth.sale_items, nazareth.inventory_movements TO nazareth_app;
 GRANT UPDATE (image_url) ON nazareth.products TO nazareth_app;
+GRANT INSERT (image_url) ON nazareth.products TO nazareth_app;
+GRANT UPDATE (reservation_id,digital_received) ON nazareth.sales TO nazareth_app;
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA nazareth TO nazareth_app;
 COMMIT;

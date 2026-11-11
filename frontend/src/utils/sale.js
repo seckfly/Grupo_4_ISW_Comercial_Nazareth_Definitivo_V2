@@ -2,7 +2,7 @@ import { decimalUnits, MONEY_MAX_UNITS } from '../../../shared/numbers.mjs'
 const round=value=>Number(value.toFixed(2))
 export function cartSummary(items,discount=0,cashReceived=0){const units=items.reduce((sum,item)=>sum+Number(item.qty),0);const subtotal=round(items.reduce((sum,item)=>sum+Number(item.qty)*Number(item.price),0));const safeDiscount=Math.min(subtotal,Math.max(0,Number(discount)||0));const total=round(subtotal-safeDiscount);const summary={units,subtotal,discount:round(safeDiscount),total};if(Number(cashReceived)>0)summary.change=round(Math.max(0,Number(cashReceived)-total));return summary}
 export function filterSaleProducts(products,query){const term=query.trim().toLowerCase();if(!term)return products;return products.filter(product=>`${product.name} ${product.category} ${product.sku||''}`.toLowerCase().includes(term))}
-export function paymentState(method,total,cashReceived=0,operation=''){
+export function paymentState(method,total,cashReceived=0,operation='',confirmed=false){
   if(method==='efectivo'){
     try {
       const cash = decimalUnits(cashReceived, { maxUnits: MONEY_MAX_UNITS, label: 'El monto recibido' })
@@ -11,7 +11,10 @@ export function paymentState(method,total,cashReceived=0,operation=''){
     } catch (error) { return { ready: false, message: error.message } }
   }
   if (!['yape', 'plin'].includes(method)) return { ready: false, message: 'Método de pago no válido' }
-  return typeof operation === 'string' && operation.trim() ? {ready:true,message:'Referencia registrada'} : {ready:false,message:'Ingresa la referencia del pago'}
+  try {
+    if(decimalUnits(cashReceived,{maxUnits:MONEY_MAX_UNITS})!==decimalUnits(total,{maxUnits:MONEY_MAX_UNITS}))return {ready:false,message:'El importe recibido debe coincidir con el total a dos decimales'}
+    return confirmed?{ready:true,message:'Abono comprobado manualmente por Humberto'}:{ready:false,message:'Comprueba el abono y confirma manualmente. El QR no confirma el pago.'}
+  } catch(error){return {ready:false,message:error.message}}
 }
 export function quickCashSuggestions(total){
   const amount=Number(total)||0
