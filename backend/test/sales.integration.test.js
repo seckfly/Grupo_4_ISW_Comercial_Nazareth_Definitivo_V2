@@ -16,7 +16,7 @@ import { listSales, customerSales } from '../src/services/saleService.js'
 import { fullScopeRouter } from '../src/routes/fullScopeRoutes.js'
 import { createPromotionRouter } from '../src/routes/promotionRouter.js'
 import { Product } from '../src/models/Product.js'
-import { customerDirectory,customerForUser,preferences,savePreferences } from '../src/services/customerService.js'
+import { customerForUser,preferences,savePreferences } from '../src/services/customerService.js'
 import { User } from '../src/models/User.js'
 import { removeClientAccess } from '../src/services/userService.js'
 import { requestReservation } from '../src/services/reservationService.js'
@@ -180,6 +180,7 @@ test('Eliminar acceso protege administradores, conserva el historial y permite c
   const item = await product()
   const sale = await request('/api/sales', { method: 'POST', body: await salePayload(item.id, { customerId: 1 }) })
   assert.equal(sale.status, 201)
+  assert.equal((await request('/api/customers')).body[0].purchases[0].id, sale.body.id)
   const reservation = await request('/api/reservations', { method: 'POST', role: 'client-fixture',
     body: { requestId: randomUUID(), items: [{ productId: item.id, quantity: 1 }] } })
   assert.equal(reservation.status, 200)
@@ -200,13 +201,18 @@ test('Eliminar acceso protege administradores, conserva el historial y permite c
   await request('/api/reservations/' + reservation.body.id, { method: 'POST', body: { action: 'cancel' } })
   assert.deepEqual(await remove(2), { id: 2, removed: false })
   assert.deepEqual((await User.list(pool)).find(user => user.id === 2).removalPending, true)
+  assert.deepEqual((await request('/api/customers')).body, [])
   await assert.rejects(requestReservation(pool, 2, { requestId: randomUUID(), items: [{ productId: item.id, quantity: 1 }] }), { statusCode: 403 })
   assert.deepEqual(await remove(2), { id: 2, removed: true })
   assert.deepEqual(await remove(2), { id: 2, removed: true })
   assert.equal(attempts, 2)
   assert.deepEqual((await User.list(pool)).map(user => user.id), [1])
-  assert.equal((await customerDirectory(pool))[0].purchases[0].id, sale.body.id)
-  assert.equal((await request('/api/reservations')).body[0].status, 'cancelled')
+  assert.deepEqual((await request('/api/customers')).body, [])
+  const savedSale = (await request('/api/sales/' + sale.body.id)).body
+  assert.equal(savedSale.customerName, 'Cliente Demo')
+  const savedReservation = (await request('/api/reservations')).body[0]
+  assert.equal(savedReservation.status, 'cancelled')
+  assert.equal(savedReservation.customerName, 'Cliente Demo')
 })
 
 test('PRU-005/006/008: proveedor, orden sin stock, recepción parcial, exceso, duplicados y anulación',async()=>{
