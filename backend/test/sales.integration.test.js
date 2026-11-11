@@ -38,7 +38,7 @@ before(async () => {
   await postgres.admin.query(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
     CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY, email text NOT NULL);
     CREATE TABLE auth.sessions (id uuid PRIMARY KEY, user_id uuid, not_after timestamptz)`)
-  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql', '008_promotion_creation_requests.sql', '009_archive_and_remove_access.sql']) {
+  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql', '008_promotion_creation_requests.sql', '009_archive_and_remove_access.sql', '010_retire_inventory_products.sql']) {
     await postgres.admin.query(await readFile(new URL('../../database/migrations/' + file, import.meta.url), 'utf8'))
   }
   pool = await postgres.applicationPool()
@@ -122,20 +122,21 @@ test('Reintentar un alta concurrente devuelve el mismo producto y registra una s
   assert.equal((await create({ ...body, name: 'Otro producto' })).status, 409)
 })
 
-test('Inventario archiva sin perder movimientos, bloquea reservas y exige confirmación para borrar', async () => {
+test('Inventario archiva y da de baja con stock, protege reservas y conserva operaciones', async () => {
   const item = await product({ name: 'Artículo con historial' })
   const empty = await product({ name: 'Alta por error', initialStock: 0 })
   const archive = (id, archived, role) => request('/api/inventory/products/' + id + '/archive',
     { method: 'PATCH', body: { archived }, role })
-  const remove = (id, confirmation, role) => request('/api/inventory/products/' + id,
-    { method: 'DELETE', body: { confirmation }, role })
-  assert.equal((await remove(empty.id, 'ELIMINAR', 'client-fixture')).status, 403)
-  assert.equal((await remove(empty.id, 'eliminar')).status, 400)
-  assert.equal((await remove(item.id, 'ELIMINAR')).status, 409)
+  const remove = (id, confirmation, expectedStock, role) => request('/api/inventory/products/' + id,
+    { method: 'DELETE', body: { confirmation, expectedStock }, role })
+  assert.equal((await remove(empty.id, 'ELIMINAR', 0, 'client-fixture')).status, 403)
+  assert.equal((await remove(empty.id, 'eliminar', 0)).status, 400)
+  assert.equal((await remove(item.id, 'ELIMINAR', 8)).status, 409)
   const reservation = await request('/api/reservations', { method: 'POST', role: 'client-fixture',
     body: { requestId: randomUUID(), items: [{ productId: item.id, quantity: 1 }] } })
   assert.equal(reservation.status, 200)
   assert.equal((await archive(item.id, true)).status, 409)
+  assert.equal((await remove(item.id, 'ELIMINAR', 10)).status, 409)
   await request('/api/reservations/' + reservation.body.id, { method: 'POST', body: { action: 'cancel' } })
   const archived = await archive(item.id, true)
   assert.equal(archived.status, 200)
@@ -152,10 +153,27 @@ test('Inventario archiva sin perder movimientos, bloquea reservas y exige confir
   assert.equal(restored.body.isActive, false)
   const history = await request('/api/inventory/products/' + item.id + '/history')
   assert.equal(history.body.movements.length, 1)
-  await adjustInventory(pool, item.id, { change: -10, reason: 'Salida QA', requestId: randomUUID() }, 1)
-  assert.equal((await remove(item.id, 'ELIMINAR')).status, 409)
-  assert.equal((await remove(empty.id, 'ELIMINAR')).status, 200)
-  assert.ok(!(await listInventory(pool)).products.some(row => row.id === empty.id))
+  await updateProduct(pool, item.id, { isActive: true,
+    name: restored.body.name, categoryId: restored.body.categoryId, unit: restored.body.unit,
+    price: restored.body.price, minimum: restored.body.minimum })
+  const sale = await request('/api/sales', { method: 'POST', body: await salePayload(item.id, { customerId: 1 }) })
+  assert.equal(sale.status, 201)
+  await savePreferences(pool, 2, { favorites: [item.id], list: [item.id] })
+  assert.equal((await remove(item.id, 'ELIMINAR', 10)).status, 409)
+  const retirements = await Promise.all([remove(item.id, 'ELIMINAR', 7), remove(item.id, 'ELIMINAR', 7)])
+  assert.deepEqual(retirements.map(result => result.status), [200, 200])
+  assert.equal((await archive(item.id, false)).status, 409)
+  assert.ok(!(await Product.list(pool)).some(row => row.id === item.id))
+  const after = (await request('/api/inventory/products/' + item.id + '/history')).body
+  assert.deepEqual([after.product.stock, after.product.archivedAt, Boolean(after.product.retiredAt)], [0, null, true])
+  const exits = after.movements.filter(row => row.reason === 'Baja definitiva del producto')
+  assert.deepEqual(exits.map(row => [row.change, row.stockBefore, row.stockAfter, row.createdBy]), [[-7, 7, 0, 1]])
+  assert.equal((await request('/api/sales/' + sale.body.id)).body.items[0].name, 'Artículo con historial')
+  assert.equal((await request('/api/reservations')).body[0].items[0].name, 'Artículo con historial')
+  assert.deepEqual(await preferences(pool, 2), { favorites: [], list: [] })
+  assert.equal((await remove(empty.id, 'ELIMINAR', 0)).status, 200)
+  assert.equal((await request('/api/inventory/products/' + empty.id + '/history')).body.movements.length, 0)
+  assert.ok(!(await listInventory(pool)).products.some(row => [empty.id, item.id].includes(row.id)))
 })
 
 test('Eliminar acceso protege administradores, conserva el historial y permite completar un fallo del proveedor', async () => {

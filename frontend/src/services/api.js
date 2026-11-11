@@ -64,7 +64,7 @@ export const api = {
   },
   updateProduct: (id, product) => request('/inventory/products/' + id, { method: 'PUT', body: JSON.stringify(product) }),
   archiveProduct: (id, archived) => request('/inventory/products/' + id + '/archive', { method: 'PATCH', body: JSON.stringify({ archived }) }),
-  deleteProduct: (id, confirmation) => request('/inventory/products/' + id, { method: 'DELETE', body: JSON.stringify({ confirmation }) }),
+  deleteProduct: (id, confirmation, expectedStock) => request('/inventory/products/' + id, { method: 'DELETE', body: JSON.stringify({ confirmation, expectedStock }) }),
   productHistory: (id, signal) => request('/inventory/products/' + id + '/history', { signal }),
   adjustInventory: (id, adjustment) => request('/inventory/products/' + id + '/adjustments', { method: 'POST', replaySafe: Boolean(adjustment.requestId), body: JSON.stringify(adjustment) }),
   dashboard: (period = 'week', signal) => request('/dashboard?period=' + encodeURIComponent(period), { signal }),

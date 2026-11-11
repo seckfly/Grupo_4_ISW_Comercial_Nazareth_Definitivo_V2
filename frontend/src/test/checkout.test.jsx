@@ -576,19 +576,21 @@ it('Inventario muestra disponible, físico, apartado y mínimo en lista y tarjet
 
 it('Inventario separa los archivados y protege el borrado definitivo con confirmación', () => {
   const previousData = inventoryState.data
-  const item = { id: 1, name: 'Artículo QA', stock: 0, held: 0, available: 0, minimum: 5,
+  const item = { id: 1, name: 'Artículo QA', stock: 8, held: 0, available: 8, minimum: 5,
     unit: 'Unidad', category: 'Abarrotes', cost: 5, price: 8, isActive: false }
   inventoryState.data = { categories: [], products: [item, { ...item, id: 2, name: 'Archivado QA', archivedAt: '2026-11-11T18:00:00Z' }] }
   try {
     const element = render(<Inventory/>)
     expect(element.querySelector('tbody').textContent).toContain('Artículo QA')
     expect(element.querySelector('tbody').textContent).not.toContain('Archivado QA')
+    expect(element.querySelector('[aria-label="Eliminar definitivamente Artículo QA"]')).not.toBeNull()
     act(() => [...element.querySelectorAll('button')].find(button => button.textContent === 'Archivados').click())
     expect(element.querySelector('tbody').textContent).toContain('Archivado QA')
     expect(element.querySelector('[aria-label="Restaurar Archivado QA"]')).not.toBeNull()
     act(() => element.querySelector('[aria-label="Eliminar definitivamente Archivado QA"]').click())
     const dialog = element.querySelector('[role="dialog"]')
     expect(dialog.querySelector('[type="submit"]').disabled).toBe(true)
+    expect(dialog.textContent).toContain('8 Unidades')
     type(dialog.querySelector('input'), 'ELIMINAR')
     expect(dialog.querySelector('[type="submit"]').disabled).toBe(false)
     act(() => dialog.querySelector('.confirmation-actions button').click())

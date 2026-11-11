@@ -22,7 +22,7 @@ async function inventoryFixture(t, { legacyProduct = false } = {}) {
     INSERT INTO public.preexisting_data VALUES (42);
   `)
   let legacySnapshot
-  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '009_archive_and_remove_access.sql']) {
+  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '009_archive_and_remove_access.sql', '010_retire_inventory_products.sql']) {
     await database.exec(await readFile(new URL('../../database/migrations/' + file, import.meta.url), 'utf8'))
     if (file === '002_express_access.sql' && legacyProduct) {
       await database.exec(`

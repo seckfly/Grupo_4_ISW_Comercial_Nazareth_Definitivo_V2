@@ -33,8 +33,8 @@ function ProductActions({ product, open }) {
     {product.archivedAt
       ? <button className="secondary" type="button" onClick={() => open('restore', product)} aria-label={'Restaurar ' + product.name}><ArchiveRestore/>Restaurar</button>
       : <button className="secondary" type="button" onClick={() => open('archive', product)} aria-label={'Archivar ' + product.name}><Archive/>Archivar</button>}
-    {Number(product.stock) === 0 && <button className="icon-btn" type="button" onClick={() => open('delete', product)}
-      aria-label={'Eliminar definitivamente ' + product.name} title="Eliminar definitivamente"><Trash2/></button>}
+    <button className="icon-btn" type="button" onClick={() => open('delete', product)}
+      aria-label={'Eliminar definitivamente ' + product.name} title="Eliminar definitivamente"><Trash2/></button>
   </div>
 }
 
@@ -67,10 +67,14 @@ export default function Inventory() {
   async function confirmProduct(confirmation) {
     const { type, product } = panel
     if (type === 'delete') {
-      await api.deleteProduct(product.id, confirmation)
+      try { await api.deleteProduct(product.id, confirmation, product.stock) }
+      catch (failure) {
+        if (failure.status === 409) setRevision(value => value + 1)
+        throw failure
+      }
       setData(current => ({ ...current, products: current.products.filter(item => item.id !== product.id) }))
       setPanel(null)
-      setNotice('Producto eliminado definitivamente.')
+      setNotice('Producto dado de baja definitivamente.')
     } else {
       const moved = await api.archiveProduct(product.id, type === 'archive')
       saved(moved, type === 'archive' ? 'Producto archivado.' : 'Producto restaurado como inactivo.')
@@ -144,7 +148,10 @@ export default function Inventory() {
       <p><strong>{panel.product.name}</strong></p>
       {panel.type === 'archive' && <p>Stock físico registrado: {quantityLabel(panel.product.stock, panel.product.unit)}. Podrás encontrarlo en Archivados y consultar su historial.</p>}
       {panel.type === 'restore' && <p>Volverá a la lista de productos como inactivo. Puedes activarlo desde Editar producto.</p>}
-      {panel.type === 'delete' && <p>Esta acción es permanente. Solo se permite si el producto tiene stock cero y carece de operaciones registradas.</p>}
+      {panel.type === 'delete' && <>
+        <p>Se retirará del inventario el stock físico de este producto: <strong>{quantityLabel(panel.product.stock, panel.product.unit)}</strong>.</p>
+        <p>La baja es permanente. Sus operaciones anteriores seguirán en el historial.</p>
+      </>}
     </ConfirmationDrawer>}
     {(panel?.type === 'create' || panel?.type === 'edit') && <ProductDrawer product={panel.product} categories={data.categories} close={() => setPanel(null)} saved={saved}/>}
     {panel?.type === 'adjust' && <AdjustmentDrawer product={panel.product} close={() => setPanel(null)} saved={saved}/>}

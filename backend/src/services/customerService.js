@@ -16,16 +16,21 @@ export async function customerDirectory(db) {
 }
 export async function preferences(db,userId) {
   const customer=await customerForUser(db,userId)
-  const {rows:favorites}=await db.query('SELECT product_id FROM nazareth.customer_favorites WHERE customer_id=$1',[customer.id])
-  const {rows:list}=await db.query('SELECT i.product_id FROM nazareth.product_list_items i JOIN nazareth.product_lists l ON l.id=i.list_id WHERE l.customer_id=$1',[customer.id])
+  const {rows:favorites}=await db.query('SELECT f.product_id FROM nazareth.customer_favorites f JOIN nazareth.products p ON p.id=f.product_id WHERE f.customer_id=$1 AND p.retired_at IS NULL',[customer.id])
+  const {rows:list}=await db.query('SELECT i.product_id FROM nazareth.product_list_items i JOIN nazareth.product_lists l ON l.id=i.list_id JOIN nazareth.products p ON p.id=i.product_id WHERE l.customer_id=$1 AND p.retired_at IS NULL',[customer.id])
   return {favorites:favorites.map(i=>i.product_id),list:list.map(i=>i.product_id)}
 }
 export async function savePreferences(pool,userId,input) {
   if(!Array.isArray(input.favorites)||!Array.isArray(input.list))throw inputError('Selección no válida')
-  const favorites=[...new Set(input.favorites.map(positiveId))],list=[...new Set(input.list.map(positiveId))]
+  const requestedFavorites=[...new Set(input.favorites.map(positiveId))],requestedList=[...new Set(input.list.map(positiveId))]
   return transaction(pool,async db=>{
     const customer=await customerForUser(db,userId)
     await db.query('SELECT pg_advisory_xact_lock(71243,$1)',[customer.id])
+    const { rows: retired } = await db.query('SELECT id FROM nazareth.products WHERE id = ANY($1::integer[]) AND retired_at IS NOT NULL',
+      [[...requestedFavorites, ...requestedList]])
+    const retiredIds = new Set(retired.map(product => product.id))
+    const favorites = requestedFavorites.filter(id => !retiredIds.has(id))
+    const list = requestedList.filter(id => !retiredIds.has(id))
     await db.query('DELETE FROM nazareth.customer_favorites WHERE customer_id=$1',[customer.id])
     for(const id of favorites)await db.query('INSERT INTO nazareth.customer_favorites(customer_id,product_id) VALUES($1,$2)',[customer.id,id])
     const {rows:lists}=await db.query('SELECT id FROM nazareth.product_lists WHERE customer_id=$1 ORDER BY id',[customer.id])

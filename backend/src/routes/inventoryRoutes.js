@@ -20,7 +20,7 @@ export function createInventoryRouter({ db, authenticate }) {
     try { res.json(await setProductArchived(db, req.params.id, req.body?.archived)) } catch (error) { next(error) }
   })
   router.delete('/products/:id', async (req, res, next) => {
-    try { res.json(await deleteProduct(db, req.params.id, req.body?.confirmation)) } catch (error) { next(error) }
+    try { res.json(await deleteProduct(db, req.params.id, req.body, req.user.id)) } catch (error) { next(error) }
   })
   router.get('/products/:id/history', async (req, res, next) => {
     try { res.json(await productHistory(db, req.params.id)) } catch (error) { next(error) }
