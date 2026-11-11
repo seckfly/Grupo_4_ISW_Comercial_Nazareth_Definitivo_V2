@@ -81,7 +81,7 @@ export default function Settings() {
     }
   }
 
-  return <div className="page">
+  return <div className="page settings-page">
     <PageHeader kicker="Administración" title="Configuración" description="Controla el negocio, los accesos y los datos de la cuenta." />
     <div className="settings-layout">
       <nav className="settings-nav">
@@ -107,8 +107,8 @@ export default function Settings() {
               <div className="credential-identity"><strong>{user.name}</strong><small>{user.email}</small></div>
               <div className="credential-status">
                 <span className={`status-dot ${user.isActive ? 'active' : ''}`}>{user.isActive ? 'Activo' : 'Suspendido'}</span>
-                <span className={`role-badge ${user.role}`}>{user.role === 'admin' ? 'Administrador' : 'Cliente'}</span>
               </div>
+              <div className="credential-role"><span className={`role-badge ${user.role}`}>{user.role === 'admin' ? 'Administrador' : 'Cliente'}</span></div>
               <div className="credential-actions">
                 <button type="button" disabled={saving} onClick={() => editUser(user)} aria-label={`Editar a ${user.name}`} title="Editar"><Pencil /></button>
                 {!user.isProtected && <button type="button" disabled={saving} onClick={() => toggleUser(user)} aria-label={`${user.isActive ? 'Suspender' : 'Activar'} a ${user.name}`} title={user.isActive ? 'Suspender' : 'Activar'}><Power /></button>}

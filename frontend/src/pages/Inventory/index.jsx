@@ -4,7 +4,7 @@ import PageHeader from '../../components/ui/PageHeader'
 import { Card, StockPill } from '../../components/ui/Card'
 import { Skeleton, EmptyState } from '../../components/ui/States'
 import { api } from '../../services/api'
-import { currency, margin } from '../../utils/format'
+import { currency, margin, quantityLabel } from '../../utils/format'
 import { ProductDrawer, AdjustmentDrawer, HistoryDrawer } from './InventoryDrawers'
 
 function ProductActions({ product, open }) {
@@ -71,7 +71,7 @@ export default function Inventory() {
       <div className="danger-stat"><span>Stock en alerta</span><strong>{loading || error ? '—' : stockAlerts.length}</strong></div>
     </div>
     {notice && <p className="form-success" role="status">{notice}</p>}
-    <div className="toolbar between premium-toolbar">
+    <div className="toolbar between premium-toolbar inventory-filters">
       <div className="chips">
         <button className={category === 'all' ? 'active' : ''} onClick={() => setCategory('all')}>Todos</button>
         {data.categories.map((item) => <button className={category === item.id ? 'active' : ''} onClick={() => setCategory(item.id)} key={item.id}>{item.name}</button>)}
@@ -91,14 +91,14 @@ export default function Inventory() {
         <tbody>{shown.map((product) => <tr key={product.id}>
           <td><div className="product-cell"><span>{product.name[0]}</span><div><strong>{product.name}</strong>{!product.isActive && <small className="inventory-detail">Inactivo</small>}</div></div></td>
           <td>#{String(product.id).padStart(4, '0')}</td><td>{product.category}</td>
-          <td><StockPill stock={product.stock} minimum={product.minimum} isActive={product.isActive}/><small className="inventory-detail">Mínimo: {product.minimum}{product.lowStock ? ' · Requiere atención' : ''}</small></td>
+          <td><StockPill unit={product.unit} stock={product.stock} minimum={product.minimum} isActive={product.isActive}/><small className="inventory-detail">Mínimo: {quantityLabel(product.minimum, product.unit)}{product.lowStock ? ' · Requiere atención' : ''}</small></td>
           <td>{currency(product.cost)}</td><td><strong>{currency(product.price)}</strong></td><td><span className="margin">{margin(product.cost, product.price)}%</span></td>
           <td><ProductActions product={product} open={open}/></td>
         </tr>)}</tbody>
       </table></div></Card> : <div className="product-grid premium-products">{shown.map((product) => <Card key={product.id}>
-        <div className="product-card-top"><span className="product-letter">{product.name[0]}</span><StockPill stock={product.stock} minimum={product.minimum} isActive={product.isActive}/></div>
+        <div className="product-card-top"><span className="product-letter">{product.name[0]}</span><StockPill unit={product.unit} stock={product.stock} minimum={product.minimum} isActive={product.isActive}/></div>
         <small>{product.category} · #{String(product.id).padStart(4, '0')}{!product.isActive ? ' · Inactivo' : ''}</small>
-        <h3>{product.name}</h3><small className="inventory-detail">Mínimo: {product.minimum}{product.lowStock ? ' · Requiere atención' : ''}</small>
+        <h3>{product.name}</h3><small className="inventory-detail">Mínimo: {quantityLabel(product.minimum, product.unit)}{product.lowStock ? ' · Requiere atención' : ''}</small>
         <div className="price-row"><strong>{currency(product.price)}</strong><span>{margin(product.cost, product.price)}% margen</span></div>
         <ProductActions product={product} open={open}/>
       </Card>)}</div>}

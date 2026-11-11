@@ -4,6 +4,7 @@ import { api } from '../../services/api'
 import { Skeleton, EmptyState } from '../../components/ui/States'
 import DecimalInput from '../../components/ui/DecimalInput'
 import { decimalUnits } from '../../../../shared/numbers.mjs'
+import { quantityLabel } from '../../utils/format'
 
 export function InventoryDrawer({ title, kicker, close, busy = false, children }) {
   const container = useRef(null)
@@ -152,12 +153,12 @@ export function HistoryDrawer({ product, close }) {
   return <InventoryDrawer title="Historial de stock" kicker={product.name} close={close}>
     <div className="inventory-history">
       {error ? <div><p className="form-error" role="alert">{error}</p><button className="secondary" onClick={() => setRetry((value) => value + 1)}>Reintentar</button></div> : !data ? <Skeleton rows={4}/> : <>
-        <p className="muted">Stock actual: {data.product.stock} {data.product.unit} · Mínimo: {data.product.minimum}</p>
-        {!data.movements.length ? <EmptyState icon={<History/>} title="Sin movimientos" copy="Los movimientos de este producto aparecerán aquí."/> : data.movements.map((movement) => <article className="inventory-movement" key={movement.id}>
-          <header><strong>{movementNames[movement.type] ?? movement.type}</strong><time dateTime={movement.createdAt}>{movementDate.format(new Date(movement.createdAt))}</time></header>
-          <p>{movement.reason || movementNames[movement.type] || 'Movimiento de inventario'}</p>
-          <div><span>{movement.stockBefore ?? '—'} → {movement.stockAfter ?? '—'}</span><strong>{movement.change > 0 ? '+' : ''}{movement.change} {data.product.unit}</strong></div>
-          {movement.author && <small>{movement.author}</small>}
+        <p className="muted">Stock actual: {quantityLabel(data.product.stock, data.product.unit)} · Mínimo: {quantityLabel(data.product.minimum, data.product.unit)}</p>
+        {!data.movements.length ? <EmptyState icon={<History/>} title="Sin movimientos" copy="Los movimientos de este producto aparecerán aquí."/> : data.movements.map((movement) => <article className="inventory-movement stock-movement" key={movement.id}>
+          <header><strong>{movementNames[movement.type] ?? movement.type}</strong><strong className={movement.change < 0 ? 'stock-decrease' : 'stock-increase'}>{movement.change > 0 ? '+' : ''}{quantityLabel(movement.change, data.product.unit)}</strong></header>
+          {movement.reason && movement.reason.trim() !== movementNames[movement.type] && <p>{movement.reason}</p>}
+          <dl className="stock-balances"><div><dt>Saldo anterior</dt><dd>{movement.stockBefore == null ? '—' : quantityLabel(movement.stockBefore, data.product.unit)}</dd></div><div><dt>Saldo posterior</dt><dd>{movement.stockAfter == null ? '—' : quantityLabel(movement.stockAfter, data.product.unit)}</dd></div></dl>
+          <footer><time dateTime={movement.createdAt}>{movementDate.format(new Date(movement.createdAt))}</time><span>Responsable: {movement.author || 'No registrado'}</span></footer>
         </article>)}
       </>}
     </div>

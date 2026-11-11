@@ -5,7 +5,7 @@ import { Card } from '../../components/ui/Card'
 import { EmptyState, Skeleton } from '../../components/ui/States'
 import { InventoryDrawer } from '../Inventory/InventoryDrawers'
 import { api } from '../../services/api'
-import { currency } from '../../utils/format'
+import { currency, countLabel, quantityLabel } from '../../utils/format'
 import { formatSaleCreatedAt } from '../../utils/sale'
 import { useLiveDateTime } from '../../hooks/useLiveDateTime'
 
@@ -41,11 +41,11 @@ export default function Sales({ openSale, revision = 0 }) {
   const current = !loading && !error && summary
   const percentage = (amount) => summary?.total ? ((amount / summary.total) * 100).toFixed(1) + '% del total' : '0% del total'
 
-  return <div className="page">
+  return <div className="page sales-page">
     <PageHeader kicker="Caja y movimientos" title="Ventas" description="Cada operación, conciliada y fácil de encontrar."
       action={<button className="primary" onClick={openSale}><Plus/>Registrar venta</button>}/>
     <div className="sales-summary">
-      <div><span>{period === 'today' ? 'HOY' : period === 'week' ? 'ÚLTIMOS 7 DÍAS' : 'ESTE MES'}</span><strong>{current ? currency(summary.total) : '—'}</strong><small>{current ? summary.saleCount + ' operaciones' : 'Consultando…'}</small></div>
+      <div><span>{period === 'today' ? 'HOY' : period === 'week' ? 'ÚLTIMOS 7 DÍAS' : 'ESTE MES'}</span><strong>{current ? currency(summary.total) : '—'}</strong><small>{current ? countLabel(summary.saleCount, 'operación', 'operaciones') : 'Consultando…'}</small></div>
       <div><span>EFECTIVO</span><strong>{current ? currency(summary.cashTotal) : '—'}</strong><small>{current ? percentage(summary.cashTotal) : '—'}</small></div>
       <div><span>YAPE + PLIN</span><strong>{current ? currency(summary.digitalTotal) : '—'}</strong><small>{current ? percentage(summary.digitalTotal) : '—'}</small></div>
     </div>
@@ -67,7 +67,7 @@ export default function Sales({ openSale, revision = 0 }) {
     {selected && <InventoryDrawer title={'Venta #' + selected.id} kicker={formatSaleCreatedAt(selected.createdAt).date} close={() => setSelected(null)}>
       <div className="inventory-history sale-details">
         <p>{selected.customerName || 'Venta sin cliente'} · {paymentNames[selected.paymentMethod]}</p>
-        {selected.items.map((item, index) => <article className="inventory-movement" key={index}><strong>{item.name}</strong><div><span>{item.quantity} {item.unit} × {currency(item.unitPrice)}</span><b>{currency(item.subtotal)}</b></div></article>)}
+        {selected.items.map((item, index) => <article className="inventory-movement" key={index}><strong>{item.name}</strong><div><span>{quantityLabel(item.quantity, item.unit)} × {currency(item.unitPrice)}</span><b>{currency(item.subtotal)}</b></div></article>)}
         <div className="price-summary"><div><span>Subtotal</span><strong>{currency(selected.subtotal)}</strong></div><div><span>Descuento</span><strong>{currency(selected.discount)}</strong></div><div className="grand-total"><span>Total</span><strong>{currency(selected.total)}</strong></div></div>
         {selected.cashReceived !== null && <p>Recibido: {currency(selected.cashReceived)} · Vuelto: {currency(selected.change)}</p>}
         {selected.paymentReference && <p>Referencia: {selected.paymentReference}</p>}

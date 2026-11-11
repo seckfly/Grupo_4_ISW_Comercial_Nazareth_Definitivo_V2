@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { X, Search, Plus, Trash2, ArrowRight, ScanLine, UserRound, Tag, WalletCards, Banknote, Check, ChevronDown, ShoppingBasket, ShieldCheck, ReceiptText } from 'lucide-react'
 import { api } from '../../services/api'
-import { currency } from '../../utils/format'
+import { currency, countLabel, quantityLabel } from '../../utils/format'
 import { formatSaleCreatedAt, filterSaleProducts, paymentState, quickCashSuggestions, receiptMarkup } from '../../utils/sale'
 import { decimalUnits, decimalText, MONEY_MAX_UNITS } from '../../../../shared/numbers.mjs'
 import DecimalInput from './DecimalInput'
@@ -167,21 +167,22 @@ export default function SaleDrawer({ close, onCreated }) {
   return <div className="drawer-backdrop"><section className="sale-drawer pos-v2" role="dialog" aria-modal="true" aria-labelledby="sale-title" ref={dialog} tabIndex={-1} onKeyDown={keyDown}>
     <header className="pos-header"><div><p className="eyebrow">Punto de venta · Caja principal</p><h2 id="sale-title">Registrar venta</h2></div><div className="pos-progress"><span className="active"><i>1</i>Productos</span><em/><span className={cart.length ? 'active' : ''}><i>2</i>Cobro</span><em/><span><i>3</i>Confirmación</span></div><button className="icon-btn" disabled={busy} onClick={close} aria-label="Cerrar venta"><X/></button></header>
     <div className="drawer-grid pos-grid">
-      <main className="catalog pos-catalog"><div className="pos-tools"><label className="search"><Search/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Busca por nombre, categoría o código"/></label><button className="scan-button" type="button" disabled title="Escaneo pendiente"><ScanLine/>Escanear</button></div>
+      <section className="catalog pos-catalog" aria-label="Catálogo de productos"><div className="pos-tools"><label className="search"><Search/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Busca por nombre, categoría o código" aria-label="Buscar producto en el catálogo"/></label><button className="scan-button" type="button" disabled title="Escaneo pendiente"><ScanLine/>Escanear</button></div>
         <div className="pos-categories">{categories.map((item) => <button className={category === item ? 'active' : ''} onClick={() => setCategory(item)} key={item}>{item}</button>)}</div>
-        <div className="catalog-meta"><div><p className="eyebrow">Catálogo</p><h3>{visible.length} productos</h3></div><span>Precios con IGV incluido</span></div>
+        <div className="catalog-meta"><div><p className="eyebrow">Catálogo</p><h3>{countLabel(visible.length, 'producto', 'productos')}</h3></div><span>Precios con IGV incluido</span></div>
         {catalogLoading ? <Skeleton/> : catalogError ? <div><p className="form-error" role="alert">{catalogError}</p><button className="secondary" onClick={() => setRefresh((value) => value + 1)}>Reintentar</button></div> :
           !visible.length ? <EmptyState icon={<ShoppingBasket/>} title="Sin productos" copy="Revisa el catálogo o cambia la búsqueda."/> :
           <div className="catalog-grid pos-products">{visible.map((product) => {
             const inCart = cart.find((item) => item.id === product.id)
             const full = quantityUnits(inCart?.qty ?? 0) + 100 > decimalUnits(product.stock)
             return <button key={product.id} onClick={() => add(product)} disabled={busy || product.stock <= 0 || Boolean(inCart && full)} className={inCart ? 'selected' : ''}>
-              <span className="product-letter">{product.name[0]}</span><div><strong>{product.name}</strong><small>{product.category} · <b>{product.stock} {product.unit}</b></small></div><b>{currency(quote?.items.find((item) => item.productId === product.id)?.unitPrice ?? product.price)}</b><span className="add-product">{inCart ? <Check/> : <Plus/>}</span>
+              <span className="product-letter">{product.name[0]}</span><div><strong>{product.name}</strong><small>{product.category} · <b>{quantityLabel(product.stock, product.unit)}</b></small></div><b>{currency(quote?.items.find((item) => item.productId === product.id)?.unitPrice ?? product.price)}</b><span className="add-product">{inCart ? <Check/> : <Plus/>}</span>
             </button>
           })}</div>}
-      </main>
+      </section>
       <form className="checkout-panel" onSubmit={confirmSale} aria-busy={busy}>
-        <div className="checkout-top"><div><p className="eyebrow">Nueva venta</p><h3>Detalle del pedido</h3></div><span>{quote?.units ?? '—'} unidades</span></div>
+        <div className="checkout-scroll">
+        <div className="checkout-top"><div><p className="eyebrow">Nueva venta</p><h3>Detalle del pedido</h3></div><span>{quote ? countLabel(quote.units, 'unidad', 'unidades') : '— unidades'}</span></div>
         <button type="button" className="customer-select" disabled={busy} onClick={() => setChoosingCustomer((value) => !value)} aria-expanded={choosingCustomer}><UserRound/><div><span>Cliente</span><strong>{customer?.name || 'Venta sin cliente'}</strong></div><ChevronDown/></button>
         {choosingCustomer && <div className="sale-customer-search"><label className="search"><Search/><input aria-label="Buscar cliente registrado" placeholder="Nombre, correo o teléfono" value={customerQuery} onChange={(event) => setCustomerQuery(event.target.value)}/></label>
           <button className="text-btn" type="button" onClick={() => { changed(); setCustomer(null); setChoosingCustomer(false) }}>Continuar sin cliente</button>
@@ -197,7 +198,7 @@ export default function SaleDrawer({ close, onCreated }) {
         </article>) : <div className="empty-cart"><ShoppingBasket/><strong>La venta está vacía</strong><span>Selecciona productos del catálogo para comenzar.</span></div>}</div>
         <div className="discount-row"><Tag/><span>Descuento</span><input aria-label="Descuento de la venta en soles" type="number" min="0" max={quote?.subtotal ?? '9999999999.99'} step="0.01" inputMode="decimal" value={discount} disabled={busy} onChange={(event) => { changed(); setDiscount(event.target.value) }} placeholder="S/ 0.00"/></div>
         {quoteError && <p className="form-error" role="alert">{quoteError}</p>}
-        <div className="price-summary" aria-live="polite"><div><span>Subtotal</span><strong>{quoteCurrent ? currency(quote.subtotal) : '—'}</strong></div>{quote?.discount > 0 && <div className="discount"><span>Descuento</span><strong>− {currency(quote.discount)}</strong></div>}<div className="grand-total"><span>Total a cobrar</span><strong>{quoteCurrent ? currency(quote.total) : '—'}</strong></div></div>
+        <div className="price-summary" aria-live="polite"><div><span>Subtotal</span><strong>{quoteCurrent ? currency(quote.subtotal) : '—'}</strong></div>{quote?.discount > 0 && <div className="discount"><span>Descuento</span><strong>− {currency(quote.discount)}</strong></div>}</div>
         <div className="payment-studio"><div className="ticket-pay pos-pay"><span>Método de pago</span><div>{[['efectivo', Banknote], ['yape', WalletCards], ['plin', WalletCards]].map(([method, Icon]) => <button type="button" className={pay === method ? 'active' : ''} disabled={busy} onClick={() => selectPay(method)} key={method}><Icon/><span>{method[0].toUpperCase() + method.slice(1)}</span>{pay === method && <Check/>}</button>)}</div></div>
           {pay === 'efectivo' ? <div className="cash-studio"><div className="quick-cash"><span>Pago rápido</span><div>{quickCashSuggestions(quote?.total).map((amount) => <button type="button" disabled={busy || !quoteCurrent} key={amount} onClick={() => { changed(); setCash(String(amount)) }}>S/ {amount}</button>)}</div></div>
             <div className="cash-input premium-cash"><label>Monto recibido<input value={cash} disabled={busy} onChange={(event) => { changed(); setCash(event.target.value) }} type="number" min="0" max={MONEY_MAX_UNITS / 100} step="0.01" inputMode="decimal" placeholder="S/ 0.00" required/></label><div><span>Vuelto para el cliente</span><strong>{quoteCurrent && payment.ready ? currency((decimalUnits(cash, { maxUnits: MONEY_MAX_UNITS }) - decimalUnits(quote.total, { maxUnits: MONEY_MAX_UNITS })) / 100) : '—'}</strong></div></div>
@@ -206,7 +207,11 @@ export default function SaleDrawer({ close, onCreated }) {
           <div className={'payment-status ' + (payment.ready ? 'ready' : 'pending')}><ShieldCheck/><div><strong>{payment.ready ? 'Datos de pago listos' : 'Completa el cobro'}</strong><span>{payment.message}</span></div></div>
         </div>
         {error && <p className="form-error" role="alert">{error}</p>}
+        </div>
+        <footer className="checkout-footer">
+        <div className="grand-total" aria-live="polite"><span>Total a cobrar</span><strong>{quoteCurrent ? currency(quote.total) : '—'}</strong></div>
         <button disabled={busy || !cart.length || !quoteCurrent || invalidCart || !payment.ready} className="confirm pos-confirm" type="submit"><span>{busy ? 'Guardando…' : 'Confirmar venta'}</span><strong>{quoteCurrent ? currency(quote.total) : '—'}</strong><i><ArrowRight/></i></button><small className="checkout-help">Al confirmar, se guarda la venta y su salida de inventario.</small>
+        </footer>
       </form>
     </div>
   </section></div>
