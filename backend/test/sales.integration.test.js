@@ -9,6 +9,8 @@ import { createSalesRouter } from '../src/routes/salesRouter.js'
 import { createInventoryRouter } from '../src/routes/inventoryRoutes.js'
 import { createProduct, adjustInventory } from '../src/services/inventoryService.js'
 import { createSale, quoteSale } from '../src/services/saleService.js'
+import { dashboard } from '../src/services/dashboardService.js'
+import { listSales, customerSales } from '../src/services/saleService.js'
 
 let postgres, pool, server, base, app
 const apiErrors = []
@@ -82,6 +84,53 @@ async function salePayload(id, changes = {}) {
   assert.equal(quote.status, 200, JSON.stringify(quote.body))
   return { ...payload, quoteId: quote.body.quoteId }
 }
+
+test('Resumen y Reportes: vacío, venta real, Lima, caja neta, demanda, actividad y alerta por ajuste', async () => {
+  let report = await dashboard(pool, 'week')
+  assert.equal(report.today.total, 0)
+  assert.equal(report.today.saleCount, 0)
+  assert.deepEqual(report.demand, [])
+  assert.deepEqual(report.lowStock, [])
+  assert.equal(report.projection, null)
+  const item = await product({ minimum: 7 })
+  const result = await request('/api/sales', { method: 'POST', body: await salePayload(item.id, { customerId: 1 }) })
+  assert.equal(result.status, 201, JSON.stringify(result.body))
+  report = await dashboard(pool, 'week')
+  assert.equal(report.today.total, 20.1)
+  assert.equal(report.today.paymentTotals.efectivo, 20.1)
+  assert.equal(report.today.total, (await listSales(pool, 'today')).summary.total)
+  assert.equal(report.demand[0].sold, 3)
+  assert.equal(report.demand[0].unit, 'Kg')
+  assert.equal(report.lowStock[0].stock, 7)
+  assert.ok(report.activity.some(activity => activity.kind === 'sale' && activity.id === result.body.id))
+  assert.equal((await customerSales(pool, 2)).length, 1)
+  assert.equal((await customerSales(pool, 1)).length, 0)
+  await adjustInventory(pool,item.id,{ change: '1', reason: 'Cruce superior QA', requestId: randomUUID() },1)
+  assert.equal((await dashboard(pool,'week')).lowStock.length,0)
+  await adjustInventory(pool,item.id,{ change: '-1', reason: 'Cruce inferior QA', requestId: randomUUID() },1)
+  report = await dashboard(pool,'week')
+  assert.equal(report.lowStock.length,1)
+  assert.ok(report.activity.some(activity => activity.kind === 'movement' && activity.change === -1))
+  await postgres.admin.query(`UPDATE nazareth.sales SET created_at = ((now() AT TIME ZONE 'America/Lima')::date AT TIME ZONE 'America/Lima') - interval '1 second'`)
+  report = await dashboard(pool,'week')
+  assert.equal(report.today.total,0)
+  assert.equal(report.today.saleCount,0)
+  assert.equal(report.trend.at(-1).v,0)
+  assert.equal(report.trend.at(-2).v,20.1)
+})
+
+test('Resumen: proyección y comparación requieren siete días de historial comparable', async () => {
+  await postgres.admin.query(`INSERT INTO nazareth.sales (user_id,total_amount,payment_method,created_at)
+    SELECT 1,100,'efectivo',(((now() AT TIME ZONE 'America/Lima')::date - day) + time '00:00:00') AT TIME ZONE 'America/Lima'
+    FROM generate_series(1,7) AS day`)
+  const item = await product()
+  const result = await request('/api/sales',{method:'POST',body:await salePayload(item.id)})
+  assert.equal(result.status,201,JSON.stringify(result.body))
+  const report = await dashboard(pool,'week')
+  assert.equal(report.projection,20.1)
+  assert.equal(report.comparison,-79.9)
+  assert.equal(report.strongestHour,'00')
+})
 
 test('PRU-001: venta, detalle, salida y stock confirman juntos; persisten al reiniciar la API', async () => {
   const item = await product()

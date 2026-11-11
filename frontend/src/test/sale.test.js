@@ -1,6 +1,6 @@
 import { describe,expect,it } from 'vitest'
 import { buildSaleRecord,cartSummary,filterSaleProducts,formatSaleCreatedAt,paymentState,quickCashSuggestions,receiptMarkup } from '../utils/sale.js'
-import { products } from '../services/mockData.js'
+import { products } from './fixtures/mockData.js'
 
 describe('sale checkout logic',()=>{
   it('calculates subtotal, discount and total',()=>expect(cartSummary([{price:4.8,qty:2},{price:10.5,qty:1}],2)).toEqual({units:3,subtotal:20.1,discount:2,total:18.1}))

@@ -9,6 +9,7 @@ import AppShell from '../components/layout/AppShell'
 import { ProductDrawer, HistoryDrawer, AdjustmentDrawer } from '../pages/Inventory/InventoryDrawers'
 import Promotions from '../pages/Promotions'
 import Customers from '../pages/Customers'
+import Overview from '../pages/Overview'
 import { api } from '../services/api'
 
 vi.mock('../services/api', () => ({ api: {
@@ -16,9 +17,13 @@ vi.mock('../services/api', () => ({ api: {
   sales: vi.fn(), productHistory: vi.fn(), updateProduct: vi.fn(), createProduct: vi.fn(),
   adjustInventory: vi.fn(),
   promotions: vi.fn(), customers: vi.fn(),
+  dashboard: vi.fn(),
 } }))
 vi.mock('../context/AuthContext', () => ({ useAuth: () => ({ user: { role: 'admin', name: 'Prueba' } }) }))
-vi.mock('../context/InventoryContext', () => ({ useInventory: () => ({ alertCount: 0 }) }))
+const inventoryState = vi.hoisted(() => ({ alertCount: 0, data: { products: [] }, loading: false, error: '', setRevision: vi.fn() }))
+vi.mock('../context/InventoryContext', () => ({ useInventory: () => inventoryState }))
+vi.mock('../components/charts/SalesTrend', () => ({ default: () => <div>Gráfico de ventas</div> }))
+vi.mock('../components/charts/ProductBars', () => ({ default: () => <div>Gráfico de productos</div> }))
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 let root, container
@@ -214,4 +219,21 @@ it('Clientes abre vacío y sin selección, sin perfiles ni métricas de muestra'
   expect(element.querySelector('.customer-profile')).toBeNull()
   expect(element.textContent).not.toContain('Rosa Castillo')
   expect(element.textContent).not.toContain('Agregar cliente')
+})
+
+it('Resumen distingue error y vacío y vuelve a consultar las operaciones al entrar', async () => {
+  api.dashboard.mockRejectedValueOnce(new Error('Consulta no disponible'))
+  const element = render(<Overview/>)
+  await settled(() => expect(element.querySelector('[role="alert"]').textContent).toContain('Consulta no disponible'))
+  const empty = { today: { total: 0, saleCount: 0, cashTotal: 0, paymentTotals: { yape: 0, plin: 0 } }, summary: { total: 0, saleCount: 0, cashTotal: 0, digitalTotal: 0 }, projection: null, comparison: null, strongestHour: null, trend: [], demand: [], activity: [] }
+  api.dashboard.mockResolvedValue(empty)
+  act(() => element.querySelector('button.secondary').click())
+  await settled(() => expect(element.textContent).toContain('No hay productos en alerta de stock.'))
+  expect(element.textContent).toContain('Aún no hay datos suficientes')
+  expect(element.textContent).toContain('0 operaciones')
+  api.dashboard.mockResolvedValue({ ...empty, today: { ...empty.today, total: 20.1, saleCount: 1, cashTotal: 20.1 } })
+  act(() => root.render(null))
+  act(() => root.render(<Overview/>))
+  await settled(() => expect(element.textContent).toContain('20.10'))
+  expect(api.dashboard).toHaveBeenCalledTimes(3)
 })

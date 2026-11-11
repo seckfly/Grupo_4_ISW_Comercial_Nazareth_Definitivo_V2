@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Plus, List, Grid2X2, Search, PackagePlus, Pencil, SlidersHorizontal, History } from 'lucide-react'
 import PageHeader from '../../components/ui/PageHeader'
 import { Card, StockPill } from '../../components/ui/Card'
@@ -17,6 +17,7 @@ function ProductActions({ product, open }) {
 
 export default function Inventory() {
   const { data, setData, loading, error, setRevision } = useInventory()
+  useEffect(() => { setRevision(value => value + 1) }, [setRevision])
   const [notice, setNotice] = useState('')
   const [category, setCategory] = useState('all')
   const [view, setView] = useState('list')

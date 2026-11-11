@@ -1,3 +1,5 @@
+import { dashboard } from './services/dashboardService.js'
+import { customerSales } from './services/saleService.js'
 import cors from 'cors'
 import express from 'express'
 import { env } from './config/runtime.js'
@@ -25,29 +27,11 @@ app.use('/api/sales', saleRoutes)
 app.use('/api/promotions', promotionRoutes)
 app.use('/api/inventory', createInventoryRouter({ db: pool, authenticate: auth }))
 
-app.get('/api/dashboard', auth, requireRole('admin'), async (_req, res, next) => {
-  try {
-    const [{ rows: [sales] }, { rows: lowStock }, { rows: recent }] = await Promise.all([
-      pool.query(`SELECT COALESCE(SUM(total_amount), 0) AS "todayTotal", COUNT(*)::int AS "saleCount"
-        FROM nazareth.sales WHERE status = 'completed'
-        AND (created_at AT TIME ZONE 'America/Lima')::date = (now() AT TIME ZONE 'America/Lima')::date`),
-      pool.query(`SELECT id, name, current_stock, min_stock_threshold FROM nazareth.products
-        WHERE is_active AND current_stock <= min_stock_threshold ORDER BY current_stock LIMIT 5`),
-      pool.query(`SELECT id, receipt_number, total_amount, payment_method, created_at
-        FROM nazareth.sales ORDER BY created_at DESC LIMIT 8`)
-    ])
-    res.json({
-      sales: { ...sales, todayTotal: Number(sales.todayTotal) },
-      lowStock: lowStock.map((product) => ({
-        ...product,
-        current_stock: Number(product.current_stock),
-        min_stock_threshold: Number(product.min_stock_threshold),
-      })),
-      recent: recent.map((sale) => ({ ...sale, total_amount: Number(sale.total_amount) })),
-    })
-  } catch (error) {
-    next(error)
-  }
+app.get('/api/dashboard', auth, requireRole('admin'), async (req,res,next) => {
+  try { res.set('Cache-Control','no-store'); res.json(await dashboard(pool,req.query.period || 'week')) } catch(error) { next(error) }
+})
+app.get('/api/customer-sales', auth, requireRole('client'), async (req,res,next) => {
+  try { res.set('Cache-Control','no-store'); res.json(await customerSales(pool,req.user.id)) } catch(error) { next(error) }
 })
 
 app.use((_req, res) => res.status(404).json({ message: 'Ruta no encontrada' }))

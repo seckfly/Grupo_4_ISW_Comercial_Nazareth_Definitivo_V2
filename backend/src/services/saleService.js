@@ -117,6 +117,13 @@ export async function listSales(db, period = 'today') {
   return { sales, summary: { total: (cash + digital) / 100, cashTotal: cash / 100, digitalTotal: digital / 100, saleCount: sales.length } }
 }
 
+export async function customerSales(db, userId) {
+  const { rows } = await db.query(`SELECT ${saleFields} FROM nazareth.sales s
+    JOIN nazareth.customers c ON c.id=s.customer_id WHERE c.user_id=$1 AND s.status='completed'
+    ORDER BY s.created_at DESC,s.id DESC`, [positiveId(userId)])
+  return rows
+}
+
 export async function findSaleCustomers(db, query, { allowEmpty = false } = {}) {
   const term = typeof query === 'string' ? query.trim() : ''
   if (!term && !allowEmpty) return []

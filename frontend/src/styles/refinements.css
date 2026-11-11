@@ -1,4 +1,9 @@
 /* Ajustes de presentación sobre los componentes y la identidad existentes. */
+.pulse-metric .analytics-value { font-size: 18px; line-height: 1.4; }
+.history-row > div { min-width: 0; }
+.history-row small, .history-row p { display: block; font-size: 12px; color: #625e56; margin-top: 6px; overflow-wrap: anywhere; }
+.admin-overview .demand-board .demand-row { grid-template-columns: minmax(0,1fr) auto; }
+.command-cash .cash-detail { display: flex; flex-wrap: wrap; gap: 16px; }
 .campaign-feedback { grid-column: 1 / -1; padding: 24px; background: #fff; border-radius: 18px; }
 .campaign-modal-v5 .primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 .campaign-workspace > .promo-search { grid-column: 1 / -1; }
