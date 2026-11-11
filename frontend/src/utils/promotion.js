@@ -1,7 +1,4 @@
-export function promotionPrice(price, type, value) {
-  const result = type === 'fixed' ? price - value : price * (1 - value / 100)
-  return Math.max(0, Math.round(result * 100) / 100)
-}
+export { promotionalPrice as promotionPrice } from '../../../shared/numbers.mjs'
 
 export function campaignStatus(startsAt, endsAt, today = new Date().toISOString().slice(0, 10)) {
   if (today < startsAt) return 'Programada'

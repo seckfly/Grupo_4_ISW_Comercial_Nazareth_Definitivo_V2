@@ -9,10 +9,13 @@ En el SQL Editor del proyecto Supabase, con el rol de administración `postgres`
 1. [001_commercial_schema.sql](migrations/001_commercial_schema.sql)
 2. [002_express_access.sql](migrations/002_express_access.sql)
 3. [003_inventory_access.sql](migrations/003_inventory_access.sql)
+4. [004_sales.sql](migrations/004_sales.sql)
 
-Si las versiones 001 y 002 ya están aplicadas, ejecuta únicamente 003. Esta versión habilita el mantenimiento de productos y la lectura del historial para Express, conserva los registros existentes y agrega un identificador único para reintentos de ajustes. También incorpora las cinco categorías que usaba la pantalla original cuando faltan en el catálogo.
+Si las versiones 001 y 002 ya están aplicadas, continúa con 003 y 004. La versión 003 habilita el mantenimiento de productos y la lectura del historial para Express, conserva los registros existentes y agrega un identificador único para reintentos de ajustes. También incorpora las cinco categorías que usaba la pantalla original cuando faltan en el catálogo.
 
-Cada migración es transaccional. Registra qué archivos aplicaste y ejecuta cada versión una vez por base. Crean objetos en el esquema propio y mantienen los datos que ya existan. Si el esquema o el rol ya existe en ese proyecto, revisa su origen antes de aplicar los archivos. El [script MySQL de origen](comercial_nazareth.sql) se conserva como antecedente y contiene instrucciones destructivas de inicialización. Las migraciones PostgreSQL no lo ejecutan ni importan sus datos.
+Para habilitar las ventas de esta versión, aplica 004 después de 003. Si 001 a 003 ya están aplicadas, ejecuta únicamente 004. Agrega subtotal, descuento, efectivo recibido, vuelto e identificador de solicitud a las ventas, conserva los registros anteriores y habilita la consulta del detalle y la búsqueda de clientes registrados. Después reinicia Express y Vite.
+
+Cada migración es transaccional. Registra qué archivos aplicaste y ejecuta cada versión una vez por base. Crean objetos en el esquema propio y mantienen los datos que ya existan. Si el esquema o el rol ya existe en ese proyecto, revisa su origen antes de aplicar los archivos. El archivo local `database/comercial_nazareth.sql` se conserva como antecedente y queda excluido de Git por sus credenciales de demostración. Contiene instrucciones destructivas de inicialización. Las migraciones PostgreSQL no lo ejecutan ni importan sus datos.
 
 Mantén `nazareth` fuera de los esquemas expuestos por la Data API. El rol de Express tiene permisos explícitos para las rutas actuales. Las futuras rutas deben ampliar los permisos junto con su migración. El rol no tiene acceso directo a las tablas de Auth ni permisos de administración de la base.
 
@@ -72,3 +75,4 @@ Guarda la clave secreta y la contraseña de base únicamente en el entorno del s
 - Desactiva la cuenta cliente desde la pantalla de Configuración. Su sesión previa debe recibir 403 en una operación protegida y un nuevo inicio tampoco debe conceder acceso. Verifica que la cuenta administrativa protegida no pueda desactivarse ni cambiar a cliente.
 - Cierra sesión con cada cuenta. Tras el cierre, `/api/auth/me` debe exigir autenticación. Para comprobar revocación en una prueba controlada, el JWT de la sesión cerrada también debe recibir 401 aunque conserve su vigencia criptográfica. Mantén esos tokens fuera de la evidencia.
 - Con 003 aplicada, abre Inventario desde una cuenta administrativa. Registra un producto, actualiza su precio y realiza un ajuste con motivo. Comprueba el saldo y los movimientos desde Historial. Los detalles de la implementación y las pruebas están en [verificacion-cu006.md](../docs/verificacion-cu006.md).
+- Con 004 aplicada, Nueva venta consulta el catálogo real y solicita el cálculo a Express. Registra una venta, vuelve a abrir Ventas y comprueba su ID, total y detalle. En Inventario verifica la salida, el nuevo saldo y la unidad del producto. La evidencia y el hallazgo de Promociones están en [verificacion-ventas.md](../docs/verificacion-ventas.md).

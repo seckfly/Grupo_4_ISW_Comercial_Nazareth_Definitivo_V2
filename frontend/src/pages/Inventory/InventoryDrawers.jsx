@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { History, X } from 'lucide-react'
 import { api } from '../../services/api'
 import { Skeleton, EmptyState } from '../../components/ui/States'
+import DecimalInput from '../../components/ui/DecimalInput'
+import { decimalUnits } from '../../../../shared/numbers.mjs'
 
 export function InventoryDrawer({ title, kicker, close, busy = false, children }) {
   const container = useRef(null)
@@ -60,6 +62,9 @@ export function ProductDrawer({ product, categories, close, saved }) {
     setBusy(true)
     setError('')
     try {
+      for (const key of ['cost', 'price', 'minimum', ...(!editing ? ['initialStock'] : [])]) {
+        decimalUnits(form[key], { label: key === 'cost' ? 'El costo' : key === 'price' ? 'El precio' : key === 'minimum' ? 'El mínimo' : 'El stock inicial' })
+      }
       const result = editing ? await api.updateProduct(product.id, form) : await api.createProduct(form)
       saved(result, editing ? 'Producto actualizado.' : 'Producto registrado.')
     } catch (error) { setError(error.message) } finally { submitting.current = false; setBusy(false) }
@@ -73,12 +78,12 @@ export function ProductDrawer({ product, categories, close, saved }) {
         <label>Unidad<select value={form.unit} onChange={(event) => field('unit', event.target.value)}>{units.map((unit) => <option key={unit}>{unit}</option>)}</select></label>
       </div>
       <div className="form-row">
-        <label>Costo<input type="number" min="0" step="0.01" value={form.cost} onChange={(event) => field('cost', event.target.value)} placeholder="0.00" required/></label>
-        <label>Precio de venta<input type="number" min="0" step="0.01" value={form.price} onChange={(event) => field('price', event.target.value)} placeholder="0.00" required/></label>
+        <label>Costo<input type="number" min="0" max="99999999.99" step="0.01" value={form.cost} onChange={(event) => field('cost', event.target.value)} placeholder="0.00" required/></label>
+        <label>Precio de venta<input type="number" min="0" max="99999999.99" step="0.01" value={form.price} onChange={(event) => field('price', event.target.value)} placeholder="0.00" required/></label>
       </div>
       <div className="form-row">
-        <label>{editing ? 'Stock actual' : 'Stock inicial'}<input type="number" min="0" step="0.01" value={editing ? product.stock : form.initialStock} readOnly={editing} onChange={(event) => field('initialStock', event.target.value)} required/></label>
-        <label>Alerta mínima<input type="number" min="0" step="0.01" value={form.minimum} onChange={(event) => field('minimum', event.target.value)} required/></label>
+        <label>{editing ? 'Stock actual' : 'Stock inicial'}<input type="number" min="0" max="99999999.99" step="0.01" value={editing ? product.stock : form.initialStock} readOnly={editing} onChange={(event) => field('initialStock', event.target.value)} required/></label>
+        <label>Alerta mínima<input type="number" min="0" max="99999999.99" step="0.01" value={form.minimum} onChange={(event) => field('minimum', event.target.value)} required/></label>
       </div>
       {editing && <small className="muted">Para cambiar las existencias, usa Ajustar stock e indica el motivo.</small>}
       <label className="access-toggle"><input type="checkbox" checked={form.isActive} onChange={(event) => field('isActive', event.target.checked)}/><span><strong>Producto activo</strong></span></label>
@@ -103,7 +108,9 @@ export function AdjustmentDrawer({ product, close, saved }) {
     event.preventDefault()
     if (submitting.current) return
     if (!form.reason.trim()) { setError('Ingresa un motivo con al menos un carácter distinto de espacios.'); return }
-    if (!form.change.trim() || !Number.isFinite(Number(form.change)) || Number(form.change) === 0) { setError('Ingresa una variación distinta de cero.'); return }
+    try {
+      if (decimalUnits(form.change, { signed: true, label: 'La variación' }) === 0) throw new Error('Ingresa una variación distinta de cero.')
+    } catch (error) { setError(error.message); return }
     submitting.current = true
     setBusy(true)
     setError('')
@@ -116,7 +123,7 @@ export function AdjustmentDrawer({ product, close, saved }) {
   return <InventoryDrawer title="Ajustar stock" kicker={product.name} close={close} busy={busy}>
     <form onSubmit={submit} aria-busy={busy}>
       <div className="form-row"><label>Stock consultado<input value={product.stock} readOnly/></label><label>Saldo previsto<input value={Number(result.toFixed(2))} readOnly/></label></div>
-      <label>Variación de existencias<input type="number" step="0.01" value={form.change} onChange={(event) => field('change', event.target.value)} placeholder="Ej. -1" required/></label>
+      <label>Variación de existencias<DecimalInput label="Variación de existencias" name="change" value={form.change} signed onChange={(value) => field('change', value)} disabled={busy}/></label>
       <small className="muted">Usa un valor positivo para agregar unidades y uno negativo para retirarlas. El saldo se comprueba al guardar.</small>
       <label>Motivo<input value={form.reason} onChange={(event) => field('reason', event.target.value)} placeholder="Ej. Producto dañado" required/></label>
       {error && <p className="form-error" role="alert">{error}</p>}
@@ -145,11 +152,11 @@ export function HistoryDrawer({ product, close }) {
   return <InventoryDrawer title="Historial de stock" kicker={product.name} close={close}>
     <div className="inventory-history">
       {error ? <div><p className="form-error" role="alert">{error}</p><button className="secondary" onClick={() => setRetry((value) => value + 1)}>Reintentar</button></div> : !data ? <Skeleton rows={4}/> : <>
-        <p className="muted">Stock actual: {data.product.stock} · Mínimo: {data.product.minimum}</p>
+        <p className="muted">Stock actual: {data.product.stock} {data.product.unit} · Mínimo: {data.product.minimum}</p>
         {!data.movements.length ? <EmptyState icon={<History/>} title="Sin movimientos" copy="Los movimientos de este producto aparecerán aquí."/> : data.movements.map((movement) => <article className="inventory-movement" key={movement.id}>
           <header><strong>{movementNames[movement.type] ?? movement.type}</strong><time dateTime={movement.createdAt}>{movementDate.format(new Date(movement.createdAt))}</time></header>
           <p>{movement.reason || movementNames[movement.type] || 'Movimiento de inventario'}</p>
-          <div><span>{movement.stockBefore ?? '—'} → {movement.stockAfter ?? '—'}</span><strong>{movement.change > 0 ? '+' : ''}{movement.change} unid.</strong></div>
+          <div><span>{movement.stockBefore ?? '—'} → {movement.stockAfter ?? '—'}</span><strong>{movement.change > 0 ? '+' : ''}{movement.change} {data.product.unit}</strong></div>
           {movement.author && <small>{movement.author}</small>}
         </article>)}
       </>}

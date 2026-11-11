@@ -1,1 +1,0 @@
-import { pool } from '../config/db.js';import { createSale } from '../services/saleService.js';export async function registerSale(req,res,next){try{res.status(201).json(await createSale(pool,{...req.body,userId:req.user.id}))}catch(error){next(error)}}

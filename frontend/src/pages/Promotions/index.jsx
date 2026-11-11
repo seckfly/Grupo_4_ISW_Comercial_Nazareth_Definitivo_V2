@@ -1,9 +1,10 @@
+import { promotionValue } from '../../../../shared/numbers.mjs'
 import { useEffect, useState } from 'react'
 import { ArrowRight, BadgePercent, CalendarDays, Check, ChevronRight, Clock3, Heart, PackageCheck, Pause, Pencil, Plus, Search, ShoppingBag, Sparkles, Target, Trash2, TrendingUp, Users, WalletCards, X } from 'lucide-react'
 import PageHeader from '../../components/ui/PageHeader'
 import { useAuth } from '../../context/AuthContext'
 import { currency } from '../../utils/format'
-import { createCampaign, deleteCampaign, filterPromotions, mergeCampaignDefaults, updateCampaign } from '../../utils/promotion'
+import { createCampaign, deleteCampaign, filterPromotions, mergeCampaignDefaults, updateCampaign, promotionPrice } from '../../utils/promotion'
 
 const campaigns = [
   {id:1,productId:4,product:'Inca Kola 1.5 L',category:'Bebidas',image:'/products/bebidas.jpg',discountType:'percentage',discountValue:15,discount:'15%',oldPrice:7,price:5.95,status:'Activa',startDate:'2026-08-25',endDate:'2026-08-31',range:'25–31 AGO',days:'5 días',uses:18,revenue:126,progress:72},
@@ -43,4 +44,51 @@ function ClientPromotions(){
   </div>
 }
 
-function CampaignModal({campaign,close,created,submit}){const products=[{id:1,name:'Arroz Costeño 1 kg',category:'Abarrotes',image:'/products/arroz.jpg',price:4.8},{id:4,name:'Inca Kola 1.5 L',category:'Bebidas',image:'/products/bebidas.jpg',price:7},{id:2,name:'Aceite Primor 900 ml',category:'Abarrotes',image:'/products/aceite.jpg',price:10.5},{id:7,name:'Detergente Bolívar 780 g',category:'Limpieza',image:'/products/abarrotes.jpg',price:10.9}];function save(event){event.preventDefault();const form=new FormData(event.currentTarget),product=products.find(item=>item.id===Number(form.get('productId'))),type=form.get('discountType'),value=Number(form.get('discountValue')),price=Math.max(0,product.price-(type==='percentage'?product.price*value/100:value));submit({...campaign,productId:product.id,product:product.name,category:product.category,image:product.image,oldPrice:product.price,price:Number(price.toFixed(2)),discountType:type,discountValue:value,discount:type==='percentage'?`${value}%`:`S/ ${value}`,startDate:form.get('startDate'),endDate:form.get('endDate'),range:`${form.get('startDate').slice(5)} — ${form.get('endDate').slice(5)}`,days:'Vigencia definida',status:form.get('status'),uses:campaign?.uses||0,revenue:campaign?.revenue||0,progress:campaign?.progress||0})}return <div className="promo-modal campaign-modal-v5" onMouseDown={event=>event.target===event.currentTarget&&close()}><form onSubmit={save}><button type="button" onClick={close}><X/></button>{created?<div className="promo-created"><Check/><h3>Campaña guardada</h3><p>El cliente verá el cambio inmediatamente.</p></div>:<><p className="eyebrow">CRUD de promociones</p><h3>{campaign?'Editar promoción':'Crear promoción'}</h3><label>Producto<select name="productId" defaultValue={campaign?.productId||4}>{products.map(product=><option value={product.id} key={product.id}>{product.name}</option>)}</select></label><div><label>Descuento<input name="discountValue" type="number" min="1" max="100" defaultValue={campaign?.discountValue||15} required/></label><label>Tipo<select name="discountType" defaultValue={campaign?.discountType||'percentage'}><option value="percentage">Porcentaje</option><option value="fixed">Monto fijo</option></select></label></div><div><label>Inicio<input name="startDate" type="date" defaultValue={campaign?.startDate||'2026-08-27'} required/></label><label>Fin<input name="endDate" type="date" defaultValue={campaign?.endDate||'2026-09-03'} required/></label></div><label>Estado<select name="status" defaultValue={campaign?.status||'Programada'}><option>Activa</option><option>Programada</option><option>Pausada</option><option>Finalizada</option></select></label><button className="primary">{campaign?'Guardar cambios':'Crear campaña'} <ArrowRight/></button></>}</form></div>}
+function CampaignModal({ campaign, close, created, submit }) {
+  const [discountType, setDiscountType] = useState(campaign?.discountType || 'percentage')
+  const [error, setError] = useState('')
+  const products = [
+    { id: 1, name: 'Arroz Costeño 1 kg', category: 'Abarrotes', image: '/products/arroz.jpg', price: 4.8 },
+    { id: 4, name: 'Inca Kola 1.5 L', category: 'Bebidas', image: '/products/bebidas.jpg', price: 7 },
+    { id: 2, name: 'Aceite Primor 900 ml', category: 'Abarrotes', image: '/products/aceite.jpg', price: 10.5 },
+    { id: 7, name: 'Detergente Bolívar 780 g', category: 'Limpieza', image: '/products/abarrotes.jpg', price: 10.9 },
+  ]
+  function save(event) {
+    event.preventDefault()
+    setError('')
+    const form = new FormData(event.currentTarget)
+    const product = products.find((item) => item.id === Number(form.get('productId')))
+    const value = Number(form.get('discountValue'))
+    let price
+    try {
+      promotionValue(discountType, form.get('discountValue'))
+      price = promotionPrice(product.price, discountType, form.get('discountValue'))
+    } catch (error) { setError(error.message); return }
+    if (form.get('endDate') < form.get('startDate')) { setError('Corrige la vigencia de la promoción.'); return }
+    submit({
+      ...campaign, productId: product.id, product: product.name, category: product.category, image: product.image,
+      oldPrice: product.price, price, discountType, discountValue: value,
+      discount: discountType === 'percentage' ? value + '%' : 'S/ ' + value.toFixed(2),
+      startDate: form.get('startDate'), endDate: form.get('endDate'),
+      range: form.get('startDate').slice(5) + ' — ' + form.get('endDate').slice(5),
+      days: 'Vigencia definida', status: form.get('status'), uses: campaign?.uses || 0,
+      revenue: campaign?.revenue || 0, progress: campaign?.progress || 0,
+    })
+  }
+  return <div className="promo-modal campaign-modal-v5" onMouseDown={(event) => event.target === event.currentTarget && close()}>
+    <form onSubmit={save}>
+      <button type="button" onClick={close} aria-label="Cerrar campaña"><X/></button>
+      {created ? <div className="promo-created"><Check/><h3>Campaña guardada</h3></div> : <>
+        <p className="eyebrow">CRUD de promociones</p><h3>{campaign ? 'Editar promoción' : 'Crear promoción'}</h3>
+        <label>Producto<select name="productId" defaultValue={campaign?.productId || 4}>{products.map((product) => <option value={product.id} key={product.id}>{product.name}</option>)}</select></label>
+        <div><label>{discountType === 'percentage' ? 'Descuento (%)' : 'Descuento (S/)'}<input name="discountValue" type="number" min="0.01" step="0.01" max={discountType === 'percentage' ? 100 : 99999999.99} defaultValue={campaign?.discountValue || 15} required/></label>
+          <label>Tipo<select name="discountType" value={discountType} onChange={(event) => setDiscountType(event.target.value)}><option value="percentage">Porcentaje</option><option value="fixed">Monto fijo</option></select></label></div>
+        <div><label>Inicio<input name="startDate" type="date" defaultValue={campaign?.startDate || '2026-08-27'} required/></label><label>Fin<input name="endDate" type="date" defaultValue={campaign?.endDate || '2026-09-03'} required/></label></div>
+        <label>Estado<select name="status" defaultValue={campaign?.status || 'Programada'}><option>Activa</option><option>Programada</option><option>Pausada</option><option>Finalizada</option></select></label>
+        {error && <p className="form-error" role="alert">{error}</p>}
+        <button className="primary">{campaign ? 'Guardar cambios' : 'Crear campaña'} <ArrowRight/></button>
+      </>}
+    </form>
+  </div>
+}
+

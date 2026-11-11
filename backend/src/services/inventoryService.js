@@ -1,22 +1,9 @@
-function invalid(message, statusCode = 400) {
-  return Object.assign(new Error(message), { statusCode })
-}
+import { decimalUnits, decimalText, positiveId, inputError as invalid } from '../../../shared/numbers.mjs'
 
-export function inventoryId(value) {
-  if (!['string', 'number'].includes(typeof value) || !/^[1-9]\d*$/.test(String(value)) || Number(value) > 2147483647) {
-    throw invalid('El identificador no es válido')
-  }
-  return Number(value)
-}
+export const inventoryId = positiveId
 
 function decimal(value, label, signed = false) {
-  if (!['string', 'number'].includes(typeof value)) throw invalid(`${label} no es válido`)
-  const text = String(value).trim()
-  const pattern = signed ? /^-?\d+(?:\.\d{1,2})?$/ : /^\d+(?:\.\d{1,2})?$/
-  if (!pattern.test(text) || !Number.isFinite(Number(text)) || Math.abs(Number(text)) > 99999999.99) {
-    throw invalid(`${label} debe ser un número con hasta dos decimales`)
-  }
-  return Number(text).toFixed(2)
+  return decimalText(decimalUnits(value, { label, signed }))
 }
 
 export function productInput(input, creating) {
