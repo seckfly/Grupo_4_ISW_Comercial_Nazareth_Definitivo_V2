@@ -38,7 +38,7 @@ before(async () => {
   await postgres.admin.query(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
     CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY, email text NOT NULL);
     CREATE TABLE auth.sessions (id uuid PRIMARY KEY, user_id uuid, not_after timestamptz)`)
-  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql', '008_promotion_creation_requests.sql', '009_archive_and_remove_access.sql', '010_retire_inventory_products.sql']) {
+  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql', '008_promotion_creation_requests.sql', '009_archive_and_remove_access.sql', '010_retire_inventory_products.sql', '011_sync_unavailable_product_campaigns.sql']) {
     await postgres.admin.query(await readFile(new URL('../../database/migrations/' + file, import.meta.url), 'utf8'))
   }
   pool = await postgres.applicationPool()
@@ -125,6 +125,15 @@ test('Reintentar un alta concurrente devuelve el mismo producto y registra una s
 test('Inventario archiva y da de baja con stock, protege reservas y conserva operaciones', async () => {
   const item = await product({ name: 'Artículo con historial' })
   const empty = await product({ name: 'Alta por error', initialStock: 0 })
+  const campaignInput = { productId: item.id, discountType: 'fixed', discountValue: 1,
+    startDate: '2020-01-01', endDate: '2090-01-01', status: 'active' }
+  const campaign = (await request('/api/promotions', { method: 'POST', body: campaignInput })).body
+  const campaignStatus = async () => (await request('/api/promotions')).body.find(row => row.id === campaign.id).status
+  const activateCampaign = () => request('/api/promotions/' + campaign.id + '/status', {
+    method: 'PATCH', body: { status: 'active' },
+  })
+  const offers = () => request('/api/promotions', { role: 'client-fixture' })
+  assert.equal(await campaignStatus(), 'active')
   const archive = (id, archived, role) => request('/api/inventory/products/' + id + '/archive',
     { method: 'PATCH', body: { archived }, role })
   const remove = (id, confirmation, expectedStock, role) => request('/api/inventory/products/' + id,
@@ -143,6 +152,10 @@ test('Inventario archiva y da de baja con stock, protege reservas y conserva ope
   assert.ok(archived.body.archivedAt)
   assert.deepEqual([archived.body.stock, archived.body.available, archived.body.isActive], [10, 0, false])
   assert.ok(!(await Product.list(pool)).some(row => row.id === item.id))
+  assert.equal(await campaignStatus(), 'paused')
+  assert.equal((await offers()).body.length, 0)
+  assert.equal((await activateCampaign()).status, 409)
+  assert.equal((await request('/api/promotions', { method: 'POST', body: campaignInput })).status, 409)
   const purchase = await request('/api/purchase-orders/direct', { method: 'POST', body: {
     supplierName: 'Mayorista QA', supplierRuc: 'RUC QA', supplierPhone: 'Teléfono QA',
     reference: 'ARCHIVE-QA', items: [{ productId: item.id, quantity: 1, cost: 4 }],
@@ -150,19 +163,29 @@ test('Inventario archiva y da de baja con stock, protege reservas y conserva ope
   assert.equal(purchase.status, 409)
   const restored = await archive(item.id, false)
   assert.equal(restored.body.archivedAt, null)
-  assert.equal(restored.body.isActive, false)
+  assert.equal(restored.body.isActive, true)
+  assert.equal(await campaignStatus(), 'paused')
+  assert.equal((await activateCampaign()).status, 200)
   const history = await request('/api/inventory/products/' + item.id + '/history')
   assert.equal(history.body.movements.length, 1)
-  await updateProduct(pool, item.id, { isActive: true,
-    name: restored.body.name, categoryId: restored.body.categoryId, unit: restored.body.unit,
-    price: restored.body.price, minimum: restored.body.minimum })
   const sale = await request('/api/sales', { method: 'POST', body: await salePayload(item.id, { customerId: 1 }) })
   assert.equal(sale.status, 201)
   await savePreferences(pool, 2, { favorites: [item.id], list: [item.id] })
+  assert.equal((await archive(item.id, true)).status, 200)
+  const archivedReport = await dashboard(pool, 'week')
+  assert.equal(archivedReport.demand[0].productId, item.id)
   assert.equal((await remove(item.id, 'ELIMINAR', 10)).status, 409)
   const retirements = await Promise.all([remove(item.id, 'ELIMINAR', 7), remove(item.id, 'ELIMINAR', 7)])
   assert.deepEqual(retirements.map(result => result.status), [200, 200])
   assert.equal((await archive(item.id, false)).status, 409)
+  assert.equal(await campaignStatus(), 'finished')
+  assert.equal((await activateCampaign()).status, 409)
+  for (const period of ['week', 'month']) {
+    const report = await dashboard(pool, period)
+    assert.deepEqual(report.demand, [])
+    assert.equal(report.summary.total, sale.body.total)
+    assert.ok(report.movementSummary.some(row => row.productId === item.id && row.type === 'adjustment' && row.quantity === -7))
+  }
   assert.ok(!(await Product.list(pool)).some(row => row.id === item.id))
   const after = (await request('/api/inventory/products/' + item.id + '/history')).body
   assert.deepEqual([after.product.stock, after.product.archivedAt, Boolean(after.product.retiredAt)], [0, null, true])

@@ -3,11 +3,20 @@ import { inputError, promotionValue } from '../../../shared/numbers.mjs'
 import { campaignPriceSql } from '../services/priceService.js'
 import { transaction } from '../services/stockService.js'
 
+function ensureCanPromote(product) {
+  if (!product?.is_active) throw inputError('Elige un producto activo para la campaña', 409)
+}
+
+async function validateCampaignProduct(db, id) {
+  const { rows: [product] } = await db.query('SELECT is_active FROM nazareth.products WHERE id = $1 FOR SHARE', [id])
+  ensureCanPromote(product)
+}
+
 export const Promotion = {
   async list(db, role) {
     const { rows } = await db.query(
       'SELECT pr.id, pr.product_id AS "productId", p.name AS product, p.image_url AS "imageUrl", ' +
-      'p.sale_price AS "regularPrice", pr.discount_type AS "discountType", ' +
+      'p.sale_price AS "regularPrice", p.is_active AS "productActive", pr.discount_type AS "discountType", ' +
       `${campaignPriceSql()} AS "currentPrice", ` +
       'pr.discount_value AS "discountValue", pr.start_date AS "startDate", pr.end_date AS "endDate", ' +
       'pr.status, pr.usage_count AS "usageCount", pr.revenue ' +
@@ -37,13 +46,14 @@ export const Promotion = {
     const values = [fields.productId, fields.discountType, fields.discountValue, fields.startDate, fields.endDate,
       fields.status || 'scheduled', fields.userId]
     async function insert(connection) {
+      await validateCampaignProduct(connection, fields.productId)
       const { rows: [promotion] } = await connection.query(
         'INSERT INTO nazareth.promotions (product_id, discount_type, discount_value, start_date, end_date, status, created_by) ' +
         'VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id', values,
       )
       return { ...fields, id: promotion.id }
     }
-    if (requestId === undefined) return insert(db)
+    if (requestId === undefined) return transaction(db, insert, true)
     if (typeof requestId !== 'string' || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(requestId)) {
       throw inputError('La solicitud de creación no es válida')
     }
@@ -67,21 +77,31 @@ export const Promotion = {
         [normalizedId, fingerprint, created.id],
       )
       return created
-    })
+    }, true)
   },
 
   async update(db, id, data) {
-    const { rowCount } = await db.query(
-      'UPDATE nazareth.promotions SET product_id = $1, discount_type = $2, discount_value = $3, ' +
-      'start_date = $4, end_date = $5, status = $6 WHERE id = $7',
-      [data.productId, data.discountType, data.discountValue, data.startDate, data.endDate, data.status, id],
-    )
-    return rowCount ? { ...data, id: Number(id) } : null
+    return transaction(db, async connection => {
+      await validateCampaignProduct(connection, data.productId)
+      const { rowCount } = await connection.query(
+        'UPDATE nazareth.promotions SET product_id = $1, discount_type = $2, discount_value = $3, ' +
+        'start_date = $4, end_date = $5, status = $6 WHERE id = $7',
+        [data.productId, data.discountType, data.discountValue, data.startDate, data.endDate, data.status, id],
+      )
+      return rowCount ? { ...data, id: Number(id) } : null
+    }, true)
   },
 
   async updateStatus(db, id, status) {
-    const { rowCount } = await db.query('UPDATE nazareth.promotions SET status = $1 WHERE id = $2', [status, id])
-    return rowCount ? { id: Number(id), status } : null
+    return transaction(db, async connection => {
+      const { rows: [campaign] } = await connection.query(`SELECT p.is_active
+        FROM nazareth.promotions pr JOIN nazareth.products p ON p.id = pr.product_id
+        WHERE pr.id = $1 FOR SHARE OF p`, [id])
+      if (!campaign) return null
+      if (status === 'active' || status === 'scheduled') ensureCanPromote(campaign)
+      const { rowCount } = await connection.query('UPDATE nazareth.promotions SET status = $1 WHERE id = $2', [status, id])
+      return rowCount ? { id: Number(id), status } : null
+    }, true)
   },
 
   async remove(db, id) {

@@ -75,7 +75,8 @@ export default function Promotions() {
             const savings = Math.round((item.regularPrice - price) * 100) / 100
             return <article className="campaign-row" key={item.id}>
               <div className="campaign-product">{item.imageUrl && <img src={item.imageUrl} alt={item.product}/>}
-                <div><strong>{item.product}</strong>{savings > 0 && <span>{admin ? currency(savings) + ' menos' : 'Ahorras ' + currency(savings)}</span>}</div>
+                <div><strong>{item.product}</strong>{savings > 0 && <span>{admin ? currency(savings) + ' menos' : 'Ahorras ' + currency(savings)}</span>}
+                  {admin && item.productActive === false && <span>Producto fuera del catálogo</span>}</div>
               </div>
               <div className="campaign-date"><CalendarDays aria-hidden="true"/>
                 <span>{admin ? 'Vigencia' : 'Oferta válida'} <strong>{campaignDate(item.startDate)} – {campaignDate(item.endDate)}</strong></span>
@@ -84,7 +85,7 @@ export default function Promotions() {
               <div className="campaign-price"><OfferPrice regularPrice={item.regularPrice} price={price}/></div>
               {admin && <div className="campaign-actions">
                 <button type="button" disabled={busy} onClick={() => { setEditing(item); setCreating(true) }}>Editar</button>
-                <button type="button" disabled={busy} onClick={() => updateCampaign(() => api.updatePromotionStatus(item.id, item.status === 'active' ? 'paused' : 'active'))}>
+                <button type="button" disabled={busy || (item.productActive === false && item.status !== 'active')} onClick={() => updateCampaign(() => api.updatePromotionStatus(item.id, item.status === 'active' ? 'paused' : 'active'))}>
                   {item.status === 'active' ? 'Pausar' : 'Activar'}
                 </button>
                 <button type="button" className="danger" disabled={busy} onClick={() => updateCampaign(() => api.deletePromotion(item.id))}>Eliminar</button>

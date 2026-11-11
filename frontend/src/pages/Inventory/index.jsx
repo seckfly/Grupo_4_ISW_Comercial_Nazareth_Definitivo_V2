@@ -77,7 +77,7 @@ export default function Inventory() {
       setNotice('Producto dado de baja definitivamente.')
     } else {
       const moved = await api.archiveProduct(product.id, type === 'archive')
-      saved(moved, type === 'archive' ? 'Producto archivado.' : 'Producto restaurado como inactivo.')
+      saved(moved, type === 'archive' ? 'Producto archivado.' : 'Producto restaurado y activo.')
     }
     setRevision(value => value + 1)
   }
@@ -147,7 +147,7 @@ export default function Inventory() {
       confirmLabel={{ archive: 'Archivar', restore: 'Restaurar', delete: 'Eliminar producto' }[panel.type]}>
       <p><strong>{panel.product.name}</strong></p>
       {panel.type === 'archive' && <p>Stock físico registrado: {quantityLabel(panel.product.stock, panel.product.unit)}. Podrás encontrarlo en Archivados y consultar su historial.</p>}
-      {panel.type === 'restore' && <p>Volverá a la lista de productos como inactivo. Puedes activarlo desde Editar producto.</p>}
+      {panel.type === 'restore' && <p>Volverá a la lista de productos como activo.</p>}
       {panel.type === 'delete' && <>
         <p>Se retirará del inventario el stock físico de este producto: <strong>{quantityLabel(panel.product.stock, panel.product.unit)}</strong>.</p>
         <p>La baja es permanente. Sus operaciones anteriores seguirán en el historial.</p>

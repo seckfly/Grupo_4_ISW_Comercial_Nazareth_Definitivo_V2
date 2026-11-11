@@ -20,6 +20,7 @@ async function snapshot(db, period) {
   const sales = await listSales(db, period)
   const today = await listSales(db, 'today')
   const inventory = await listInventory(db)
+  const currentProductIds = new Set(inventory.products.map(product => product.id))
   const { rows: clock } = await db.query(`SELECT now() AS now`)
   const now = clock[0].now
   const { rows: history } = await db.query(`SELECT created_at AS "createdAt", total_amount::float8 AS total FROM nazareth.sales
@@ -50,6 +51,7 @@ async function snapshot(db, period) {
     const hour = timeKey(sale.createdAt).slice(0, 2)
     hours.set(hour, (hours.get(hour) || 0) + cents(sale.total))
     for (const item of sale.items) {
+      if (!currentProductIds.has(item.productId)) continue
       const itemKey = item.productId + ':' + item.unit
       const row = demand.get(itemKey) || { productId: item.productId, name: item.name, unit: item.unit, sold: 0, revenue: 0 }
       row.sold += Math.round(item.quantity * 100)

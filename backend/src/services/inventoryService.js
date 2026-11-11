@@ -215,9 +215,11 @@ export async function setProductArchived(pool, productId, archived) {
     if (Boolean(product.archivedAt) === archived) return product
     if (archived) {
       await checkOpenProductOperations(db, id)
+      await db.query(`UPDATE nazareth.promotions SET status = 'paused'
+        WHERE product_id = $1 AND status IN ('active', 'scheduled')`, [id])
     }
     await db.query(`UPDATE nazareth.products
-      SET archived_at = CASE WHEN $2 THEN now() ELSE NULL END, is_active = false WHERE id = $1`, [id, archived])
+      SET archived_at = CASE WHEN $2 THEN now() ELSE NULL END, is_active = NOT $2 WHERE id = $1`, [id, archived])
     return productById(db, id)
   }, true)
 }
@@ -242,6 +244,8 @@ export async function deleteProduct(pool, productId, { confirmation, expectedSto
     }
     await db.query(`UPDATE nazareth.products SET retired_at = now(), archived_at = NULL,
       current_stock = 0, is_active = false WHERE id = $1`, [id])
+    await db.query(`UPDATE nazareth.promotions SET status = 'finished'
+      WHERE product_id = $1 AND status <> 'finished'`, [id])
     return { id }
   }, true)
 }
