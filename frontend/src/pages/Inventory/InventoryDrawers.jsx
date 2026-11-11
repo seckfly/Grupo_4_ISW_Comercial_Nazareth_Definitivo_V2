@@ -95,7 +95,13 @@ export function ProductDrawer({ product, categories, close, saved }) {
         <label>Precio de venta<AmountInput min="0" max="99999999.99" step="0.01" value={form.price} onChange={(event) => field('price', event.target.value)} placeholder="0.00" required/></label>
       </div>
       <div className="form-row">
-        <div className="quantity-field">{editing ? 'Stock actual' : 'Stock inicial'}{editing ? <input value={product.stock} readOnly/> : <DecimalInput label="Stock inicial" value={form.initialStock} onChange={value=>field('initialStock',value)} disabled={busy}/>}</div>
+        {editing ? <div className="quantity-field inventory-current-stock">
+          <span>Stock actual</span>
+          <strong>{quantityLabel(product.stock, product.unit)}</strong>
+        </div> : <div className="quantity-field">
+          <span>Stock inicial</span>
+          <DecimalInput label="Stock inicial" value={form.initialStock} onChange={value=>field('initialStock',value)} disabled={busy}/>
+        </div>}
         <div className="quantity-field">
           <span>Stock mínimo para alerta</span>
           <DecimalInput label="Stock mínimo para alerta" describedBy="stock-alert-help" value={form.minimum} onChange={value=>field('minimum',value)} disabled={busy}/>

@@ -125,6 +125,46 @@ test('PRU-005/006/008: proveedor, orden sin stock, recepción parcial, exceso, d
   assert.equal((await request('/api/purchase-orders',{role:'client-fixture'})).status,403)
 })
 
+test('Compra en mayorista registra recepción y stock juntos e impide ingresos duplicados', async () => {
+  const item = await product({ name: 'Aceite QA', unit: 'Unidad', initialStock: 4 })
+  const payload = {
+    supplierName: 'Mayorista QA', supplierRuc: 'RUC QA', supplierPhone: 'Teléfono QA',
+    reference: 'COMPRA-QA-001', items: [{ productId: item.id, quantity: 12, cost: '5.00' }],
+  }
+  const buy = (body, role) => request('/api/purchase-orders/direct', { method: 'POST', body, role })
+  assert.equal((await buy(payload, 'client-fixture')).status, 403)
+  const results = await Promise.all([buy(payload), buy(payload)])
+  assert.deepEqual(results.map(result => result.status).sort(), [200, 409])
+  const order = results.find(result => result.status === 200).body
+  assert.equal(order.status, 'received')
+  assert.equal(Number(order.estimated_total), 60)
+
+  const orders = (await request('/api/purchase-orders')).body
+  assert.equal(orders.length, 1)
+  assert.equal(Number(orders[0].items[0].received_quantity), 12)
+  assert.equal((await request('/api/inventory')).body.products[0].stock, 16)
+  const { rows: [entry] } = await postgres.admin.query(`SELECT m.quantity_change, m.stock_before, m.stock_after
+    FROM nazareth.inventory_movements m JOIN nazareth.receipts r ON r.id = m.receipt_id WHERE r.reference = $1`, [payload.reference])
+  assert.deepEqual([entry.quantity_change, entry.stock_before, entry.stock_after].map(Number), [12, 4, 16])
+})
+
+test('Una compra directa con fallo en la segunda entrada revierte toda la operación', async () => {
+  const first = await product({ name: 'Aceite QA', initialStock: 4 })
+  const second = await product({ name: 'Arroz QA', initialStock: '99999999.99' })
+  const result = await request('/api/purchase-orders/direct', { method: 'POST', body: {
+    supplierName: 'Mayorista QA', supplierRuc: 'RUC QA', supplierPhone: 'Teléfono QA',
+    reference: 'COMPRA-ROLLBACK-QA',
+    items: [{ productId: first.id, quantity: 2, cost: 5 }, { productId: second.id, quantity: 1, cost: 5 }],
+  } })
+  assert.ok(result.status >= 400)
+  assert.equal((await request('/api/purchase-orders')).body.length, 0)
+  const { rows: [counts] } = await postgres.admin.query(`SELECT
+    (SELECT COUNT(*) FROM nazareth.receipts)::int AS receipts,
+    (SELECT COUNT(*) FROM nazareth.inventory_movements WHERE receipt_id IS NOT NULL)::int AS entries`)
+  assert.deepEqual(counts, { receipts: 0, entries: 0 })
+  assert.equal((await request('/api/inventory')).body.products.find(row => row.id === first.id).stock, 4)
+})
+
 test('PRU-010: campañas CRUD persistidas y mismo precio promocional en catálogo y venta',async()=>{
   const p=await product()
   const input={productId:p.id,discountType:'percentage',discountValue:10,startDate:'2020-01-01',endDate:'2090-01-01',status:'active'}

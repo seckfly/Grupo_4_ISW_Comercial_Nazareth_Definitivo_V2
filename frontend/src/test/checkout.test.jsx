@@ -12,6 +12,7 @@ import Customers from '../pages/Customers'
 import Overview from '../pages/Overview'
 import Products from '../pages/Products'
 import Inventory from '../pages/Inventory'
+import Purchases from '../pages/Purchases'
 import Settings from '../pages/Settings'
 import Reservations from '../pages/Reservations'
 import { api } from '../services/api'
@@ -22,6 +23,7 @@ vi.mock('../services/api', () => ({ api: {
   adjustInventory: vi.fn(),
   promotions: vi.fn(), customers: vi.fn(),
   dashboard: vi.fn(), users: vi.fn(), createUser: vi.fn(),
+  orders: vi.fn(), createOrder: vi.fn(), registerDirectPurchase: vi.fn(),
   preferences:vi.fn(),savePreferences:vi.fn(),requestReservation:vi.fn(),reservations:vi.fn(),changeReservation:vi.fn(),uploadPhoto:vi.fn(),
 } }))
 const authState=vi.hoisted(()=>({user:{role:'admin',name:'Prueba'}}))
@@ -455,4 +457,43 @@ it('Ventas muestra fecha y hora de Lima para ventas de distintos días en la úl
     ['10 de noviembre de 2026', '22:40:00'],
     ['9 de noviembre de 2026', '22:40:00'],
   ])
+})
+
+it('Compras envía la mercadería ya recibida en una sola operación y conserva la orden pendiente', async () => {
+  const item = { id: 1, name: 'Aceite QA', unit: 'Unidad', category: 'Abarrotes' }
+  api.products.mockResolvedValue([item])
+  api.orders.mockResolvedValue([])
+  api.registerDirectPurchase.mockResolvedValue({ id: 8, status: 'received' })
+  const element = render(<Purchases/>)
+  const button = label => [...element.querySelectorAll('button')].find(control => control.textContent === label)
+  await settled(() => expect(element.textContent).toContain('Aún no hay compras registradas.'))
+  act(() => button('Registrar compra en mayorista').click())
+  const form = element.querySelector('[role="dialog"] form')
+  const data = { name: 'Mayorista QA', ruc: 'RUC QA', phone: '999999999', reference: 'BOLETA-QA-001' }
+  for (const [key, value] of Object.entries(data)) type(form.elements[key], value)
+  const product = [...form.querySelectorAll('select')].find(select => select.textContent.includes(item.name))
+  act(() => {
+    product.value = '1'
+    product.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+  type(form.querySelector('input[type="number"]'), '5.00')
+  await act(async () => button('Guardar compra e ingresar al inventario').click())
+  expect(api.registerDirectPurchase).toHaveBeenCalledWith({
+    supplierName: data.name, supplierRuc: data.ruc, supplierPhone: data.phone, reference: data.reference,
+    items: [{ productId: '1', quantity: '1', cost: '5.00' }],
+  })
+  expect(api.createOrder).not.toHaveBeenCalled()
+  expect(element.textContent).toContain('Compra registrada e ingresada al inventario.')
+  act(() => button('Nueva orden').click())
+  expect(button('Guardar orden')).toBeDefined()
+  expect(element.querySelector('input[name="reference"]')).toBeNull()
+})
+
+it('Editar producto presenta el stock actual como texto y mantiene el umbral editable', () => {
+  const product = { id: 1, name: 'Aceite QA', categoryId: 1, stock: 4, minimum: 5, unit: 'Unidad', cost: 5, price: 7 }
+  const element = render(<ProductDrawer product={product} categories={[{ id: 1, name: 'Abarrotes' }]} close={() => {}}/>)
+  const stock = element.querySelector('.inventory-current-stock')
+  expect(stock.textContent).toContain('4 Unidades')
+  expect(stock.querySelector('input')).toBeNull()
+  expect(element.querySelector('[aria-label="Stock mínimo para alerta"]')).not.toBeNull()
 })
