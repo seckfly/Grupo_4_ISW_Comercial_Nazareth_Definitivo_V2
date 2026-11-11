@@ -10,7 +10,7 @@ export function createSalesRouter({ db, authenticate }) {
     try { res.json(await listSales(db, req.query.period)) } catch (error) { next(error) }
   })
   router.get('/customers', async (req, res, next) => {
-    try { res.json(await findSaleCustomers(db, req.query.q)) } catch (error) { next(error) }
+    try { res.json(await findSaleCustomers(db, req.query.q, { allowEmpty: req.query.all === 'true' })) } catch (error) { next(error) }
   })
   router.post('/quote', async (req, res, next) => {
     try { res.json(await quoteSale(db, req.body)) } catch (error) { next(error) }

@@ -1,92 +1,78 @@
-import { promotionValue } from '../../../../shared/numbers.mjs'
 import { useEffect, useState } from 'react'
-import { ArrowRight, BadgePercent, CalendarDays, Check, ChevronRight, Clock3, Heart, PackageCheck, Pause, Pencil, Plus, Search, ShoppingBag, Sparkles, Target, Trash2, TrendingUp, Users, WalletCards, X } from 'lucide-react'
+import { ArrowRight, BadgePercent, CalendarDays, Plus, Search, X } from 'lucide-react'
 import PageHeader from '../../components/ui/PageHeader'
+import { EmptyState, Skeleton } from '../../components/ui/States'
 import { useAuth } from '../../context/AuthContext'
+import { api } from '../../services/api'
 import { currency } from '../../utils/format'
-import { createCampaign, deleteCampaign, filterPromotions, mergeCampaignDefaults, updateCampaign, promotionPrice } from '../../utils/promotion'
 
-const campaigns = [
-  {id:1,productId:4,product:'Inca Kola 1.5 L',category:'Bebidas',image:'/products/bebidas.jpg',discountType:'percentage',discountValue:15,discount:'15%',oldPrice:7,price:5.95,status:'Activa',startDate:'2026-08-25',endDate:'2026-08-31',range:'25–31 AGO',days:'5 días',uses:18,revenue:126,progress:72},
-  {id:2,productId:7,product:'Detergente Bolívar 780 g',category:'Limpieza',image:'/products/abarrotes.jpg',discountType:'fixed',discountValue:2,discount:'S/ 2',oldPrice:10.9,price:8.9,status:'Programada',startDate:'2026-09-01',endDate:'2026-09-07',range:'01–07 SEP',days:'Inicia en 6 días',uses:0,revenue:0,progress:0},
-  {id:3,productId:6,product:'Atún Florida',category:'Conservas',image:'/products/conservas.jpg',discountType:'percentage',discountValue:10,discount:'10%',oldPrice:6.8,price:6.12,status:'Finalizada',startDate:'2026-08-10',endDate:'2026-08-16',range:'10–16 AGO',days:'Finalizó',uses:13,revenue:84,progress:54},
-  {id:4,productId:5,product:'Leche Gloria evaporada',category:'Lácteos',image:'/products/conservas.jpg',discountType:'percentage',discountValue:12,discount:'12%',oldPrice:4.5,price:3.96,status:'Activa',startDate:'2026-08-27',endDate:'2026-09-03',range:'27 AGO — 03 SEP',days:'7 días',uses:9,revenue:35.64,progress:42},
-  {id:5,productId:1,product:'Arroz Costeño 1 kg',category:'Abarrotes',image:'/products/arroz.jpg',discountType:'percentage',discountValue:15,discount:'15%',oldPrice:4.8,price:4.08,status:'Activa',startDate:'2026-08-27',endDate:'2026-09-05',range:'27 AGO — 05 SEP',days:'9 días',uses:16,revenue:65.28,progress:64},
-  {id:6,productId:2,product:'Aceite Primor 900 ml',category:'Abarrotes',image:'/products/aceite.jpg',discountType:'fixed',discountValue:1.5,discount:'S/ 1.50',oldPrice:10.5,price:9,status:'Activa',startDate:'2026-08-27',endDate:'2026-09-02',range:'27 AGO — 02 SEP',days:'6 días',uses:11,revenue:99,progress:55},
-]
-
-export default function Promotions(){const{user}=useAuth();return user.role==='admin'?<AdminPromotions/>:<ClientPromotions/>}
-
-function AdminPromotions(){
-  const[creating,setCreating]=useState(false),[created,setCreated]=useState(false),[editing,setEditing]=useState(null),[items,setItems]=useState(()=>mergeCampaignDefaults(JSON.parse(localStorage.getItem('nazareth_campaigns')||'[]'),campaigns))
-  useEffect(()=>localStorage.setItem('nazareth_campaigns',JSON.stringify(items)),[items])
-  const pause=id=>setItems(current=>current.map(item=>item.id===id?{...item,status:item.status==='Activa'?'Pausada':'Activa'}:item))
-  return <div className="page promo-v5 admin-promo-v5">
-    <PageHeader kicker="Crecimiento comercial" title="Campañas" description="Decide qué impulsar, cuánto invertir y cuándo detenerlo." action={<button className="primary promo-create" onClick={()=>setCreating(true)}><Plus/>Nueva campaña</button>}/>
-    <section className="campaign-kpis"><Metric icon={<TrendingUp/>} label="Ventas influenciadas" value="S/ 210.00" note="+18.6%"/><Metric icon={<BadgePercent/>} label="Inversión en descuentos" value="S/ 42.80" note="Margen sano"/><Metric icon={<Users/>} label="Clientes alcanzados" value="27" note="9 nuevos"/><Metric icon={<Target/>} label="Tasa de canje" value="31.4%" note="Sobre la meta"/></section>
-    <section className="campaign-workspace"><header><div><p>CONTROL DE CAMPAÑAS</p><h3>Campañas registradas</h3></div><button><CalendarDays/>Calendario</button></header><div className="campaign-table-head"><span>Campaña</span><span>Vigencia</span><span>Rendimiento</span><span>Estado</span><span/></div>{items.map(item=><article className="campaign-row" key={item.id}><div className="campaign-product"><img src={item.image} alt={item.product}/><div><strong>{item.product}</strong><span>{item.category} · {item.discount} menos</span></div></div><div className="campaign-date"><strong>{item.range}</strong><span>{item.days}</span></div><div className="campaign-result"><div><strong>{item.uses}</strong><span>canjes</span></div><div><strong>{currency(item.revenue)}</strong><span>ventas</span></div><i><b style={{width:`${item.progress}%`}}/></i></div><span className={`campaign-status ${item.status.toLowerCase()}`}>{item.status}</span><div className="campaign-actions"><button aria-label="Editar campaña" onClick={()=>{setEditing(item);setCreating(true)}}><Pencil/></button>{item.status!=='Finalizada'&&<button aria-label="Pausar o activar campaña" onClick={()=>pause(item.id)}>{item.status==='Activa'?<Pause/>:<Check/>}</button>}<button className="danger" aria-label="Eliminar campaña" onClick={()=>setItems(current=>deleteCampaign(current,item.id))}><Trash2/></button></div></article>)}</section>
-    <section className="campaign-insights"><div><span><Sparkles/></span><div><p>RECOMENDACIÓN NAZARETH</p><h3>El viernes, combina gaseosa + conservas.</h3><small>Las compras de fin de semana elevan 24% el ticket cuando ambos productos aparecen juntos.</small></div></div><button>Crear campaña sugerida <ChevronRight/></button></section>
-    {creating&&<CampaignModal campaign={editing} close={()=>{setCreating(false);setEditing(null)}} created={created} submit={data=>{setItems(current=>editing?updateCampaign(current,editing.id,data):createCampaign(current,data));setCreated(true);setTimeout(()=>{setCreating(false);setEditing(null);setCreated(false)},700)}}/>}
+const statuses = { active: 'Activa', scheduled: 'Programada', paused: 'Pausada', finished: 'Finalizada' }
+export default function Promotions() {
+  const { user } = useAuth()
+  const [creating, setCreating] = useState(false)
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [query, setQuery] = useState('')
+  const [retry, setRetry] = useState(0)
+  const admin = user.role === 'admin'
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setError('')
+    api.promotions().then(rows => { if (active) setItems(rows) })
+      .catch(failure => { if (active) setError(failure.message) })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [retry])
+  const visible = items.filter(item => item.product.toLocaleLowerCase('es').includes(query.trim().toLocaleLowerCase('es')))
+  return <div className={admin ? 'page promo-v5 admin-promo-v5' : 'page client-promo-dashboard'}>
+    <PageHeader kicker={admin ? 'Crecimiento comercial' : 'Beneficios Nazareth'} title={admin ? 'Campañas' : 'Promociones para ti'}
+      description="Consulta las campañas registradas y su vigencia."
+      action={admin && <button className="primary promo-create" onClick={() => setCreating(true)}><Plus/>Nueva campaña</button>}/>
+    <section className={admin ? 'campaign-workspace' : 'promo-client-catalog'}>
+      <header><div><p className="eyebrow">Control de campañas</p><h3>Campañas registradas</h3></div></header>
+      {loading ? <div className="campaign-feedback"><Skeleton/></div> : error ? <div className="campaign-feedback"><p className="form-error" role="alert">{error}</p><button className="secondary" onClick={() => setRetry(value => value + 1)}>Reintentar</button></div> :
+      !items.length ? <div className="campaign-feedback"><EmptyState icon={<BadgePercent/>} title="Aún no hay campañas" copy="Las campañas registradas aparecerán aquí."/></div> : <>
+        <label className="promo-search"><Search/><input aria-label="Buscar campaña" placeholder="Buscar campaña" value={query} onChange={event => setQuery(event.target.value)}/></label>
+        {visible.map(item => <article className="campaign-row" key={item.id}>
+          <div className="campaign-product">{item.imageUrl && <img src={item.imageUrl} alt={item.product}/>}<div><strong>{item.product}</strong><span>{item.discountType === 'percentage' ? item.discountValue + '%' : currency(item.discountValue)} menos</span></div></div>
+          <div className="campaign-date"><strong><CalendarDays/> {String(item.startDate).slice(0, 10)} — {String(item.endDate).slice(0, 10)}</strong></div>
+          <span className="campaign-status">{statuses[item.status] || item.status}</span>
+        </article>)}
+        {!visible.length && <p>No hay coincidencias con la búsqueda.</p>}
+      </>}
+    </section>
+    {creating && <CampaignModal close={() => setCreating(false)}/>}
   </div>
 }
 
-function Metric({icon,label,value,note}){return <article><span>{icon}</span><div><small>{label}</small><strong>{value}</strong></div><em>{note}</em></article>}
 
-function ClientPromotions(){
-  const[saved,setSaved]=useState(()=>JSON.parse(localStorage.getItem('nazareth_saved_promos')||'[1]')),[reserved,setReserved]=useState(()=>JSON.parse(localStorage.getItem('nazareth_reserved_promos')||'[]')),[available]=useState(()=>mergeCampaignDefaults(JSON.parse(localStorage.getItem('nazareth_campaigns')||'[]'),campaigns).filter(item=>!['Finalizada','Pausada'].includes(item.status))),[query,setQuery]=useState(''),[category,setCategory]=useState('Todas')
-  useEffect(()=>localStorage.setItem('nazareth_saved_promos',JSON.stringify(saved)),[saved]);useEffect(()=>localStorage.setItem('nazareth_reserved_promos',JSON.stringify(reserved)),[reserved])
-  const toggle=id=>setSaved(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id]),reserve=id=>setReserved(current=>current.includes(id)?current:[...current,id])
-  const visible=filterPromotions(available,query,category),categories=['Todas','Abarrotes','Bebidas','Limpieza','Lácteos','Conservas']
-  return <div className="page client-promo-dashboard">
-    <PageHeader kicker="Beneficios Nazareth" title="Promociones para ti" description="Encuentra precios especiales y separa tus productos antes de visitar la tienda."/>
-    <section className="promo-client-summary"><Metric icon={<WalletCards/>} label="Ahorro disponible" value="S/ 18.40" note="en descuentos"/><Metric icon={<BadgePercent/>} label="Promociones activas" value={available.length} note="ofertas para ti"/><Metric icon={<PackageCheck/>} label="Separaciones" value={reserved.length} note="productos reservados"/><Metric icon={<Clock3/>} label="Próximo vencimiento" value="3 días" note="revisa tus guardadas"/></section>
-    <section className="promo-client-catalog"><header><div><p className="eyebrow">Catálogo actualizado</p><h3>Ofertas disponibles</h3></div><span>{visible.length} resultados</span></header><label className="promo-search"><Search/><input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Buscar productos o marcas"/></label><nav className="promo-category-tabs">{categories.map(item=><button className={category===item?'active':''} onClick={()=>setCategory(item)} key={item}>{item}</button>)}</nav><div className="promo-product-grid">{visible.map(item=><article key={item.id}><div className="promo-product-photo"><img src={item.image} alt={item.product}/><b>{item.discount}<small>menos</small></b></div><div className="promo-product-info"><span>{item.category}</span><h4>{item.product}</h4><div className="promo-product-price"><strong>{currency(item.price)}</strong><del>{currency(item.oldPrice)}</del></div><p><CalendarDays/>Válido: {item.range}</p><div className="promo-product-actions"><button className={reserved.includes(item.id)?'reserved':''} onClick={()=>reserve(item.id)}>{reserved.includes(item.id)?<><Check/>Separado</>:<><ShoppingBag/>Separar en tienda</>}</button><button className={saved.includes(item.id)?'saved':''} onClick={()=>toggle(item.id)} aria-label="Guardar promoción"><Heart/></button></div></div></article>)}</div>{!visible.length&&<div className="promo-empty"><Search/><h4>No encontramos esa oferta</h4><p>Prueba con otra palabra o categoría.</p></div>}</section>
-  </div>
-}
-
-function CampaignModal({ campaign, close, created, submit }) {
+function CampaignModal({ campaign, close }) {
   const [discountType, setDiscountType] = useState(campaign?.discountType || 'percentage')
   const [error, setError] = useState('')
-  const products = [
-    { id: 1, name: 'Arroz Costeño 1 kg', category: 'Abarrotes', image: '/products/arroz.jpg', price: 4.8 },
-    { id: 4, name: 'Inca Kola 1.5 L', category: 'Bebidas', image: '/products/bebidas.jpg', price: 7 },
-    { id: 2, name: 'Aceite Primor 900 ml', category: 'Abarrotes', image: '/products/aceite.jpg', price: 10.5 },
-    { id: 7, name: 'Detergente Bolívar 780 g', category: 'Limpieza', image: '/products/abarrotes.jpg', price: 10.9 },
-  ]
+  const [products, setProducts] = useState([])
+  useEffect(() => {
+    let active = true
+    api.products().then(rows => { if (active) setProducts(rows) }).catch(failure => { if (active) setError(failure.message) })
+    return () => { active = false }
+  }, [])
   function save(event) {
     event.preventDefault()
-    setError('')
-    const form = new FormData(event.currentTarget)
-    const product = products.find((item) => item.id === Number(form.get('productId')))
-    const value = Number(form.get('discountValue'))
-    let price
-    try {
-      promotionValue(discountType, form.get('discountValue'))
-      price = promotionPrice(product.price, discountType, form.get('discountValue'))
-    } catch (error) { setError(error.message); return }
-    if (form.get('endDate') < form.get('startDate')) { setError('Corrige la vigencia de la promoción.'); return }
-    submit({
-      ...campaign, productId: product.id, product: product.name, category: product.category, image: product.image,
-      oldPrice: product.price, price, discountType, discountValue: value,
-      discount: discountType === 'percentage' ? value + '%' : 'S/ ' + value.toFixed(2),
-      startDate: form.get('startDate'), endDate: form.get('endDate'),
-      range: form.get('startDate').slice(5) + ' — ' + form.get('endDate').slice(5),
-      days: 'Vigencia definida', status: form.get('status'), uses: campaign?.uses || 0,
-      revenue: campaign?.revenue || 0, progress: campaign?.progress || 0,
-    })
+    setError('El guardado de campañas aún no está disponible.')
   }
   return <div className="promo-modal campaign-modal-v5" onMouseDown={(event) => event.target === event.currentTarget && close()}>
     <form onSubmit={save}>
       <button type="button" onClick={close} aria-label="Cerrar campaña"><X/></button>
-      {created ? <div className="promo-created"><Check/><h3>Campaña guardada</h3></div> : <>
-        <p className="eyebrow">CRUD de promociones</p><h3>{campaign ? 'Editar promoción' : 'Crear promoción'}</h3>
-        <label>Producto<select name="productId" defaultValue={campaign?.productId || 4}>{products.map((product) => <option value={product.id} key={product.id}>{product.name}</option>)}</select></label>
-        <div><label>{discountType === 'percentage' ? 'Descuento (%)' : 'Descuento (S/)'}<input name="discountValue" type="number" min="0.01" step="0.01" max={discountType === 'percentage' ? 100 : 99999999.99} defaultValue={campaign?.discountValue || 15} required/></label>
+      {<>
+        <p className="eyebrow">Nueva campaña</p><h3>{campaign ? 'Editar promoción' : 'Crear promoción'}</h3>
+        <label>Producto<select name="productId" defaultValue={campaign?.productId || ''}><option value="">Selecciona un producto</option>{products.map((product) => <option value={product.id} key={product.id}>{product.name}</option>)}</select></label>
+        <div><label>{discountType === 'percentage' ? 'Descuento (%)' : 'Descuento (S/)'}<input name="discountValue" type="number" min="0.01" step="0.01" max={discountType === 'percentage' ? 100 : 99999999.99} defaultValue={campaign?.discountValue || ''} required/></label>
           <label>Tipo<select name="discountType" value={discountType} onChange={(event) => setDiscountType(event.target.value)}><option value="percentage">Porcentaje</option><option value="fixed">Monto fijo</option></select></label></div>
-        <div><label>Inicio<input name="startDate" type="date" defaultValue={campaign?.startDate || '2026-08-27'} required/></label><label>Fin<input name="endDate" type="date" defaultValue={campaign?.endDate || '2026-09-03'} required/></label></div>
+        <div><label>Inicio<input name="startDate" type="date" defaultValue={campaign?.startDate || ''} required/></label><label>Fin<input name="endDate" type="date" defaultValue={campaign?.endDate || ''} required/></label></div>
         <label>Estado<select name="status" defaultValue={campaign?.status || 'Programada'}><option>Activa</option><option>Programada</option><option>Pausada</option><option>Finalizada</option></select></label>
         {error && <p className="form-error" role="alert">{error}</p>}
-        <button className="primary">{campaign ? 'Guardar cambios' : 'Crear campaña'} <ArrowRight/></button>
+        <p className="form-error" role="status">El guardado de campañas aún no está disponible.</p><button className="primary" disabled>{campaign ? 'Guardar cambios' : 'Crear campaña'} <ArrowRight/></button>
       </>}
     </form>
   </div>

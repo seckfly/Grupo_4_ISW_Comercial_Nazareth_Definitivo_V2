@@ -8,12 +8,14 @@ import Sales from '../pages/Sales'
 import AppShell from '../components/layout/AppShell'
 import { ProductDrawer, HistoryDrawer, AdjustmentDrawer } from '../pages/Inventory/InventoryDrawers'
 import Promotions from '../pages/Promotions'
+import Customers from '../pages/Customers'
 import { api } from '../services/api'
 
 vi.mock('../services/api', () => ({ api: {
   products: vi.fn(), quoteSale: vi.fn(), createSale: vi.fn(), saleCustomers: vi.fn(),
   sales: vi.fn(), productHistory: vi.fn(), updateProduct: vi.fn(), createProduct: vi.fn(),
   adjustInventory: vi.fn(),
+  promotions: vi.fn(), customers: vi.fn(),
 } }))
 vi.mock('../context/AuthContext', () => ({ useAuth: () => ({ user: { role: 'admin', name: 'Prueba' } }) }))
 vi.mock('../context/InventoryContext', () => ({ useInventory: () => ({ alertCount: 0 }) }))
@@ -176,11 +178,14 @@ it('Ventas vuelve a consultar los registros al montar la pantalla de nuevo', asy
   await settled(() => expect(element.querySelector('tbody')?.textContent).toContain('#357'))
 })
 
-it('Promociones distingue un monto fijo con centavos de un porcentaje máximo de 100', () => {
+it('Promociones distingue un monto fijo con centavos de un porcentaje máximo de 100', async () => {
+  api.promotions.mockResolvedValue([])
+  api.products.mockResolvedValue([])
   localStorage.clear()
   const element = render(<Promotions/>)
+  await settled(() => expect(element.textContent).toContain('Aún no hay campañas'))
   const create = [...element.querySelectorAll('button')].find((button) => button.textContent.includes('Nueva campaña'))
-  act(() => create.click())
+  await act(async () => create.click())
   const typeSelect = element.querySelector('[name="discountType"]')
   const amount = element.querySelector('[name="discountValue"]')
   act(() => { typeSelect.value = 'fixed'; typeSelect.dispatchEvent(new Event('change', { bubbles: true })) })
@@ -192,4 +197,21 @@ it('Promociones distingue un monto fijo con centavos de un porcentaje máximo de
   type(amount, '0.25')
   expect(amount.checkValidity()).toBe(true)
   expect(amount.closest('label').textContent).toContain('%')
+})
+
+it('Promociones no recupera campañas de muestra desde localStorage', async () => {
+  localStorage.setItem('nazareth_campaigns', JSON.stringify([{ id: 1, product: 'Muestra antigua' }]))
+  api.promotions.mockResolvedValue([])
+  const element = render(<Promotions/>)
+  await settled(() => expect(element.textContent).toContain('Aún no hay campañas'))
+  expect(element.textContent).not.toContain('Muestra antigua')
+})
+
+it('Clientes abre vacío y sin selección, sin perfiles ni métricas de muestra', async () => {
+  api.customers.mockResolvedValue([])
+  const element = render(<Customers/>)
+  await settled(() => expect(element.textContent).toContain('Aún no hay clientes registrados'))
+  expect(element.querySelector('.customer-profile')).toBeNull()
+  expect(element.textContent).not.toContain('Rosa Castillo')
+  expect(element.textContent).not.toContain('Agregar cliente')
 })

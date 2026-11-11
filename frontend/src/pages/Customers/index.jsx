@@ -1,2 +1,42 @@
-import { useState } from 'react';import { Plus,Search,ChevronRight,HeartHandshake,Phone,ShoppingBag } from 'lucide-react';import PageHeader from '../../components/ui/PageHeader';import { Card } from '../../components/ui/Card';import { customers } from '../../services/mockData';import { currency } from '../../utils/format';
-export default function Customers(){const [selected,setSelected]=useState(customers[0]);return <div className="page"><PageHeader kicker="Personas que vuelven" title="Clientes frecuentes" description="Recuerda sus preferencias y reconoce su confianza." action={<button className="primary"><Plus/>Agregar cliente</button>}/><div className="relationship-banner"><HeartHandshake/><div><strong>52 clientes identificados</strong><span>14 volvieron a comprar esta semana</span></div><div><b>36%</b><span>de las ventas son de clientes frecuentes</span></div></div><div className="customer-layout"><Card className="customer-directory"><label className="search"><Search/><input placeholder="Buscar cliente"/></label>{customers.map(c=><button className={selected.name===c.name?'active':''} onClick={()=>setSelected(c)} key={c.name}><span className="big-avatar">{c.initials}</span><div><strong>{c.name}</strong><small>{c.visits} visitas · {c.last}</small></div><ChevronRight/></button>)}</Card><Card className="customer-profile"><div className="profile-head"><span className="profile-avatar">{selected.initials}</span><div><p className="eyebrow">Cliente frecuente</p><h3>{selected.name}</h3><span><Phone/> {selected.phone}</span></div></div><div className="profile-stats"><div><span>Total comprado</span><strong>{currency(selected.spent)}</strong></div><div><span>Visitas</span><strong>{selected.visits}</strong></div><div><span>Ticket promedio</span><strong>{currency(selected.spent/selected.visits)}</strong></div></div><div className="favorite"><ShoppingBag/><div><span>Compra con frecuencia</span><strong>{selected.favorite}</strong></div></div><h4>Historial reciente</h4>{['25 ago · 4 productos','18 ago · 2 productos','09 ago · 5 productos'].map((x,i)=><div className="history-row" key={x}><span>{x}</span><strong>{currency([38.4,13.5,42.8][i])}</strong></div>)}</Card></div></div>}
+﻿import { useEffect, useState } from 'react'
+import { Search, ChevronRight, Phone, Users } from 'lucide-react'
+import PageHeader from '../../components/ui/PageHeader'
+import { Card } from '../../components/ui/Card'
+import { EmptyState, Skeleton } from '../../components/ui/States'
+import { api } from '../../services/api'
+
+export default function Customers() {
+  const [customers, setCustomers] = useState([])
+  const [selected, setSelected] = useState(null)
+  const [query, setQuery] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [retry, setRetry] = useState(0)
+  useEffect(() => {
+    const controller = new AbortController()
+    setLoading(true)
+    setError('')
+    api.customers(controller.signal).then(setCustomers).catch(failure => {
+      if (!controller.signal.aborted) setError(failure.message)
+    }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    return () => controller.abort()
+  }, [retry])
+  const rows = customers.filter(customer => [customer.name, customer.email, customer.phone].join(' ').toLocaleLowerCase('es').includes(query.trim().toLocaleLowerCase('es')))
+  const initials = name => name.split(' ').map(word => word[0]).slice(0, 2).join('')
+  return <div className="page">
+    <PageHeader kicker="Personas que vuelven" title="Clientes frecuentes" description="Consulta los datos de los clientes registrados."/>
+    {loading ? <Card><Skeleton/></Card> : error ? <Card><p className="form-error" role="alert">{error}</p><button className="secondary" onClick={() => setRetry(value => value + 1)}>Reintentar</button></Card> :
+    !customers.length ? <Card><EmptyState icon={<Users/>} title="Aún no hay clientes registrados" copy="Los registros disponibles aparecerán aquí."/></Card> :
+    <div className="customer-layout"><Card className="customer-directory">
+      <label className="search"><Search/><input aria-label="Buscar cliente" placeholder="Buscar cliente" value={query} onChange={event => setQuery(event.target.value)}/></label>
+      {rows.map(customer => <button key={customer.id} className={selected?.id === customer.id ? 'active' : ''} onClick={() => setSelected(customer)}>
+        <span className="big-avatar">{initials(customer.name)}</span><div><strong>{customer.name}</strong><small>{customer.email}</small></div><ChevronRight/>
+      </button>)}
+      {!rows.length && <p>No hay coincidencias con la búsqueda.</p>}
+    </Card><Card className="customer-profile">
+      {selected ? <div className="profile-head"><span className="profile-avatar">{initials(selected.name)}</span><div><p className="eyebrow">Cliente registrado</p><h3>{selected.name}</h3><p>{selected.email}</p><span><Phone/> {selected.phone || 'Sin teléfono registrado'}</span></div></div> :
+      <EmptyState icon={<Users/>} title="Selecciona un cliente" copy="Consulta su nombre y datos de contacto."/>}
+    </Card></div>}
+  </div>
+}
+

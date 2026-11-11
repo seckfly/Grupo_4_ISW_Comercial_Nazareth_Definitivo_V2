@@ -21,6 +21,7 @@ async function request(path, { token, headers, ...options } = {}) {
 }
 
 export const api = {
+  customers: (signal) => request('/sales/customers?all=true', { signal }),
   profile: (token, signal) => request('/auth/me', { token, signal }),
   products: () => request('/products'),
   inventory: (signal) => request('/inventory', { signal }),

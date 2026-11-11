@@ -117,9 +117,9 @@ export async function listSales(db, period = 'today') {
   return { sales, summary: { total: (cash + digital) / 100, cashTotal: cash / 100, digitalTotal: digital / 100, saleCount: sales.length } }
 }
 
-export async function findSaleCustomers(db, query) {
+export async function findSaleCustomers(db, query, { allowEmpty = false } = {}) {
   const term = typeof query === 'string' ? query.trim() : ''
-  if (!term) return []
+  if (!term && !allowEmpty) return []
   const { rows } = await db.query(`SELECT c.id, p.name, c.phone, p.email FROM nazareth.customers c
     JOIN nazareth.account_directory p ON p.id = c.user_id WHERE p.role = 'client'
     AND (strpos(lower(p.name), lower($1)) > 0 OR strpos(lower(COALESCE(c.phone, '')), lower($1)) > 0

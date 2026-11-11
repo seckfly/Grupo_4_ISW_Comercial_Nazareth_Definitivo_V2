@@ -1,4 +1,9 @@
 /* Ajustes de presentación sobre los componentes y la identidad existentes. */
+.campaign-feedback { grid-column: 1 / -1; padding: 24px; background: #fff; border-radius: 18px; }
+.campaign-modal-v5 .primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.campaign-workspace > .promo-search { grid-column: 1 / -1; }
+.customer-profile p, .customer-directory small { overflow-wrap: anywhere; }
+.campaign-date svg { width: 16px; height: 16px; vertical-align: middle; }
 .premium-app .premium-top { height: 68px; }
 .premium-top .top-context { display: block; margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--forest); }
 .premium-app .premium-top .eyebrow { font-size: 10px !important; }
