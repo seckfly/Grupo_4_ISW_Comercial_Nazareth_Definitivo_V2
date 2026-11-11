@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { X, Search, Plus, Trash2, ArrowRight, ScanLine, UserRound, Tag, WalletCards, Banknote, Check, ChevronDown, ShoppingBasket, ShieldCheck, ReceiptText } from 'lucide-react'
+import { X, Search, Plus, Trash2, ArrowRight, UserRound, Tag, WalletCards, Banknote, Check, ChevronDown, ShoppingBasket, ShieldCheck, ReceiptText } from 'lucide-react'
 import { api } from '../../services/api'
 import AmountInput from './AmountInput'
 import { currency, countLabel, quantityLabel } from '../../utils/format'
@@ -168,7 +168,7 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
   return <div className="drawer-backdrop"><section className="sale-drawer pos-v2" role="dialog" aria-modal="true" aria-labelledby="sale-title" ref={dialog} tabIndex={-1} onKeyDown={keyDown}>
     <header className="pos-header"><div><p className="eyebrow">Punto de venta · Caja principal</p><h2 id="sale-title">Registrar venta</h2></div><div className="pos-progress"><span className="active"><i>1</i>Productos</span><em/><span className={cart.length ? 'active' : ''}><i>2</i>Cobro</span><em/><span><i>3</i>Confirmación</span></div><button className="icon-btn" disabled={busy} onClick={close} aria-label="Cerrar venta"><X/></button></header>
     <div className="drawer-grid pos-grid">
-      <section className="catalog pos-catalog" aria-label="Catálogo de productos"><div className="pos-tools"><label className="search"><Search/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Busca por nombre, categoría o código" aria-label="Buscar producto en el catálogo"/></label><button className="scan-button" type="button" disabled title="Escaneo pendiente"><ScanLine/>Escanear</button></div>
+      <section className="catalog pos-catalog" aria-label="Catálogo de productos"><div className="pos-tools"><label className="search"><Search/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Busca por nombre, categoría o código" aria-label="Buscar producto en el catálogo"/></label></div>
         <div className="pos-categories">{categories.map((item) => <button className={category === item ? 'active' : ''} onClick={() => setCategory(item)} key={item}>{item}</button>)}</div>
         <div className="catalog-meta"><div><p className="eyebrow">Catálogo</p><h3>{countLabel(visible.length, 'producto', 'productos')}</h3></div><span>Precios con IGV incluido</span></div>
         {catalogLoading ? <Skeleton/> : catalogError ? <div><p className="form-error" role="alert">{catalogError}</p><button className="secondary" onClick={() => setRefresh((value) => value + 1)}>Reintentar</button></div> :
@@ -208,10 +208,8 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
               <div className="payment-demo-heading">
                 <img className="payment-brand" src={'/payment/' + pay + '.png'} alt=""/>
                 <strong>{paymentNames[pay]}</strong>
-                <span className="payment-demo-label">Demostración</span>
               </div>
-              <img className="payment-qr" src={'/qr-demo-' + pay + '.svg'} alt={'QR de demostración de ' + paymentNames[pay]}/>
-              <figcaption>QR de prueba sin cobro.</figcaption>
+              <img className="payment-qr" src={'/qr-demo-' + pay + '.svg'} alt="Código QR"/>
             </figure>
             <label>Importe recibido<AmountInput min="0" max={MONEY_MAX_UNITS / 100} step="0.01" required disabled={busy} value={cash} onChange={(event) => { changed(); setCash(event.target.value); setVerified(false) }}/></label>
             <label className="access-toggle"><input type="checkbox" checked={verified} disabled={busy} onChange={(event) => { changed(); setVerified(event.target.checked) }}/><span>He comprobado el abono y el importe recibido</span></label>

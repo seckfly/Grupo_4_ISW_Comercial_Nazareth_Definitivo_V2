@@ -373,6 +373,8 @@ it('CU-001 digital: QR de demostración, importe exacto y confirmación manual s
   await settled(()=>expect(element.querySelector('.grand-total').textContent).toContain('6.70'))
   act(()=>[...element.querySelectorAll('.pos-pay button')].find(button=>button.textContent.includes('Yape')).click())
   expect(element.querySelector('.payment-qr').getAttribute('src')).toBe('/qr-demo-yape.svg')
+  expect(element.querySelector('.pos-tools').textContent).not.toContain('Escanear')
+  expect(element.querySelector('.digital-payment').textContent).not.toMatch(/Demostración|QR de prueba sin cobro/)
   expect(element.querySelector('.payment-brand').getAttribute('src')).toBe('/payment/yape.png')
   expect(element.querySelector('.digital-payment').textContent).not.toContain('Referencia de operación')
   act(()=>[...element.querySelectorAll('.pos-pay button')].find(button=>button.textContent.includes('Plin')).click())

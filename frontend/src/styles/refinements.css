@@ -42,7 +42,6 @@
 .sale-drawer .pos-products > button > b { font-size: 13px; white-space: nowrap; }
 .sale-drawer .pos-tools { align-items: center; flex-wrap: wrap; }
 .sale-drawer .pos-tools .search { margin: 0; flex-basis: 230px; }
-.sale-drawer .scan-button:disabled { background: #e8e4dc; color: #736f67; border: 1px dashed #bcb6ab; box-shadow: none; opacity: 1; cursor: not-allowed; transform: none; }
 .sale-drawer .pos-progress { display: flex; flex-wrap: wrap; }
 .sale-drawer .pos-progress span { font-size: 12px; color: #625e56; }
 .sale-drawer .pos-progress span i { width: 26px; height: 26px; }
@@ -288,14 +287,6 @@
 }
 .sale-drawer .payment-demo-heading { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
 .sale-drawer .payment-brand { width: 36px; height: 36px; object-fit: contain; }
-.sale-drawer .payment-demo-label {
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: #e3ebe3;
-  color: #213d2c;
-  font-size: 12px;
-  font-weight: 600;
-}
 .sale-drawer .payment-demo .payment-qr {
   display: block;
   width: min(100%, 160px);
@@ -306,7 +297,6 @@
   border: 1px solid var(--line);
   border-radius: 8px;
 }
-.sale-drawer .payment-demo figcaption { color: #655f56; font-size: 12px; text-align: center; }
 
 .inventory-stock {
   display: grid;
