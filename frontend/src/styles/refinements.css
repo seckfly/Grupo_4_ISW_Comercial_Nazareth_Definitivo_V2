@@ -8,7 +8,6 @@
 .reservations-page .toolbar { flex-wrap: wrap; }
 .shopping-list-lines label { display: grid; gap: 5px; font-size: 12px; }
 .shopping-list-lines input { width: 100%; max-width: 140px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; }
-.shopping-list-panel footer .form-success strong { font-size: 20px; overflow-wrap: anywhere; }
 .shopping-list-panel footer button.secondary { background: #fff; color: var(--forest); }
 @media (max-width:680px) { .shopping-list-panel footer { position:static; } }
 .pulse-metric .analytics-value { font-size: 18px; line-height: 1.4; }
@@ -471,3 +470,29 @@
   .promo-client-catalog .campaign-row { display: flex; flex-wrap: wrap; gap: 10px 16px; }
   .promo-client-catalog .campaign-product { flex-basis: 100%; }
 }
+
+.shopping-list-panel .shopping-list-empty { padding: 28px 14px; }
+.shopping-list-panel .shopping-list-empty strong { font-size: 1.05rem; }
+.shopping-list-panel .shopping-list-empty p { color: #ccdbd1; font-size: .9rem; }
+
+.shopping-list-panel .reservation-confirmation {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #e4ebe4;
+  color: var(--forest);
+}
+.reservation-confirmation-state { margin: 0; color: #375b45; font-size: .85rem; font-weight: 600; }
+.reservation-confirmation-code { display: grid; gap: 2px; }
+.shopping-list-panel .reservation-confirmation-code span { color: #375b45; font-size: .85rem; }
+.shopping-list-panel .reservation-confirmation-code strong {
+  color: var(--forest);
+  font-size: 1.2rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.reservation-confirmation dl { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0; }
+.reservation-confirmation dt { color: #375b45; font-size: .8rem; }
+.reservation-confirmation dd { margin: 2px 0 0; font-size: .9rem; font-weight: 600; }
