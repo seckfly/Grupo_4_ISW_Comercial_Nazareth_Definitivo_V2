@@ -1,10 +1,47 @@
 ﻿import { useEffect, useState } from 'react'
-import { Search, ChevronRight, Phone, Users } from 'lucide-react'
+import { Search, ChevronRight, Users } from 'lucide-react'
 import PageHeader from '../../components/ui/PageHeader'
 import { Card } from '../../components/ui/Card'
 import { EmptyState, Skeleton } from '../../components/ui/States'
 import { currency,countLabel } from '../../utils/format'
 import { api } from '../../services/api'
+
+function CustomerProfile({ customer, initials }) {
+  return <>
+    <header className="profile-head customer-profile-heading">
+      <span className="profile-avatar" aria-hidden="true">{initials}</span>
+      <h3>{customer.name}</h3>
+    </header>
+    <section className="customer-profile-section">
+      <h4>Contacto</h4>
+      <dl className="customer-contact">
+        <div><dt>Correo electrónico</dt><dd>{customer.email}</dd></div>
+        <div><dt>Teléfono</dt><dd>{customer.phone || 'Sin teléfono registrado'}</dd></div>
+      </dl>
+    </section>
+    <section className="customer-profile-section">
+      <h4>Resumen de compras</h4>
+      <ul className="customer-stats">
+        <li>{countLabel(customer.visits, 'compra', 'compras')}</li>
+        <li>{currency(customer.spent)} en compras</li>
+        <li>{countLabel(customer.points, 'punto', 'puntos')}</li>
+      </ul>
+    </section>
+    <section className="customer-profile-section">
+      <h4>Historial de compras</h4>
+      {customer.purchases?.length ? <div className="table-wrap">
+        <table aria-label="Historial de compras">
+          <thead><tr><th scope="col">Venta</th><th scope="col">Fecha</th><th scope="col">Importe</th></tr></thead>
+          <tbody>{customer.purchases.map(sale => <tr key={sale.id}>
+            <th scope="row">#{sale.id}</th>
+            <td><time dateTime={sale.createdAt}>{new Date(sale.createdAt).toLocaleDateString('es-PE', { timeZone: 'America/Lima' })}</time></td>
+            <td>{currency(sale.total)}</td>
+          </tr>)}</tbody>
+        </table>
+      </div> : <p>Aún no hay compras registradas.</p>}
+    </section>
+  </>
+}
 
 export default function Customers() {
   const [customers, setCustomers] = useState([])
@@ -35,7 +72,7 @@ export default function Customers() {
       </button>)}
       {!rows.length && <p>No hay coincidencias con la búsqueda.</p>}
     </Card><Card className="customer-profile">
-      {selected ? <div className="profile-head"><span className="profile-avatar">{initials(selected.name)}</span><div><p className="eyebrow">Cliente registrado</p><h3>{selected.name}</h3><p>{selected.email}</p><span><Phone/> {selected.phone || 'Sin teléfono registrado'}</span><p>{countLabel(selected.visits,'compra','compras')} · {currency(selected.spent)} · {countLabel(selected.points,'punto','puntos')}</p>{selected.purchases?.map(sale=><p key={sale.id}>Venta #{sale.id} · {new Date(sale.createdAt).toLocaleDateString('es-PE',{timeZone:'America/Lima'})} · {currency(sale.total)}</p>)}</div></div> :
+      {selected ? <CustomerProfile customer={selected} initials={initials(selected.name)}/> :
       <EmptyState icon={<Users/>} title="Selecciona un cliente" copy="Consulta su nombre y datos de contacto."/>}
     </Card></div>}
   </div>

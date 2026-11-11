@@ -104,14 +104,18 @@ export async function getSale(db, id) {
 }
 
 export async function listSales(db, period = 'today') {
-  if (!['today', 'week', 'month'].includes(period)) throw inputError('El periodo no es válido')
+  if (!['today', 'yesterday', 'week', 'month'].includes(period)) throw inputError('El periodo no es válido')
   const { rows: sales } = await db.query(`SELECT ${saleFields} FROM nazareth.sales s
     LEFT JOIN nazareth.customers c ON c.id = s.customer_id
     WHERE s.status = 'completed' AND s.created_at >= (
-      CASE $1::text WHEN 'week' THEN date_trunc('day', now() AT TIME ZONE 'America/Lima') - interval '6 days'
+      CASE $1::text
+        WHEN 'yesterday' THEN date_trunc('day', now() AT TIME ZONE 'America/Lima') - interval '1 day'
+        WHEN 'week' THEN date_trunc('day', now() AT TIME ZONE 'America/Lima') - interval '6 days'
         WHEN 'month' THEN date_trunc('month', now() AT TIME ZONE 'America/Lima')
         ELSE date_trunc('day', now() AT TIME ZONE 'America/Lima') END
-    ) AT TIME ZONE 'America/Lima' ORDER BY s.created_at DESC, s.id DESC`, [period])
+    ) AT TIME ZONE 'America/Lima'
+    AND ($1 <> 'yesterday' OR s.created_at < date_trunc('day', now() AT TIME ZONE 'America/Lima') AT TIME ZONE 'America/Lima')
+    ORDER BY s.created_at DESC, s.id DESC`, [period])
   let cash = 0
   let digital = 0
   for (const sale of sales) {

@@ -9,10 +9,11 @@ import { currency, countLabel, quantityLabel } from '../../utils/format'
 import { formatSaleCreatedAt } from '../../utils/sale'
 import { useLiveDateTime } from '../../hooks/useLiveDateTime'
 
+const periodLabels = { today: 'Hoy', yesterday: 'Ayer', week: 'Últimos 7 días', month: 'Este mes' }
 const paymentNames = { efectivo: 'Efectivo', yape: 'Yape', plin: 'Plin' }
 
 export default function Sales({ openSale, revision = 0 }) {
-  const storeTime = useLiveDateTime()
+  const { today, yesterday } = useLiveDateTime()
   const [query, setQuery] = useState('')
   const [payment, setPayment] = useState('Todos')
   const [period, setPeriod] = useState('today')
@@ -26,11 +27,13 @@ export default function Sales({ openSale, revision = 0 }) {
     const controller = new AbortController()
     setLoading(true)
     setError('')
-    api.sales(period, controller.signal).then(setData).catch((error) => {
+    api.sales(period, controller.signal).then(result => {
+      if (!controller.signal.aborted) setData(result)
+    }).catch((error) => {
       if (!controller.signal.aborted) setError(error.message)
     }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
-  }, [period, revision, retry])
+  }, [period, revision, retry, today])
 
   const term = query.trim().toLocaleLowerCase('es')
   const rows = (data?.sales || []).filter((sale) =>
@@ -45,13 +48,17 @@ export default function Sales({ openSale, revision = 0 }) {
     <PageHeader kicker="Caja y movimientos" title="Ventas" description="Cada operación, conciliada y fácil de encontrar."
       action={<button className="primary" onClick={openSale}><Plus/>Registrar venta</button>}/>
     <div className="sales-summary">
-      <div><span>{period === 'today' ? 'HOY' : period === 'week' ? 'ÚLTIMOS 7 DÍAS' : 'ESTE MES'}</span><strong>{current ? currency(summary.total) : '—'}</strong><small>{current ? countLabel(summary.saleCount, 'operación', 'operaciones') : 'Consultando…'}</small></div>
+      <div><span>{periodLabels[period].toLocaleUpperCase('es')}</span><strong>{current ? currency(summary.total) : '—'}</strong><small>{current ? countLabel(summary.saleCount, 'operación', 'operaciones') : 'Consultando…'}</small></div>
       <div><span>EFECTIVO</span><strong>{current ? currency(summary.cashTotal) : '—'}</strong><small>{current ? percentage(summary.cashTotal) : '—'}</small></div>
       <div><span>YAPE + PLIN</span><strong>{current ? currency(summary.digitalTotal) : '—'}</strong><small>{current ? percentage(summary.digitalTotal) : '—'}</small></div>
     </div>
     <div className="toolbar premium-toolbar">
       <label className="search"><Search/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar producto o número de venta" aria-label="Buscar venta"/></label>
-      <select value={period} onChange={(event) => setPeriod(event.target.value)} aria-label="Periodo de ventas"><option value="today">Hoy, {storeTime.date.split(', ')[1]}</option><option value="week">Últimos 7 días</option><option value="month">Este mes</option></select>
+      <select value={period} onChange={(event) => setPeriod(event.target.value)} aria-label="Periodo de ventas">
+        {Object.entries(periodLabels).map(([value, label]) => <option key={value} value={value}>
+          {value === 'today' ? label + ', ' + today : value === 'yesterday' ? label + ', ' + yesterday : label}
+        </option>)}
+      </select>
       <select value={payment} onChange={(event) => setPayment(event.target.value)} aria-label="Método de pago"><option>Todos</option>{Object.entries(paymentNames).map(([value, name]) => <option value={value} key={value}>{name}</option>)}</select>
     </div>
     <Card className="data-card">

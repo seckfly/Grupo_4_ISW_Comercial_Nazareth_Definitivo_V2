@@ -374,3 +374,49 @@
 .purchase-product-results button { width: 100%; min-height: 38px; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent; color: #213d2c; text-align: left; overflow-wrap: anywhere; }
 .purchase-product-results button:hover, .purchase-product-results button:focus-visible { background: #e3ebe3; }
 .purchase-product-empty { margin: 6px 0 0; color: #625f56; font-size: 13px; }
+
+.purchase-record-heading, .purchase-record-total {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+}
+.purchase-record-heading h3 { margin: 0; overflow-wrap: anywhere; }
+.purchase-record-status {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--sand);
+  color: var(--ink);
+  font-weight: 600;
+}
+.purchase-record-status[data-status="received"] { background: #e4ebe4; color: var(--forest); }
+.purchase-record-contact, .customer-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin: 0;
+}
+.purchase-record-contact { margin: 14px 0 18px; }
+.purchase-record-contact dt, .customer-contact dt { color: var(--muted); font-size: .85em; }
+.purchase-record-contact dd, .customer-contact dd { margin: 3px 0 0; overflow-wrap: anywhere; }
+.purchase-record .table-wrap table { width: 100%; min-width: 460px; }
+.purchase-record :is(th, td), .customer-profile :is(th, td) {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.purchase-record :is(th, td):last-child, .customer-profile :is(th, td):last-child { text-align: right; }
+.purchase-record-total { margin-top: 12px; }
+.purchase-record-total strong { font-size: 1.15em; }
+.purchase-record .toolbar { margin-top: 14px; flex-wrap: wrap; }
+
+.customer-layout { align-items: start; }
+.customer-profile-heading .profile-avatar { flex: 0 0 64px; }
+.customer-profile-heading h3 { overflow-wrap: anywhere; }
+.customer-profile-section { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.customer-profile-section h4 { margin: 0 0 10px; color: var(--forest); }
+.customer-contact > div { min-width: 0; }
+.customer-stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.customer-stats li { padding: 6px 10px; border-radius: 8px; background: #e4ebe4; color: var(--forest); }
+.customer-profile .table-wrap table { width: 100%; min-width: 0; }

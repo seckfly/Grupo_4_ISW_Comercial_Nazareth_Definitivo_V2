@@ -250,6 +250,19 @@ it('Clientes abre vacío y sin selección, sin perfiles ni métricas de muestra'
   expect(element.textContent).not.toContain('Agregar cliente')
 })
 
+it('Clientes agrupa el contacto, el resumen y las ventas del cliente seleccionado', async () => {
+  api.customers.mockResolvedValue([{ id: 1, name: 'Cliente Demo', email: 'cliente@example.test', phone: null,
+    visits: 1, spent: 41, points: 0, purchases: [{ id: 2, createdAt: '2026-11-12T03:00:00Z', total: 41 }] }])
+  const element = render(<Customers/>)
+  await settled(() => expect(element.querySelector('.customer-directory button')).not.toBeNull())
+  act(() => element.querySelector('.customer-directory button').click())
+  const profile = element.querySelector('.customer-profile')
+  expect([...profile.querySelectorAll('h4')].map(title => title.textContent)).toEqual(['Contacto', 'Resumen de compras', 'Historial de compras'])
+  expect(profile.querySelector('.customer-contact').textContent).toContain('Sin teléfono registrado')
+  expect(profile.querySelectorAll('.customer-stats li')).toHaveLength(3)
+  expect(profile.querySelector('tbody time').textContent).toBe('11/11/2026')
+})
+
 it('Resumen distingue error y vacío y vuelve a consultar las operaciones al entrar', async () => {
   api.dashboard.mockRejectedValueOnce(new Error('Consulta no disponible'))
   const element = render(<Overview/>)
@@ -457,6 +470,36 @@ it('Ventas muestra fecha y hora de Lima para ventas de distintos días en la úl
     ['10 de noviembre de 2026', '22:40:00'],
     ['9 de noviembre de 2026', '22:40:00'],
   ])
+})
+
+it('Ventas ofrece Hoy y Ayer con fecha y consulta el periodo elegido', async () => {
+  api.sales.mockResolvedValue({ summary: { total: 0, cashTotal: 0, digitalTotal: 0, saleCount: 0 }, sales: [] })
+  const element = render(<Sales/>)
+  const period = element.querySelector('[aria-label="Periodo de ventas"]')
+  expect([...period.options].map(option => option.value)).toEqual(['today', 'yesterday', 'week', 'month'])
+  expect(period.options[0].textContent.trim()).toMatch(/^Hoy, \d{1,2} de /)
+  expect(period.options[1].textContent.trim()).toMatch(/^Ayer, \d{1,2} de /)
+  await act(async () => {
+    period.value = 'yesterday'
+    period.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+  expect(api.sales).toHaveBeenLastCalledWith('yesterday', expect.any(AbortSignal))
+  expect(element.querySelector('.sales-summary span').textContent).toBe('AYER')
+})
+
+it('Compras muestra un producto por fila, subtotales y el total de una compra recibida', async () => {
+  api.orders.mockResolvedValue([{ id: 1, status: 'received', supplier_name: 'Makro QA',
+    supplier_ruc: 'RUC QA', supplier_phone: '999999999', estimated_total: 45,
+    items: [
+      { id: 3, name: 'Ace QA', unit: 'Unidad', quantity: 8, received_quantity: 8, unit_cost: 5 },
+      { id: 4, name: 'Arroz QA', unit: 'Kg', quantity: 1.25, received_quantity: 1.25, unit_cost: 4 },
+    ] }])
+  api.products.mockResolvedValue([])
+  const element = render(<Purchases/>)
+  await settled(() => expect(element.querySelectorAll('.purchase-record tbody tr')).toHaveLength(2))
+  expect(element.querySelector('.purchase-record-contact').textContent).toContain('Teléfono')
+  expect(element.querySelector('.purchase-record tbody tr td:last-child').textContent).toContain('40.00')
+  expect(element.querySelector('.purchase-record-total').textContent).toContain('Total de la compra')
 })
 
 it('Compras registra la mercadería en una sola operación', async () => {

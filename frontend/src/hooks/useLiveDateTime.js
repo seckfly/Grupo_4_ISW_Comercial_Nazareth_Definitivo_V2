@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { formatStoreDateTime } from '../utils/format'
 
+const dayMonth = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', day: 'numeric', month: 'long' })
+const millisecondsPerDay = 24 * 60 * 60 * 1000
+
 export function useLiveDateTime(intervalMs = 30000) {
   const [now, setNow] = useState(() => new Date())
 
@@ -16,5 +19,9 @@ export function useLiveDateTime(intervalMs = 30000) {
     }
   }, [intervalMs])
 
-  return formatStoreDateTime(now)
+  return {
+    ...formatStoreDateTime(now),
+    today: dayMonth.format(now),
+    yesterday: dayMonth.format(now.getTime() - millisecondsPerDay),
+  }
 }

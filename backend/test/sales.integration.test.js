@@ -441,6 +441,21 @@ test('Resumen y Reportes: vacío, venta real, Lima, caja neta, demanda, activida
   assert.equal(report.trend.at(-2).v,20.1)
 })
 
+test('Ventas de ayer incluye solo el día anterior completo en Lima', async () => {
+  await postgres.admin.query(`INSERT INTO nazareth.sales (user_id,total_amount,payment_method,created_at)
+    SELECT 1, amount, method, (date_trunc('day', now() AT TIME ZONE 'America/Lima') + offset_from_today) AT TIME ZONE 'America/Lima'
+    FROM (VALUES
+      (10, 'efectivo', interval '-1 day'),
+      (20, 'yape', interval '-1 second'),
+      (50, 'efectivo', interval '-1 day -1 second'),
+      (60, 'plin', interval '0 seconds')
+    ) AS fixture(amount, method, offset_from_today)`)
+  const result = await request('/api/sales?period=yesterday')
+  assert.equal(result.status, 200, JSON.stringify(result.body))
+  assert.deepEqual(result.body.sales.map(sale => Number(sale.total)), [20, 10])
+  assert.deepEqual(result.body.summary, { total: 30, cashTotal: 10, digitalTotal: 20, saleCount: 2 })
+})
+
 test('Resumen: proyección y comparación requieren siete días de historial comparable', async () => {
   await postgres.admin.query(`INSERT INTO nazareth.sales (user_id,total_amount,payment_method,created_at)
     SELECT 1,100,'efectivo',(((now() AT TIME ZONE 'America/Lima')::date - day) + time '00:00:00') AT TIME ZONE 'America/Lima'
