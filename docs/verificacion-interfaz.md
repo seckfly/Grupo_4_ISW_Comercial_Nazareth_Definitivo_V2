@@ -1,5 +1,15 @@
 # Ajustes de presentación de Comercial Nazareth
 
+## Segunda pasada sobre 4cd51f8
+
+- Se retiraron el bloque narrativo y las cifras de demostración del acceso. La marca y el formulario conservan sus componentes y fuentes, con distribución compacta en ventanas estrechas.
+- Hasta 900 px, Nueva venta usa un solo desplazamiento para catálogo, pedido y cobro. El pie se conserva en el flujo con comportamiento sticky dentro del pedido; en escritorio se mantiene el catálogo sin margen lateral y el pie independiente.
+- Inventario y el indicador lateral comparten el mismo estado cargado desde PostgreSQL. Los cambios de productos y ajustes actualizan ese estado; una venta confirmada vuelve a consultar existencias. Mientras se carga o hay error, el indicador muestra un guion en lugar de un conteo ficticio.
+- El ajuste muestra el aviso junto al saldo previsto negativo, bloquea la confirmación y también evita enviar el formulario en ese estado. Se conserva la comprobación transaccional del servidor.
+- Las notificaciones se cierran tanto al navegar desde el menú como al cambiar de módulo por otras acciones. Se añadieron nombre accesible al cierre y estado expandido al botón.
+- Frontend: 39 pruebas aprobadas, incluidas nuevas comprobaciones de saldo negativo, corrección con incremento de 1 y cierre de notificaciones por navegación, botón y Escape. Compilación correcta, con el aviso existente de tamaño del paquete.
+- No se guardaron ventas ni ajustes en la base de trabajo. La comprobación de Windows volvió a bloquear el navegador por no poder determinar su URL para aplicar la política de acceso. Por ello no se verificaron visualmente escritorio ni 727 × 655, tampoco los accesos reales de administrador y cliente ni el recorrido hasta el cobro en navegador. Estas comprobaciones siguen pendientes; las pruebas de componentes no las sustituyen.
+
 Se conservan React, los componentes, Manrope y Newsreader, la paleta verde y crema y los servicios existentes. No hay cambios de esquema ni migraciones nuevas.
 
 ## Cambios

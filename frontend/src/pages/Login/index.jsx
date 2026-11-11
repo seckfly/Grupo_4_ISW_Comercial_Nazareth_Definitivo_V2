@@ -22,16 +22,6 @@ export default function Login() {
   return <main className="login-page">
     <section className="login-story">
       <div className="login-brand"><span>N</span><div>Comercial <b>Nazareth</b></div></div>
-      <div className="story-copy">
-        <p className="eyebrow">Ascope · La Libertad</p>
-        <h1>Tu tienda,<br/><em>bien contada.</em></h1>
-        <p>Ventas claras, stock al día y decisiones con información real. Una herramienta hecha para el ritmo de la bodega.</p>
-      </div>
-      <div className="story-proof">
-        <div><strong>32</strong><span>ventas hoy</span></div>
-        <div><strong>S/ 547.20</strong><span>caja acumulada</span></div>
-        <div><strong>3</strong><span>productos por reponer</span></div>
-      </div>
     </section>
     <section className="login-panel">
       <div className="login-form-wrap">

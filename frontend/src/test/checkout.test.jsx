@@ -5,15 +5,18 @@ import { createRoot } from 'react-dom/client'
 import DecimalInput from '../components/ui/DecimalInput'
 import SaleDrawer from '../components/ui/SaleDrawer'
 import Sales from '../pages/Sales'
-import { ProductDrawer, HistoryDrawer } from '../pages/Inventory/InventoryDrawers'
+import AppShell from '../components/layout/AppShell'
+import { ProductDrawer, HistoryDrawer, AdjustmentDrawer } from '../pages/Inventory/InventoryDrawers'
 import Promotions from '../pages/Promotions'
 import { api } from '../services/api'
 
 vi.mock('../services/api', () => ({ api: {
   products: vi.fn(), quoteSale: vi.fn(), createSale: vi.fn(), saleCustomers: vi.fn(),
   sales: vi.fn(), productHistory: vi.fn(), updateProduct: vi.fn(), createProduct: vi.fn(),
+  adjustInventory: vi.fn(),
 } }))
-vi.mock('../context/AuthContext', () => ({ useAuth: () => ({ user: { role: 'admin' } }) }))
+vi.mock('../context/AuthContext', () => ({ useAuth: () => ({ user: { role: 'admin', name: 'Prueba' } }) }))
+vi.mock('../context/InventoryContext', () => ({ useInventory: () => ({ alertCount: 0 }) }))
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 let root, container
@@ -36,6 +39,23 @@ async function settled(condition) {
 afterEach(() => { act(() => root?.unmount()); container?.remove(); vi.clearAllMocks() })
 
 describe('controles numéricos del checkout y de Inventario', () => {
+  it('bloquea un ajuste con saldo negativo y permite corregirlo sin guardar', () => {
+    const element = render(<AdjustmentDrawer product={{ id: 1, name: 'Prueba', stock: 7 }} close={() => {}} saved={() => {}}/>)
+    const variation = element.querySelector('[name="change"]')
+    type(variation, '-8')
+    expect(element.querySelector('[aria-invalid="true"]').value).toBe('-1')
+    expect(element.querySelector('[role="alert"]').textContent).toContain('no puede ser negativo')
+    expect(element.querySelector('button.primary').disabled).toBe(true)
+    act(() => element.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })))
+    expect(api.adjustInventory).not.toHaveBeenCalled()
+    act(() => element.querySelector('[aria-label^="Sumar"]').click())
+    expect(Number(variation.value)).toBe(-7)
+    expect(element.querySelector('[aria-invalid="true"]')).toBeNull()
+    expect(element.querySelector('button.primary').disabled).toBe(false)
+    type(variation, '-6.25')
+    expect(element.querySelector('form').querySelector('[name="change"]').checkValidity()).toBe(true)
+    expect(api.adjustInventory).not.toHaveBeenCalled()
+  })
   it('las flechas y botones cambian exactamente una unidad y conservan decimales negativos manuales', () => {
     function Example() {
       const [value, setValue] = useState('-1.25')
@@ -97,6 +117,26 @@ describe('controles numéricos del checkout y de Inventario', () => {
     act(() => root.render(<HistoryDrawer product={product} close={() => {}}/>))
     await settled(() => expect(element.textContent).toContain('-0.25 Kg'))
   })
+})
+
+it('cierra las notificaciones al navegar, con el botón y con Escape', () => {
+  const navigate = vi.fn()
+  const element = render(<AppShell page="Ventas" setPage={navigate} onSale={() => {}}><p>Contenido</p></AppShell>)
+  const toggle = () => act(() => element.querySelector('[aria-label="Notificaciones"]').click())
+  toggle()
+  expect(element.querySelector('.notice-panel')).not.toBeNull()
+  act(() => element.querySelector('.notice-panel header button').click())
+  expect(element.querySelector('.notice-panel')).toBeNull()
+  toggle()
+  act(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
+  expect(element.querySelector('.notice-panel')).toBeNull()
+  toggle()
+  act(() => [...element.querySelectorAll('aside nav button')].find((button) => button.textContent === 'Reportes').click())
+  expect(navigate).toHaveBeenCalledWith('Reportes')
+  expect(element.querySelector('.notice-panel')).toBeNull()
+  toggle()
+  act(() => root.render(<AppShell page="Promociones" setPage={navigate} onSale={() => {}}/>))
+  expect(element.querySelector('.notice-panel')).toBeNull()
 })
 
 const savedSale = {

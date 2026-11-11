@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Plus, List, Grid2X2, Search, PackagePlus, Pencil, SlidersHorizontal, History } from 'lucide-react'
 import PageHeader from '../../components/ui/PageHeader'
 import { Card, StockPill } from '../../components/ui/Card'
 import { Skeleton, EmptyState } from '../../components/ui/States'
-import { api } from '../../services/api'
+import { useInventory } from '../../context/InventoryContext'
 import { currency, margin, quantityLabel } from '../../utils/format'
 import { ProductDrawer, AdjustmentDrawer, HistoryDrawer } from './InventoryDrawers'
 
@@ -16,29 +16,13 @@ function ProductActions({ product, open }) {
 }
 
 export default function Inventory() {
-  const [data, setData] = useState({ products: [], categories: [] })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const { data, setData, loading, error, setRevision } = useInventory()
   const [notice, setNotice] = useState('')
   const [category, setCategory] = useState('all')
   const [view, setView] = useState('list')
   const [query, setQuery] = useState('')
   const [alertsOnly, setAlertsOnly] = useState(false)
   const [panel, setPanel] = useState(null)
-  const [revision, setRevision] = useState(0)
-
-  useEffect(() => {
-    const controller = new AbortController()
-    setLoading(true)
-    setError('')
-    api.inventory(controller.signal).then(setData).catch((error) => {
-      if (!controller.signal.aborted) setError(error.message)
-    }).finally(() => {
-      if (!controller.signal.aborted) setLoading(false)
-    })
-    return () => controller.abort()
-  }, [revision])
-
   const open = useCallback((type, product) => setPanel({ type, product }), [])
   function saved(product, message) {
     setData((current) => ({

@@ -107,7 +107,7 @@ export function AdjustmentDrawer({ product, close, saved }) {
   }
   async function submit(event) {
     event.preventDefault()
-    if (submitting.current) return
+    if (submitting.current || result < 0) return
     if (!form.reason.trim()) { setError('Ingresa un motivo con al menos un carácter distinto de espacios.'); return }
     try {
       if (decimalUnits(form.change, { signed: true, label: 'La variación' }) === 0) throw new Error('Ingresa una variación distinta de cero.')
@@ -123,12 +123,12 @@ export function AdjustmentDrawer({ product, close, saved }) {
 
   return <InventoryDrawer title="Ajustar stock" kicker={product.name} close={close} busy={busy}>
     <form onSubmit={submit} aria-busy={busy}>
-      <div className="form-row"><label>Stock consultado<input value={product.stock} readOnly/></label><label>Saldo previsto<input value={Number(result.toFixed(2))} readOnly/></label></div>
+      <div className="form-row"><label>Stock consultado<input value={product.stock} readOnly/></label><label>Saldo previsto<input value={Number(result.toFixed(2))} readOnly aria-invalid={result < 0} aria-describedby={result < 0 ? 'negative-stock-warning' : undefined}/>{result < 0 && <span id="negative-stock-warning" className="form-error" role="alert">El saldo no puede ser negativo. Reduce la cantidad retirada.</span>}</label></div>
       <label>Variación de existencias<DecimalInput label="Variación de existencias" name="change" value={form.change} signed onChange={(value) => field('change', value)} disabled={busy}/></label>
       <small className="muted">Usa un valor positivo para agregar unidades y uno negativo para retirarlas. El saldo se comprueba al guardar.</small>
       <label>Motivo<input value={form.reason} onChange={(event) => field('reason', event.target.value)} placeholder="Ej. Producto dañado" required/></label>
       {error && <p className="form-error" role="alert">{error}</p>}
-      <button className="primary" disabled={busy}>{busy ? 'Guardando…' : 'Confirmar ajuste'}</button>
+      <button className="primary" disabled={busy || result < 0}>{busy ? 'Guardando…' : 'Confirmar ajuste'}</button>
     </form>
   </InventoryDrawer>
 }
