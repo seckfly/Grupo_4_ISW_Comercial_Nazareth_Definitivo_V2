@@ -477,6 +477,15 @@ it('Compras envía la mercadería ya recibida en una sola operación y conserva 
     product.dispatchEvent(new Event('change', { bubbles: true }))
   })
   type(form.querySelector('input[type="number"]'), '5.00')
+  expect(button('Retirar línea')).toBeUndefined()
+  act(() => button('Agregar otro producto').click())
+  const removeButtons = [...form.querySelectorAll('button')].filter(control => control.textContent === 'Retirar línea')
+  expect(removeButtons).toHaveLength(2)
+  act(() => removeButtons[1].click())
+  expect(form.querySelectorAll('[role="spinbutton"]')).toHaveLength(1)
+  expect(button('Retirar línea')).toBeUndefined()
+  expect(product.value).toBe('1')
+  expect(form.querySelector('input[type="number"]').value).toBe('5.00')
   await act(async () => button('Guardar compra e ingresar al inventario').click())
   expect(api.registerDirectPurchase).toHaveBeenCalledWith({
     supplierName: data.name, supplierRuc: data.ruc, supplierPhone: data.phone, reference: data.reference,
