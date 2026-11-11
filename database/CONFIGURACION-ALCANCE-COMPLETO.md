@@ -47,7 +47,7 @@ Recoger y pagar abre Registrar venta con cliente y líneas del apartado. Precio 
 
 ## Pagos y promociones
 
-Yape/Plin muestran dos QRs distintos identificados como Demostración. Sus destinos son páginas `example.com` sin petición de dinero. Se decodificaron ambos QRs para comprobar sus URLs. Escanear no confirma un abono. Humberto registra el importe exacto a dos decimales y confirma que comprobó el abono. La referencia de operación es opcional; si se ingresa queda guardada. Los métodos/referencias históricos y el vuelto de efectivo se conservan.
+Yape/Plin muestran dos QRs distintos identificados como Demostración. Sus destinos son páginas `example.com` sin petición de dinero. Se decodificaron ambos QRs para comprobar sus URLs. Escanear no confirma un abono. Humberto registra el importe exacto a dos decimales y confirma que comprobó el abono. Registrar venta solicita el importe y la comprobación manual, sin campo de referencia. Las referencias históricas siguen visibles en el detalle de las ventas y se conserva el vuelto de efectivo.
 
 Promociones permite crear, editar, activar, pausar y eliminar campañas reales. Las fechas ingresadas son inclusivas en hora de Lima. El precio promocional usa la misma consulta en catálogo, cotización de venta y solicitud de separación; no es negativo. Si coinciden campañas se aplica el precio menor, sin acumular descuentos. Ese criterio explícito debe formalizarse en la actualización futura del SRS. Los puntos del cliente se leen de `customers.points`; no se agregó una fórmula de acumulación porque el SRS no la define.
 
@@ -59,4 +59,4 @@ Ejecutarlo al cierre de cada jornada o programarlo con el horario real elegido p
 
 ## Actualización documental futura
 
-Registrar sin sustituir CR-001/CR-002: apartado confirmado y recojo transaccional; QR de demostración, importe digital y referencia opcional; fotos opcionales; contraseña propia; criterio de campañas coincidentes. La condición original BR-005 sigue vigente para la **solicitud pendiente**, que no bloquea stock ni confirma venta.
+Registrar sin sustituir CR-001/CR-002: apartado confirmado y recojo transaccional; QR de demostración, importe digital y comprobación manual; fotos opcionales; contraseña propia; criterio de campañas coincidentes. La condición original BR-005 sigue vigente para la **solicitud pendiente**, que no bloquea stock ni confirma venta.

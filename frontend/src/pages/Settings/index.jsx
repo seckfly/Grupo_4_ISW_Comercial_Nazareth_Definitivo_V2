@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { KeyRound, Pencil, Plus, Power, Save, ShieldCheck, Store, UserRound, X } from 'lucide-react';
+import { KeyRound, Pencil, Plus, Power, Save, ShieldCheck, UserRound, X } from 'lucide-react';
 import PageHeader from '../../components/ui/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { api } from '../../services/api';
+import PasswordForm from '../../components/ui/PasswordForm';
 
 const EMPTY_FORM = { name: '', email: '', password: '', role: 'client', isActive: true };
 export default function Settings() {
+  const [section, setSection] = useState('credentials');
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
@@ -82,18 +84,18 @@ export default function Settings() {
   }
 
   return <div className="page settings-page">
-    <PageHeader kicker="Administración" title="Configuración" description="Controla el negocio, los accesos y los datos de la cuenta." />
+    <PageHeader kicker="Administración" title="Configuración" description="Administra los accesos y la seguridad de tu cuenta." />
     <div className="settings-layout">
-      <nav className="settings-nav">
-        <button className="active"><KeyRound />Credenciales</button>
-        <button><Store />Datos del negocio</button>
-        <button><ShieldCheck />Seguridad</button>
+      <nav className="settings-nav" aria-label="Secciones de configuración">
+        <button type="button" className={section === 'credentials' ? 'active' : ''} aria-pressed={section === 'credentials'} onClick={() => setSection('credentials')}><KeyRound />Credenciales</button>
+        <button type="button" className={section === 'security' ? 'active' : ''} aria-pressed={section === 'security'} onClick={() => setSection('security')}><ShieldCheck />Seguridad</button>
       </nav>
       <div className="settings-main">
+        {section === 'credentials' ? <>
         <Card className="access-card">
           <div className="card-head">
             <div><p className="eyebrow">Control de acceso</p><h3>Usuarios y credenciales</h3></div>
-            <span className="secure-label"><ShieldCheck />Solo administrador</span>
+            <span className="secure-label"><ShieldCheck />Gestión exclusiva del administrador</span>
           </div>
           <div className="access-overview">
             <p>Administra quién puede ingresar y qué puede hacer dentro de Comercial Nazareth.</p>
@@ -138,11 +140,7 @@ export default function Settings() {
           </form>
         </Card>
 
-        <Card className="business-settings">
-          <div><p className="eyebrow">Identidad comercial</p><h3>Datos del negocio</h3></div>
-          <div className="form-row"><label>Nombre comercial<input defaultValue="Comercial Nazareth" /></label><label>Moneda<select defaultValue="PEN"><option value="PEN">Soles peruanos (S/)</option></select></label></div>
-          <button className="secondary"><Save />Guardar cambios</button>
-        </Card>
+        </> : <PasswordForm/>}
       </div>
     </div>
   </div>;

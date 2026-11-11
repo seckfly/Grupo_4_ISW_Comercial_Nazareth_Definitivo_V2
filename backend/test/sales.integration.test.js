@@ -443,7 +443,7 @@ test('PRU-004: vinculación opcional y nueva venta sin conservar el cliente ante
   assert.equal((await request('/api/sales/' + linked.body.id)).body.customerId, 1)
 })
 
-test('PRU-020: Yape y Plin conservan referencia y método sin una confirmación bancaria automática', async () => {
+test('Compatibilidad: Yape y Plin conservan referencias recibidas por la API', async () => {
   const item = await product()
   for (const method of ['yape', 'plin']) {
     const result = await request('/api/sales', { method: 'POST', body: await salePayload(item.id, { paymentMethod: method, paymentReference: method + '-REF-A1',digitalReceived:'20.10',paymentConfirmed:true }) })
@@ -455,7 +455,7 @@ test('PRU-020: Yape y Plin conservan referencia y método sin una confirmación 
   assert.equal((await request('/api/inventory')).body.products[0].stock, 4)
 })
 
-test('Pagos digitales: referencia opcional, monto exacto y confirmación manual obligatoria',async()=>{
+test('PRU-020: Yape y Plin sin referencia, con importe exacto y comprobación manual',async()=>{
   const p=await product()
   for(const method of ['yape','plin']) {
     const payload=await salePayload(p.id,{items:[{productId:p.id,quantity:1}],paymentMethod:method,digitalReceived:'6.70',paymentConfirmed:true})
@@ -463,7 +463,9 @@ test('Pagos digitales: referencia opcional, monto exacto y confirmación manual 
     assert.equal((await request('/api/sales',{method:'POST',body:{...payload,paymentConfirmed:false}})).status,400)
     const result=await request('/api/sales',{method:'POST',body:payload})
     assert.equal(result.status,201,JSON.stringify(result.body));assert.equal(result.body.paymentReference,null);assert.equal(result.body.digitalReceived,6.7)
+    assert.equal(result.body.paymentMethod,method)
   }
+  assert.equal((await request('/api/inventory')).body.products[0].stock,8)
 })
 
 test('validaciones, falta de stock y reintentos no dejan ventas ni salidas parciales', async () => {

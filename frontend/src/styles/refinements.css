@@ -208,8 +208,6 @@
   .sale-drawer .checkout-scroll { padding-bottom: 24px; }
 }
 
-.sale-drawer .payment-qr { display:block; width:180px; height:180px; margin:12px auto; background:white; }
-.sale-drawer .digital-payment p { font-size:12px;line-height:1.5;color:#625e56; }
 
 /* Currency and percentage fields accept decimals typed by the user. */
 .amount-input { appearance: textfield; }
@@ -274,3 +272,38 @@
 @media (max-width: 1100px) {
   .client-account .account-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
 }
+
+.sale-drawer .digital-payment { grid-template-columns: minmax(0, 1fr); }
+.sale-drawer .digital-payment label { font-size: 12px; }
+.sale-drawer .digital-payment input { letter-spacing: normal; }
+.sale-drawer .payment-demo {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 12px;
+  background: #faf9f6;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.sale-drawer .payment-demo-heading { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.sale-drawer .payment-brand { width: 36px; height: 36px; object-fit: contain; }
+.sale-drawer .payment-demo-label {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e3ebe3;
+  color: #213d2c;
+  font-size: 12px;
+  font-weight: 600;
+}
+.sale-drawer .payment-demo .payment-qr {
+  display: block;
+  width: min(100%, 160px);
+  height: auto;
+  aspect-ratio: 1;
+  margin: 0;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.sale-drawer .payment-demo figcaption { color: #655f56; font-size: 12px; text-align: center; }

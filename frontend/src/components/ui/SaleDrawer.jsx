@@ -24,7 +24,6 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
   const [pay, setPay] = useState('efectivo')
   const [discount, setDiscount] = useState('')
   const [cash, setCash] = useState('')
-  const [operation, setOperation] = useState('')
   const [verified,setVerified]=useState(false)
   const [receipt, setReceipt] = useState(true)
   const [createdSale, setCreatedSale] = useState(null)
@@ -109,11 +108,11 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
     changed()
     setCart((current) => current.map((item) => item.id === id ? { ...item, qty: value } : item))
   }
-  function selectPay(method) { changed(); setPay(method); setCash(''); setOperation('');setVerified(false) }
+  function selectPay(method) { changed(); setPay(method); setCash(''); setVerified(false) }
 
   const categories = ['Todos', ...new Set(products.map((product) => product.category))]
   const visible = useMemo(() => filterSaleProducts(products, query).filter((product) => category === 'Todos' || product.category === category), [products, query, category])
-  const payment = quote ? paymentState(pay, quote.total, cash, operation,verified) : { ready: false, message: 'Espera el cálculo del servicio' }
+  const payment = quote ? paymentState(pay, quote.total, cash, verified) : { ready: false, message: 'Espera el cálculo del servicio' }
   const quoteCurrent = quote && quote.inputKey === cartPayload + '|' + discount && !quoting && !quoteError
   const invalidCart = cart.some((item) => quantityUnits(item.qty) <= 0 || quantityUnits(item.qty) > decimalUnits(products.find((product) => product.id === item.id)?.stock ?? item.stock))
 
@@ -126,7 +125,7 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
     try {
       const sale = await api.createSale({
         items: JSON.parse(cartPayload), discount: discount || '0', customerId: customer?.id ?? null,
-        paymentMethod: pay, cashReceived: cash, paymentReference: operation,digitalReceived:cash,paymentConfirmed:verified,
+        paymentMethod: pay, cashReceived: cash, digitalReceived: cash, paymentConfirmed: verified,
         requestId, quoteId: quote.quoteId,reservationId:reservation?.id,
       })
       setCreatedSale(sale)
@@ -204,7 +203,19 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
         <div className="payment-studio"><div className="ticket-pay pos-pay"><span>Método de pago</span><div>{[['efectivo', Banknote], ['yape', WalletCards], ['plin', WalletCards]].map(([method, Icon]) => <button type="button" className={pay === method ? 'active' : ''} disabled={busy} onClick={() => selectPay(method)} key={method}><Icon/><span>{method[0].toUpperCase() + method.slice(1)}</span>{pay === method && <Check/>}</button>)}</div></div>
           {pay === 'efectivo' ? <div className="cash-studio"><div className="quick-cash"><span>Pago rápido</span><div>{quickCashSuggestions(quote?.total).map((amount) => <button type="button" disabled={busy || !quoteCurrent} key={amount} onClick={() => { changed(); setCash(String(amount)) }}>S/ {amount}</button>)}</div></div>
             <div className="cash-input premium-cash"><label>Monto recibido<AmountInput value={cash} disabled={busy} onChange={(event) => { changed(); setCash(event.target.value) }} min="0" max={MONEY_MAX_UNITS / 100} step="0.01" inputMode="decimal" placeholder="S/ 0.00" required/></label><div><span>Vuelto para el cliente</span><strong>{quoteCurrent && payment.ready ? currency((decimalUnits(cash, { maxUnits: MONEY_MAX_UNITS }) - decimalUnits(quote.total, { maxUnits: MONEY_MAX_UNITS })) / 100) : '—'}</strong></div></div>
-          </div> : <div className="digital-payment"><div className={'wallet-mark '+pay}><WalletCards/><strong>{pay.toUpperCase()} ? Demostración</strong></div><img className="payment-qr" src={'/qr-demo-'+pay+'.svg'} alt={'QR de demostración '+pay+', destino de prueba sin cobro'}/><p>Demostración: destino de prueba sin solicitud de dinero. Escanear no confirma el pago.</p><label>Importe recibido<AmountInput min="0" max={MONEY_MAX_UNITS/100} step=".01" inputMode="decimal" required disabled={busy} value={cash} onChange={event=>{changed();setCash(event.target.value);setVerified(false)}}/></label><label>Referencia de operación (opcional)<input value={operation} disabled={busy} onChange={event=>{changed();setOperation(event.target.value)}} placeholder="Referencia opcional"/></label><label className="access-toggle"><input type="checkbox" checked={verified} disabled={busy} onChange={event=>{changed();setVerified(event.target.checked)}}/><span>He comprobado el abono y el importe recibido</span></label></div>}
+          </div> : <div className="digital-payment">
+            <figure className="payment-demo">
+              <div className="payment-demo-heading">
+                <img className="payment-brand" src={'/payment/' + pay + '.png'} alt=""/>
+                <strong>{paymentNames[pay]}</strong>
+                <span className="payment-demo-label">Demostración</span>
+              </div>
+              <img className="payment-qr" src={'/qr-demo-' + pay + '.svg'} alt={'QR de demostración de ' + paymentNames[pay]}/>
+              <figcaption>QR de prueba sin cobro.</figcaption>
+            </figure>
+            <label>Importe recibido<AmountInput min="0" max={MONEY_MAX_UNITS / 100} step="0.01" required disabled={busy} value={cash} onChange={(event) => { changed(); setCash(event.target.value); setVerified(false) }}/></label>
+            <label className="access-toggle"><input type="checkbox" checked={verified} disabled={busy} onChange={(event) => { changed(); setVerified(event.target.checked) }}/><span>He comprobado el abono y el importe recibido</span></label>
+          </div>}
           <button type="button" className={'receipt-toggle ' + (receipt ? 'active' : '')} disabled={busy} onClick={() => setReceipt((value) => !value)}><ReceiptText/><div><strong>Emitir comprobante</strong><span>Ticket de venta al confirmar</span></div><i>{receipt ? <Check/> : null}</i></button>
           <div className={'payment-status ' + (payment.ready ? 'ready' : 'pending')}><ShieldCheck/><div><strong>{payment.ready ? 'Datos de pago listos' : 'Completa el cobro'}</strong><span>{payment.message}</span></div></div>
         </div>

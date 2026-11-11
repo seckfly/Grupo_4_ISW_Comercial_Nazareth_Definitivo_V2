@@ -11,6 +11,7 @@ import Promotions from '../pages/Promotions'
 import Customers from '../pages/Customers'
 import Overview from '../pages/Overview'
 import Products from '../pages/Products'
+import Settings from '../pages/Settings'
 import Reservations from '../pages/Reservations'
 import { api } from '../services/api'
 
@@ -19,7 +20,7 @@ vi.mock('../services/api', () => ({ api: {
   sales: vi.fn(), productHistory: vi.fn(), updateProduct: vi.fn(), createProduct: vi.fn(),
   adjustInventory: vi.fn(),
   promotions: vi.fn(), customers: vi.fn(),
-  dashboard: vi.fn(),
+  dashboard: vi.fn(), users: vi.fn(), createUser: vi.fn(),
   preferences:vi.fn(),savePreferences:vi.fn(),requestReservation:vi.fn(),reservations:vi.fn(),changeReservation:vi.fn(),uploadPhoto:vi.fn(),
 } }))
 const authState=vi.hoisted(()=>({user:{role:'admin',name:'Prueba'}}))
@@ -284,7 +285,7 @@ it('CU-005: catálogo sin foto permite solicitar con cantidad decimal y consulta
   expect(navigate).toHaveBeenCalledWith('Reservas')
 })
 
-it('CU-001 digital: QR de demostración, importe exacto y confirmación manual con referencia opcional',async()=>{
+it('CU-001 digital: QR de demostración, importe exacto y confirmación manual sin referencia',async()=>{
   api.products.mockResolvedValue([{id:1,name:'Arroz QA',category:'Abarrotes',unit:'Kg',sale_price:6.7,current_stock:10}])
   api.quoteSale.mockResolvedValue({...savedSale,units:1,total:6.7,quoteId:'a'.repeat(64),items:[{...savedSale.items[0],productId:1,quantity:1,subtotal:6.7}]})
   api.createSale.mockResolvedValue({...savedSale,id:800,total:6.7,paymentMethod:'yape',paymentReference:null})
@@ -295,14 +296,20 @@ it('CU-001 digital: QR de demostración, importe exacto y confirmación manual c
   await settled(()=>expect(element.querySelector('.grand-total').textContent).toContain('6.70'))
   act(()=>[...element.querySelectorAll('.pos-pay button')].find(button=>button.textContent.includes('Yape')).click())
   expect(element.querySelector('.payment-qr').getAttribute('src')).toBe('/qr-demo-yape.svg')
-  expect(element.querySelector('.digital-payment input[placeholder="Referencia opcional"]').required).toBe(false)
+  expect(element.querySelector('.payment-brand').getAttribute('src')).toBe('/payment/yape.png')
+  expect(element.querySelector('.digital-payment').textContent).not.toContain('Referencia de operación')
+  act(()=>[...element.querySelectorAll('.pos-pay button')].find(button=>button.textContent.includes('Plin')).click())
+  expect(element.querySelector('.payment-qr').getAttribute('src')).toBe('/qr-demo-plin.svg')
+  expect(element.querySelector('.payment-brand').getAttribute('src')).toBe('/payment/plin.png')
+  act(()=>[...element.querySelectorAll('.pos-pay button')].find(button=>button.textContent.includes('Yape')).click())
   type(element.querySelector('.digital-payment input[type="number"]'),'6.70')
   expect(element.querySelector('.pos-confirm').disabled).toBe(true)
   act(()=>element.querySelector('.digital-payment input[type="checkbox"]').click())
   expect(element.querySelector('.pos-confirm').disabled).toBe(false)
   await act(async()=>element.querySelector('.pos-confirm').click())
   await settled(()=>expect(element.querySelector('.sale-success')).not.toBeNull())
-  expect(api.createSale.mock.calls[0][0]).toMatchObject({paymentMethod:'yape',digitalReceived:'6.70',paymentConfirmed:true,paymentReference:''})
+  expect(api.createSale.mock.calls[0][0]).toMatchObject({paymentMethod:'yape',digitalReceived:'6.70',paymentConfirmed:true})
+  expect(api.createSale.mock.calls[0][0]).not.toHaveProperty('paymentReference')
 })
 
 it('CU-006: foto opcional valida formato, carga y permite quitar antes de guardar',async()=>{
@@ -344,4 +351,27 @@ it('PRU-004 en caja: selecciona Cliente Demo y limpia la selección al iniciar o
   expect(element.querySelector('.customer-select').textContent).toContain('Venta sin cliente')
   await finish()
   expect(api.createSale.mock.calls[1][0].customerId).toBe(null)
+})
+
+it('Configuración cambia entre credenciales y seguridad, y muestra al cliente recién creado', async () => {
+  api.users.mockResolvedValue([])
+  api.createUser.mockResolvedValue({ id: 2, name: 'Cliente nuevo', email: 'nuevo@example.com', role: 'client', isActive: true })
+  const element = render(<Settings/>)
+  const sectionButton = label => [...element.querySelectorAll('.settings-nav button')].find(button => button.textContent === label)
+  act(() => sectionButton('Seguridad').click())
+  expect(sectionButton('Seguridad').getAttribute('aria-pressed')).toBe('true')
+  expect(element.textContent).toContain('Cambiar mi contraseña')
+  expect(element.querySelector('.credential-form')).toBeNull()
+  act(() => sectionButton('Credenciales').click())
+  await settled(() => expect(element.querySelector('.credential-form button.primary').disabled).toBe(false))
+  const form = element.querySelector('.credential-form form')
+  type(form.querySelector('input:not([type])'), 'Cliente nuevo')
+  type(form.querySelector('input[type="email"]'), 'nuevo@example.com')
+  type(form.querySelector('input[type="password"]'), 'Temporary!12')
+  await act(async () => form.querySelector('button.primary').click())
+  expect(api.createUser).toHaveBeenCalledWith(expect.objectContaining({ role: 'client', name: 'Cliente nuevo', isActive: true }))
+  const row = element.querySelector('.credential-list article')
+  expect(row.textContent).toContain('Cliente nuevo')
+  expect(row.querySelector('.role-badge').textContent).toBe('Cliente')
+  expect(row.querySelector('.status-dot').textContent).toBe('Activo')
 })
