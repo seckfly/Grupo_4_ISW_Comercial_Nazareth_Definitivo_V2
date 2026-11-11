@@ -438,6 +438,17 @@ it('Configuración cambia entre credenciales y seguridad, y muestra al cliente r
   act(() => sectionButton('Seguridad').click())
   expect(sectionButton('Seguridad').getAttribute('aria-pressed')).toBe('true')
   expect(element.textContent).toContain('Cambiar mi contraseña')
+  const passwordForm = element.querySelector('.account-form')
+  const currentPassword = passwordForm.elements.current
+  const newPassword = passwordForm.elements.password
+  const confirmation = passwordForm.elements.confirmation
+  expect([currentPassword.type, newPassword.type, confirmation.type]).toEqual(['password', 'password', 'password'])
+  type(newPassword, 'Nueva!456')
+  act(() => passwordForm.querySelector('[aria-label="Mostrar la nueva contraseña"]').click())
+  expect([currentPassword.type, newPassword.type, confirmation.type]).toEqual(['password', 'text', 'password'])
+  act(() => passwordForm.querySelector('[aria-label="Ocultar la nueva contraseña"]').click())
+  expect(newPassword.type).toBe('password')
+  expect(newPassword.value).toBe('Nueva!456')
   expect(element.querySelector('.credential-form')).toBeNull()
   act(() => sectionButton('Credenciales').click())
   await settled(() => expect(element.querySelector('.credential-form button.primary').disabled).toBe(false))
