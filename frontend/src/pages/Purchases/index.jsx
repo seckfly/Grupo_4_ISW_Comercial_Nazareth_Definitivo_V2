@@ -1,4 +1,4 @@
-import { useEffect,useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { decimalUnits } from '../../../../shared/numbers.mjs'
 import DecimalInput from '../../components/ui/DecimalInput'
@@ -9,8 +9,42 @@ import { InventoryDrawer, ProductDrawer } from '../Inventory/InventoryDrawers'
 import { api } from '../../services/api'
 import { currency,quantityLabel } from '../../utils/format'
 import { useInventory } from '../../context/InventoryContext'
-const emptyItem = { productId: '', quantity: '1', cost: '' }
+const purchaseLine = (product = null) => ({
+  key: crypto.randomUUID(),
+  productId: product?.id ?? '',
+  query: product?.name ?? '',
+  quantity: '1',
+  cost: product ? String(product.cost) : '',
+})
 const emptySupplier = { name: '', ruc: '', phone: '', reference: '' }
+
+function PurchaseProductField({ item, products, disabled, onSearch, onChoose, onCreate }) {
+  const input = useRef(null)
+  const term = item.query.trim().toLocaleLowerCase('es')
+  const needsSelection = !item.productId && Boolean(item.query)
+  const searching = needsSelection && Boolean(term)
+  const matches = searching ? products.filter(product => product.name.toLocaleLowerCase('es').includes(term)) : []
+
+  useEffect(() => {
+    input.current?.setCustomValidity(needsSelection ? 'Selecciona un producto de los resultados.' : '')
+  }, [needsSelection])
+
+  return <div className="purchase-product-field">
+    <label>Producto<input ref={input} type="search" required autoComplete="off"
+      placeholder="Escribe el nombre del producto" value={item.query} disabled={disabled}
+      onFocus={event => { if (item.productId) event.currentTarget.select() }}
+      onChange={event => onSearch(event.target.value)}/></label>
+    {searching && (matches.length > 0
+      ? <ul className="purchase-product-results" aria-label="Productos encontrados">
+        {matches.slice(0, 6).map(product => <li key={product.id}>
+          <button type="button" disabled={disabled} onClick={() => onChoose(product)}>{product.name}</button>
+        </li>)}
+      </ul>
+      : <p className="purchase-product-empty" role="status">No encontramos ese producto.</p>)}
+    {matches.length > 6 && <p className="purchase-product-empty">Escribe más letras para acotar la búsqueda.</p>}
+    <button type="button" className="text-btn purchase-create-product" disabled={disabled} onClick={onCreate}><Plus/>Crear producto nuevo</button>
+  </div>
+}
 
 export default function Purchases({purchaseProduct}) {
   const [rows,setRows]=useState(null),[products,setProducts]=useState([]),[error,setError]=useState(''),[showPurchase,setShowPurchase]=useState(false),[selected,setSelected]=useState(null),[busy,setBusy]=useState(false),[revision,setRevision]=useState(0)
@@ -19,19 +53,15 @@ export default function Purchases({purchaseProduct}) {
   const [direct, setDirect] = useState(true)
   const [supplier, setSupplier] = useState(emptySupplier)
   const [newProductLine, setNewProductLine] = useState(null)
-  const [items,setItems]=useState([emptyItem])
+  const [items,setItems]=useState(() => [purchaseLine()])
   const {data: inventory, setRevision:refreshStock}=useInventory()
-  const [search,setSearch]=useState(''),[category,setCategory]=useState('Todos')
   useEffect(() => {
     if (!purchaseProduct) return
-    setItems([{ productId: purchaseProduct.id, quantity: '1', cost: String(purchaseProduct.cost) }])
+    setItems([purchaseLine(purchaseProduct)])
     setSupplier(emptySupplier)
-    setSearch('')
-    setCategory('Todos')
     setDirect(false)
     setShowPurchase(true)
   }, [purchaseProduct])
-  const filtered=products.filter(product=>(category==='Todos'||category===product.category)&&product.name.toLocaleLowerCase('es').includes(search.trim().toLocaleLowerCase('es')))
   useEffect(()=>{let active=true;setRows(null);setError('');Promise.all([api.orders(),api.products()]).then(([orders,products])=>{if(active){setRows(orders);setProducts(products)}}).catch(error=>{if(active)setError(error.message)});return()=>{active=false}},[revision])
   async function perform(work, success) {
     if (busy) return
@@ -52,9 +82,7 @@ export default function Purchases({purchaseProduct}) {
     }
   }
   function openPurchase() {
-    setItems([emptyItem])
-    setSearch('')
-    setCategory('Todos')
+    setItems([purchaseLine()])
     setError('')
     setSupplier(emptySupplier)
     setDirect(true)
@@ -62,14 +90,23 @@ export default function Purchases({purchaseProduct}) {
   }
   function savePurchase(event) {
     event.preventDefault()
-    const purchase = { supplierName: supplier.name, supplierRuc: supplier.ruc, supplierPhone: supplier.phone, items }
+    if (items.some(item => !item.productId)) {
+      setError('Selecciona un producto en cada línea de la compra.')
+      return
+    }
+    const purchase = {
+      supplierName: supplier.name, supplierRuc: supplier.ruc, supplierPhone: supplier.phone,
+      items: items.map(({ productId, quantity, cost }) => ({ productId, quantity, cost })),
+    }
     if (direct) {
       perform(() => api.registerDirectPurchase({ ...purchase, reference: supplier.reference }), 'Compra registrada e ingresada al inventario.')
     } else {
       perform(() => api.createOrder(purchase), 'Orden registrada como pendiente.')
     }
   }
-  function field(index,key,value){setItems(items.map((item,i)=>i===index?{...item,[key]:value}:item))}
+  function updateLine(lineKey, changes) {
+    setItems(current => current.map(item => item.key === lineKey ? { ...item, ...changes } : item))
+  }
   function supplierField(event) {
     const { name, value } = event.target
     setSupplier(current => ({ ...current, [name]: value }))
@@ -77,8 +114,8 @@ export default function Purchases({purchaseProduct}) {
   function productSaved(product) {
     setProducts(current => [...current.filter(item => item.id !== product.id), product]
       .sort((a, b) => a.name.localeCompare(b.name, 'es')))
-    setItems(current => current.map((item, index) => index === newProductLine
-      ? { ...item, productId: product.id, cost: item.cost || String(product.cost) }
+    setItems(current => current.map(item => item.key === newProductLine
+      ? { ...item, productId: product.id, query: product.name, cost: item.cost || String(product.cost) }
       : item))
     setNewProductLine(null)
     refreshStock(value => value + 1)
@@ -96,12 +133,25 @@ export default function Purchases({purchaseProduct}) {
         <label>RUC<input name="ruc" value={supplier.ruc} onChange={supplierField} required/></label>
         <label>Teléfono<input name="phone" value={supplier.phone} onChange={supplierField} required/></label>
       </div>
-      <div className="form-row"><label>Filtrar productos por nombre<input value={search} onChange={event=>setSearch(event.target.value)}/></label><label>Categoría<select value={category} onChange={event=>setCategory(event.target.value)}>{['Todos',...new Set(products.map(product=>product.category))].map(category=><option key={category}>{category}</option>)}</select></label></div>{items.map((item,index)=><div key={index}><label>Producto<select required value={item.productId} onChange={event=>field(index,'productId',event.target.value)}><option value="">Selecciona</option>{products.filter(product=>filtered.some(candidate=>candidate.id===product.id)||Number(item.productId)===product.id).map(product=><option key={product.id} value={product.id}>{product.name}</option>)}</select></label>
-      <button type="button" className="text-btn purchase-create-product" disabled={busy} onClick={() => setNewProductLine(index)}><Plus/>Crear producto nuevo</button>
-      <div className="form-row"><div className="quantity-field">Cantidad<DecimalInput label={'Cantidad de la línea '+(index+1)} minUnits={1} value={item.quantity} onChange={value=>field(index,'quantity',value)} disabled={busy}/></div><label>Costo unitario<AmountInput min=".01" step=".01" required value={item.cost} onChange={event=>field(index,'cost',event.target.value)}/></label></div>{items.length > 1 && <button type="button" className="text-btn" disabled={busy} onClick={() => setItems(current =>
-        current.length > 1 ? current.filter((_, itemIndex) => itemIndex !== index) : current
-      )}>Retirar línea</button>}</div>)}
-      <button className="secondary" type="button" disabled={busy} onClick={() => setItems(current => [...current, emptyItem])}>Agregar otro producto</button>
+      {items.map((item, index) => <div key={item.key}>
+        <PurchaseProductField item={item} products={products} disabled={busy}
+          onSearch={query => updateLine(item.key, { query, productId: '' })}
+          onChoose={product => updateLine(item.key, { query: product.name, productId: product.id })}
+          onCreate={() => setNewProductLine(item.key)}/>
+        <div className="form-row">
+          <div className="quantity-field">Cantidad<DecimalInput label={'Cantidad de la línea ' + (index + 1)}
+            minUnits={1} value={item.quantity} onChange={quantity => updateLine(item.key, { quantity })} disabled={busy}/></div>
+          <label>Costo unitario<AmountInput min=".01" step=".01" required value={item.cost}
+            onChange={event => updateLine(item.key, { cost: event.target.value })}/></label>
+        </div>
+        {items.length > 1 && <button type="button" className="text-btn" disabled={busy} onClick={() => setItems(current =>
+          current.length > 1 ? current.filter(line => line.key !== item.key) : current
+        )}>Retirar línea</button>}
+      </div>)}
+      <button className="secondary" type="button" disabled={busy} onClick={() => {
+        const line = purchaseLine()
+        setItems(current => [...current, line])
+      }}>Agregar otro producto</button>
       <fieldset className="purchase-reception">
         <legend>¿Ya recibiste la mercadería?</legend>
         <label><input type="radio" name="received" checked={direct} onChange={() => setDirect(true)} disabled={busy}/>Sí, ya la recibí</label>

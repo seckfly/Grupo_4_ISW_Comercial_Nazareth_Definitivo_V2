@@ -363,3 +363,8 @@
 .inventory-drawer .purchase-reception legend { padding: 0 4px; font-weight: 600; }
 .inventory-drawer .purchase-reception label { display: inline-flex; align-items: center; }
 .inventory-drawer .purchase-reception input[type="radio"] { width: 16px; height: 16px; margin: 0; accent-color: var(--forest); }
+
+.purchase-product-results { display: grid; gap: 2px; margin: 6px 0 0; padding: 4px; list-style: none; border: 1px solid var(--line); border-radius: 10px; background: #faf9f6; }
+.purchase-product-results button { width: 100%; min-height: 38px; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent; color: #213d2c; text-align: left; overflow-wrap: anywhere; }
+.purchase-product-results button:hover, .purchase-product-results button:focus-visible { background: #e3ebe3; }
+.purchase-product-empty { margin: 6px 0 0; color: #625f56; font-size: 13px; }

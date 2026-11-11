@@ -471,11 +471,16 @@ it('Compras envía la mercadería ya recibida en una sola operación y conserva 
   const form = element.querySelector('[role="dialog"] form')
   const data = { name: 'Mayorista QA', ruc: 'RUC QA', phone: '999999999', reference: 'BOLETA-QA-001' }
   for (const [key, value] of Object.entries(data)) type(form.elements[key], value)
-  const product = [...form.querySelectorAll('select')].find(select => select.textContent.includes(item.name))
-  act(() => {
-    product.value = '1'
-    product.dispatchEvent(new Event('change', { bubbles: true }))
-  })
+  const product = form.querySelector('input[type="search"]')
+  type(product, 'sin coincidencias')
+  expect(form.textContent).toContain('No encontramos ese producto.')
+  expect(product.checkValidity()).toBe(false)
+  type(product, 'aceite')
+  expect(form.querySelector('.purchase-product-results button').textContent).toBe('Aceite QA')
+  expect(product.checkValidity()).toBe(false)
+  act(() => button('Aceite QA').click())
+  expect(product.checkValidity()).toBe(true)
+  expect(form.querySelector('.purchase-product-results')).toBeNull()
   type(form.querySelector('input[type="number"]'), '5.00')
   expect(button('Retirar línea')).toBeUndefined()
   act(() => button('Agregar otro producto').click())
@@ -484,12 +489,12 @@ it('Compras envía la mercadería ya recibida en una sola operación y conserva 
   act(() => removeButtons[1].click())
   expect(form.querySelectorAll('[role="spinbutton"]')).toHaveLength(1)
   expect(button('Retirar línea')).toBeUndefined()
-  expect(product.value).toBe('1')
+  expect(product.value).toBe('Aceite QA')
   expect(form.querySelector('input[type="number"]').value).toBe('5.00')
   await act(async () => button('Guardar compra e ingresar al inventario').click())
   expect(api.registerDirectPurchase).toHaveBeenCalledWith({
     supplierName: data.name, supplierRuc: data.ruc, supplierPhone: data.phone, reference: data.reference,
-    items: [{ productId: '1', quantity: '1', cost: '5.00' }],
+    items: [{ productId: 1, quantity: '1', cost: '5.00' }],
   })
   expect(api.createOrder).not.toHaveBeenCalled()
   expect(element.textContent).toContain('Compra registrada e ingresada al inventario.')
@@ -499,16 +504,13 @@ it('Compras envía la mercadería ya recibida en una sola operación y conserva 
   api.createOrder.mockResolvedValue({ id: 9, status: 'pending' })
   const pending = element.querySelector('[role="dialog"] form')
   for (const name of ['name', 'ruc', 'phone']) type(pending.elements[name], data[name])
-  const pendingProduct = pending.querySelectorAll('select')[1]
-  act(() => {
-    pendingProduct.value = '1'
-    pendingProduct.dispatchEvent(new Event('change', { bubbles: true }))
-  })
+  type(pending.querySelector('input[type="search"]'), 'aceite')
+  act(() => button('Aceite QA').click())
   type(pending.querySelector('input[type="number"]'), '5.00')
   await act(async () => button('Guardar orden pendiente').click())
   expect(api.createOrder).toHaveBeenCalledWith({
     supplierName: data.name, supplierRuc: data.ruc, supplierPhone: data.phone,
-    items: [{ productId: '1', quantity: '1', cost: '5.00' }],
+    items: [{ productId: 1, quantity: '1', cost: '5.00' }],
   })
   expect(api.registerDirectPurchase).toHaveBeenCalledTimes(1)
   expect(element.textContent).toContain('Orden registrada como pendiente.')
@@ -553,7 +555,7 @@ it('Compras conserva el formulario al crear un producto con stock cero y lo sele
     expect(form().elements.phone.value).toBe('999999999')
     expect(form().elements.reference.value).toBe('BOLETA-QA-002')
     expect(form().querySelector('[role="spinbutton"]').value).toBe('12')
-    expect(form().querySelectorAll('select')[1].value).toBe('9')
+    expect(form().querySelector('input[type="search"]').value).toBe('Aceite nuevo')
     expect(form().querySelector('input[type="number"]').value).toBe('5')
     expect(api.registerDirectPurchase).not.toHaveBeenCalled()
   } finally {
