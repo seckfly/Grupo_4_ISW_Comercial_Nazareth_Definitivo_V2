@@ -86,7 +86,7 @@ export default function Inventory() {
       loading ? <Card><Skeleton rows={5}/></Card> :
       !shown.length ? <Card><EmptyState icon={<PackagePlus/>} title="Sin productos" copy={products.length ? 'No hay productos que coincidan con los filtros.' : 'Registra un producto para comenzar el inventario.'}/></Card> :
       view === 'list' ? <Card className="data-card"><div className="table-wrap"><table>
-        <thead><tr><th>Producto</th><th>Código</th><th>Categoría</th><th>Existencias</th><th>Costo</th><th>Precio</th><th>Margen</th><th>Acciones</th></tr></thead>
+        <thead><tr><th>Producto</th><th>Código</th><th>Categoría</th><th>Existencias</th><th>Costo promedio por unidad</th><th>Precio</th><th>Margen</th><th>Acciones</th></tr></thead>
         <tbody>{shown.map((product) => <tr key={product.id}>
           <td><div className="product-cell"><span>{product.name[0]}</span><div><strong>{product.name}</strong>{!product.isActive && <small className="inventory-detail">Inactivo</small>}</div></div></td>
           <td>#{String(product.id).padStart(4, '0')}</td><td>{product.category}</td>
@@ -98,6 +98,7 @@ export default function Inventory() {
         <div className="product-card-top"><span className="product-letter">{product.name[0]}</span></div>
         <small>{product.category} · #{String(product.id).padStart(4, '0')}{!product.isActive ? ' · Inactivo' : ''}</small>
         <h3>{product.name}</h3><InventoryStock product={product}/>
+        <small>Costo promedio por unidad · {currency(product.cost)}</small>
         <div className="price-row"><strong>{currency(product.price)}</strong><span>{margin(product.cost, product.price)}% margen</span></div>
         <ProductActions product={product} open={open}/>
       </Card>)}</div>}

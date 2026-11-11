@@ -129,7 +129,8 @@ test('PRU-005/006/008: proveedor, orden sin stock, recepción parcial, exceso, d
   const line=orders[0].items[0]
   const payload={reference:'REF-QA',items:[{itemId:line.id,quantity:1}]}
   assert.equal((await request('/api/purchase-orders/'+order.body.id+'/receipts',{method:'POST',body:payload})).status,200)
-  assert.equal((await request('/api/inventory')).body.products.find(i=>i.id===p.id).stock,5)
+  const afterPartial = (await request('/api/inventory')).body.products.find(i=>i.id===p.id)
+  assert.deepEqual([afterPartial.stock, afterPartial.cost], [5, 4.05])
   assert.equal((await request('/api/purchase-orders/'+order.body.id+'/receipts',{method:'POST',body:payload})).status,409)
   assert.equal((await request('/api/purchase-orders/'+order.body.id+'/receipts',{method:'POST',body:{reference:'EXCESO',items:[{itemId:line.id,quantity:5}]}})).status,409)
   assert.equal((await request('/api/purchase-orders/'+order.body.id+'/cancel',{method:'POST'})).status,409)
@@ -162,6 +163,33 @@ test('Compra en mayorista registra recepción y stock juntos e impide ingresos d
   const { rows: [entry] } = await postgres.admin.query(`SELECT m.quantity_change, m.stock_before, m.stock_after
     FROM nazareth.inventory_movements m JOIN nazareth.receipts r ON r.id = m.receipt_id WHERE r.reference = $1`, [payload.reference])
   assert.deepEqual([entry.quantity_change, entry.stock_before, entry.stock_after].map(Number), [12, 4, 16])
+})
+
+test('Compras actualiza el costo ponderado sin modificar el precio ni el costo de cada compra', async () => {
+  const existing = await product({ name: 'Ace QA', cost: 5, price: 8, initialStock: 10 })
+  const empty = await product({ name: 'Arroz QA', cost: 5, price: 8, initialStock: 0 })
+  const payload = { supplierName: 'Mayorista QA', supplierRuc: 'RUC QA', supplierPhone: 'Teléfono QA' }
+  const buy = (reference, items) => request('/api/purchase-orders/direct', {
+    method: 'POST', body: { ...payload, reference, items },
+  })
+  assert.equal((await buy('COSTO-1', [
+    { productId: existing.id, quantity: 5, cost: 5.99 },
+    { productId: existing.id, quantity: 5, cost: 6.01 },
+    { productId: empty.id, quantity: 10, cost: 4 },
+  ])).status, 200)
+  const inventory = async id => (await request('/api/inventory')).body.products.find(row => row.id === id)
+  const amounts = ({ stock, cost, price }) => [stock, cost, price]
+  assert.deepEqual(amounts(await inventory(existing.id)), [20, 5.5, 8])
+  assert.deepEqual(amounts(await inventory(empty.id)), [10, 4, 8])
+
+  assert.equal((await buy('COSTO-2', [{ productId: existing.id, quantity: 10, cost: 4 }])).status, 200)
+  assert.deepEqual(amounts(await inventory(existing.id)), [30, 5, 8])
+  const orders = (await request('/api/purchase-orders')).body
+  assert.deepEqual(orders[0].items.map(item => Number(item.unit_cost)), [4])
+  assert.deepEqual(orders[1].items.map(item => Number(item.unit_cost)), [5.99, 6.01, 4])
+
+  await updateProduct(pool, existing.id, { name: 'Ace actualizado', categoryId: 1, unit: 'Kg', price: 8, minimum: 5 })
+  assert.deepEqual(amounts(await inventory(existing.id)), [30, 5, 8])
 })
 
 test('Una compra directa con fallo en la segunda entrada revierte toda la operación', async () => {

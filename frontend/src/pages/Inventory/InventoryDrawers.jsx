@@ -93,7 +93,8 @@ export function ProductDrawer({ product, categories, close, saved, fromPurchase 
       for (const key of ['cost', 'price', 'minimum', ...(!editing ? ['initialStock'] : [])]) {
         decimalUnits(form[key], { label: key === 'cost' ? 'El costo' : key === 'price' ? 'El precio' : key === 'minimum' ? 'El mínimo' : 'El stock inicial' })
       }
-      const result = editing ? await api.updateProduct(product.id, form) : await create()
+      const changes = editing && Number(form.cost) === product.cost ? { ...form, cost: undefined } : form
+      const result = editing ? await api.updateProduct(product.id, changes) : await create()
       saved(result, editing ? 'Producto actualizado.' : 'Producto registrado.')
     } catch (error) {
       setError(productConnectionError(error)
@@ -114,7 +115,7 @@ export function ProductDrawer({ product, categories, close, saved, fromPurchase 
         <label>Unidad<select value={form.unit} onChange={(event) => field('unit', event.target.value)}>{units.map((unit) => <option key={unit}>{unit}</option>)}</select></label>
       </div>
       <div className="form-row">
-        <label>Costo<AmountInput min="0" max="99999999.99" step="0.01" value={form.cost} onChange={(event) => field('cost', event.target.value)} placeholder="0.00" required/></label>
+        <label>{editing ? 'Costo promedio por unidad' : 'Costo inicial por unidad'}<AmountInput min="0" max="99999999.99" step="0.01" value={form.cost} onChange={(event) => field('cost', event.target.value)} placeholder="0.00" required/></label>
         <label>Precio de venta<AmountInput min="0" max="99999999.99" step="0.01" value={form.price} onChange={(event) => field('price', event.target.value)} placeholder="0.00" required/></label>
       </div>
       <div className="form-row">

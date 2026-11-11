@@ -21,7 +21,7 @@ export function productInput(input, creating) {
     name: input.name.trim(),
     unit: input.unit.trim(),
     categoryId: inventoryId(input.categoryId),
-    cost: decimal(input.cost, 'El costo'),
+    cost: !creating && input.cost === undefined ? undefined : decimal(input.cost, 'El costo'),
     price: decimal(input.price, 'El precio'),
     minimum: decimal(input.minimum, 'El mínimo'),
     isActive: input.isActive ?? (creating ? true : undefined),
@@ -132,7 +132,7 @@ export async function updateProduct(db, productId, input) {
   const data = productInput(input, false)
   try {
     const { rowCount } = await db.query(`UPDATE nazareth.products SET category_id = $1, name = $2,
-      unit = $3, cost_price = $4, sale_price = $5, min_stock_threshold = $6, is_active = COALESCE($7, is_active),
+      unit = $3, cost_price = COALESCE($4, cost_price), sale_price = $5, min_stock_threshold = $6, is_active = COALESCE($7, is_active),
       image_url=CASE WHEN $9::boolean THEN $10 ELSE image_url END WHERE id = $8`,
     [data.categoryId, data.name, data.unit, data.cost, data.price, data.minimum, data.isActive, id,data.imageUrl!==undefined,data.imageUrl??null])
     if (!rowCount) throw invalid('Producto no encontrado', 404)

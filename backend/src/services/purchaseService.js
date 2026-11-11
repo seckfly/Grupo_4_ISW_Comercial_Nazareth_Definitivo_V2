@@ -84,6 +84,20 @@ async function recordReceipt(db, id, reference, lines, userId) {
     await db.query('INSERT INTO nazareth.receipt_items(order_id,receipt_id,order_item_id,quantity) VALUES($1,$2,$3,$4)',[order.id,receipt.id,item.id,quantity])
     await db.query(`INSERT INTO nazareth.inventory_movements(product_id,type,quantity_change,stock_before,stock_after,receipt_id,created_by) VALUES($1,'entry',$2,$3,$4,$5,$6)`,[item.product_id,quantity,stock.before,stock.after,receipt.id,userId])
   }
+  // Average all lines for the same product together before rounding the cost.
+  await db.query(`WITH received AS (
+    SELECT oi.product_id, SUM(ri.quantity) AS quantity, SUM(ri.quantity * oi.unit_cost) AS cost
+    FROM nazareth.receipt_items ri
+    JOIN nazareth.purchase_order_items oi ON oi.id = ri.order_item_id
+    WHERE ri.receipt_id = $1
+    GROUP BY oi.product_id
+  )
+  UPDATE nazareth.products p
+  SET cost_price = ROUND(
+    ((p.current_stock - received.quantity) * p.cost_price + received.cost) / p.current_stock, 2
+  )
+  FROM received
+  WHERE p.id = received.product_id`, [receipt.id])
   await db.query(`UPDATE nazareth.purchase_orders SET status=CASE WHEN EXISTS(SELECT 1 FROM nazareth.purchase_order_items WHERE order_id=$1 AND received_quantity<quantity) THEN 'pending' ELSE 'received' END WHERE id=$1`,[order.id])
   return receipt
 }
