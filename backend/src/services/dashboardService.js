@@ -1,8 +1,14 @@
 import { listSales } from './saleService.js'
 import { listInventory } from './inventoryService.js'
+import { paymentNames } from '../../../shared/paymentMethods.mjs'
 
 const dateKey = value => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(value))
 const cents = value => Math.round(Number(value) * 100)
+function paymentTotals(sales) {
+  const totals = Object.fromEntries(Object.keys(paymentNames).map(method => [method, 0]))
+  for (const sale of sales) totals[sale.paymentMethod] += cents(sale.total)
+  return Object.fromEntries(Object.entries(totals).map(([method, amount]) => [method, amount / 100]))
+}
 export async function dashboard(db, period = 'week') {
   const connection = await db.connect()
   try {
@@ -67,12 +73,12 @@ async function snapshot(db, period) {
   const activity = [...recentSales.map(sale => ({ ...sale, kind: 'sale' })),
     ...movements.filter(row => row.type !== 'sale').map(row => ({ ...row, kind: 'movement' }))]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt) || b.id - a.id).slice(0, 20)
-  const paymentTotals = Object.fromEntries(['efectivo','yape','plin'].map(method => [method, today.sales.filter(sale => sale.paymentMethod === method).reduce((sum,sale) => sum+cents(sale.total),0)/100]))
+
   const {rows:movementSummary}=await db.query(`SELECT p.id AS "productId",p.name,p.unit,m.type,SUM(m.quantity_change)::float8 AS quantity,COUNT(*)::int AS operations
     FROM nazareth.inventory_movements m JOIN nazareth.products p ON p.id=m.product_id
     WHERE m.created_at>=($1::date AT TIME ZONE 'America/Lima') AND m.created_at<=now()
     GROUP BY p.id,p.name,p.unit,m.type ORDER BY p.name,p.id,m.type`,[[...days.keys()][0]])
-  return { period, today: { ...today.summary, paymentTotals }, summary: sales.summary, projection, comparison,movementSummary,
+  return { period, today: { ...today.summary, paymentTotals: paymentTotals(today.sales) }, summary: sales.summary, paymentTotals: paymentTotals(sales.sales), projection, comparison,movementSummary,
     strongestHour: sales.sales.length >= 7 && new Set(sales.sales.map(sale => dateKey(sale.createdAt))).size >= 2 ? [...hours].sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0]))[0]?.[0] : null,
     trend: [...days].map(([date, amount]) => ({ date, d: date.slice(5), v: amount / 100 })),
     demand: [...demand.values()].map(row => ({ ...row, sold: row.sold / 100, revenue: row.revenue / 100 })).sort((a,b) => b.sold-a.sold || a.name.localeCompare(b.name)),

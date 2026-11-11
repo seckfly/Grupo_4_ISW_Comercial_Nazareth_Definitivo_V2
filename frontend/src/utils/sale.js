@@ -1,4 +1,6 @@
 import { decimalUnits, MONEY_MAX_UNITS } from '../../../shared/numbers.mjs'
+import { digitalPaymentMethods } from '../../../shared/paymentMethods.mjs'
+
 const round=value=>Number(value.toFixed(2))
 export function cartSummary(items,discount=0,cashReceived=0){const units=items.reduce((sum,item)=>sum+Number(item.qty),0);const subtotal=round(items.reduce((sum,item)=>sum+Number(item.qty)*Number(item.price),0));const safeDiscount=Math.min(subtotal,Math.max(0,Number(discount)||0));const total=round(subtotal-safeDiscount);const summary={units,subtotal,discount:round(safeDiscount),total};if(Number(cashReceived)>0)summary.change=round(Math.max(0,Number(cashReceived)-total));return summary}
 export function filterSaleProducts(products,query){const term=query.trim().toLowerCase();if(!term)return products;return products.filter(product=>`${product.name} ${product.category} ${product.sku||''}`.toLowerCase().includes(term))}
@@ -10,7 +12,8 @@ export function paymentState(method,total,cashReceived=0,confirmed=false){
       return missing > 0 ? {ready:false,message:`Faltan S/ ${(missing / 100).toFixed(2)}`} : {ready:true,message:'Cobro listo'}
     } catch (error) { return { ready: false, message: error.message } }
   }
-  if (!['yape', 'plin'].includes(method)) return { ready: false, message: 'Método de pago no válido' }
+  if (!method) return { ready: false, message: 'Elige la billetera utilizada' }
+  if (!digitalPaymentMethods.includes(method)) return { ready: false, message: 'Método de pago no válido' }
   try {
     if(decimalUnits(cashReceived,{maxUnits:MONEY_MAX_UNITS})!==decimalUnits(total,{maxUnits:MONEY_MAX_UNITS}))return {ready:false,message:'El importe recibido debe coincidir con el total a dos decimales'}
     return confirmed?{ready:true,message:'Abono comprobado manualmente por Humberto'}:{ready:false,message:'Comprueba el abono y confirma manualmente. El QR no confirma el pago.'}

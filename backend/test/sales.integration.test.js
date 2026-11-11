@@ -38,7 +38,7 @@ before(async () => {
   await postgres.admin.query(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
     CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY, email text NOT NULL);
     CREATE TABLE auth.sessions (id uuid PRIMARY KEY, user_id uuid, not_after timestamptz)`)
-  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql', '008_promotion_creation_requests.sql', '009_archive_and_remove_access.sql', '010_retire_inventory_products.sql', '011_sync_unavailable_product_campaigns.sql']) {
+  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql', '008_promotion_creation_requests.sql', '009_archive_and_remove_access.sql', '010_retire_inventory_products.sql', '011_sync_unavailable_product_campaigns.sql', '012_other_digital_payments.sql']) {
     await postgres.admin.query(await readFile(new URL('../../database/migrations/' + file, import.meta.url), 'utf8'))
   }
   pool = await postgres.applicationPool()
@@ -737,9 +737,9 @@ test('Compatibilidad: Yape y Plin conservan referencias recibidas por la API', a
   assert.equal((await request('/api/inventory')).body.products[0].stock, 4)
 })
 
-test('PRU-020: Yape y Plin sin referencia, con importe exacto y comprobación manual',async()=>{
+test('PRU-020: Yape, Plin y otras billeteras sin referencia, con importe exacto y comprobación manual',async()=>{
   const p=await product()
-  for(const method of ['yape','plin']) {
+  for(const method of ['yape','plin','otro_digital']) {
     const payload=await salePayload(p.id,{items:[{productId:p.id,quantity:1}],paymentMethod:method,digitalReceived:'6.70',paymentConfirmed:true})
     assert.equal((await request('/api/sales',{method:'POST',body:{...payload,digitalReceived:'6.71'}})).status,400)
     assert.equal((await request('/api/sales',{method:'POST',body:{...payload,paymentConfirmed:false}})).status,400)
@@ -747,7 +747,10 @@ test('PRU-020: Yape y Plin sin referencia, con importe exacto y comprobación ma
     assert.equal(result.status,201,JSON.stringify(result.body));assert.equal(result.body.paymentReference,null);assert.equal(result.body.digitalReceived,6.7)
     assert.equal(result.body.paymentMethod,method)
   }
-  assert.equal((await request('/api/inventory')).body.products[0].stock,8)
+  assert.equal((await request('/api/inventory')).body.products[0].stock,7)
+  const report = await dashboard(pool, 'week')
+  assert.equal(report.summary.digitalTotal, 20.1)
+  assert.deepEqual(report.paymentTotals, { efectivo: 0, yape: 6.7, plin: 6.7, otro_digital: 6.7 })
 })
 
 test('validaciones, falta de stock y reintentos no dejan ventas ni salidas parciales', async () => {

@@ -4,6 +4,8 @@ import { validatePickup } from './reservationService.js'
 import { priceSql } from './priceService.js'
 import { decimalUnits, decimalText, lineAmount, positiveId, MONEY_MAX_UNITS, QUANTITY_MAX_UNITS, inputError } from '../../../shared/numbers.mjs'
 
+import { paymentNames } from '../../../shared/paymentMethods.mjs'
+
 const uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i
 const fingerprint = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex')
 
@@ -32,7 +34,7 @@ export function calculateSaleTotal(items) {
 }
 
 export function validateSaleInput(payload) {
-  if (!payload || !['efectivo', 'yape', 'plin'].includes(payload.paymentMethod)) throw inputError('Método de pago no válido')
+  if (!payload || typeof payload.paymentMethod !== 'string' || !Object.hasOwn(paymentNames, payload.paymentMethod)) throw inputError('Método de pago no válido')
   const cart = cartInput(payload)
   const userId = positiveId(payload.userId)
   const customerId = payload.customerId == null ? null : positiveId(payload.customerId)

@@ -8,9 +8,10 @@ import { api } from '../../services/api'
 import { currency, countLabel, quantityLabel } from '../../utils/format'
 import { formatSaleCreatedAt } from '../../utils/sale'
 import { useLiveDateTime } from '../../hooks/useLiveDateTime'
+import { paymentNames } from '../../../../shared/paymentMethods.mjs'
 
 const periodLabels = { today: 'Hoy', yesterday: 'Ayer', week: 'Últimos 7 días', month: 'Este mes' }
-const paymentNames = { efectivo: 'Efectivo', yape: 'Yape', plin: 'Plin' }
+
 
 export default function Sales({ openSale, revision = 0 }) {
   const { today, yesterday } = useLiveDateTime()
@@ -50,7 +51,7 @@ export default function Sales({ openSale, revision = 0 }) {
     <div className="sales-summary">
       <div><span>{periodLabels[period].toLocaleUpperCase('es')}</span><strong>{current ? currency(summary.total) : '—'}</strong><small>{current ? countLabel(summary.saleCount, 'operación', 'operaciones') : 'Consultando…'}</small></div>
       <div><span>EFECTIVO</span><strong>{current ? currency(summary.cashTotal) : '—'}</strong><small>{current ? percentage(summary.cashTotal) : '—'}</small></div>
-      <div><span>YAPE + PLIN</span><strong>{current ? currency(summary.digitalTotal) : '—'}</strong><small>{current ? percentage(summary.digitalTotal) : '—'}</small></div>
+      <div><span>PAGOS DIGITALES</span><strong>{current ? currency(summary.digitalTotal) : '—'}</strong><small>{current ? percentage(summary.digitalTotal) : '—'}</small></div>
     </div>
     <div className="toolbar premium-toolbar">
       <label className="search"><Search/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar producto o número de venta" aria-label="Buscar venta"/></label>

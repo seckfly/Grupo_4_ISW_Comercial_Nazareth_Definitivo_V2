@@ -8,7 +8,7 @@ import { decimalUnits, decimalText, MONEY_MAX_UNITS } from '../../../../shared/n
 import DecimalInput from './DecimalInput'
 import { Skeleton, EmptyState } from './States'
 
-const paymentNames = { efectivo: 'Efectivo', yape: 'Yape', plin: 'Plin' }
+import { digitalPaymentMethods, paymentNames } from '../../../../shared/paymentMethods.mjs'
 
 function quantityUnits(value) {
   try { return decimalUnits(value) } catch { return 0 }
@@ -200,17 +200,34 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
         <div className="discount-row"><Tag/><span>Descuento</span><AmountInput aria-label="Descuento de la venta en soles" min="0" max={quote?.subtotal ?? '9999999999.99'} step="0.01" inputMode="decimal" value={discount} disabled={busy} onChange={(event) => { changed(); setDiscount(event.target.value) }} placeholder="S/ 0.00"/></div>
         {quoteError && <p className="form-error" role="alert">{quoteError}</p>}
         <div className="price-summary" aria-live="polite"><div><span>Subtotal</span><strong>{quoteCurrent ? currency(quote.subtotal) : '—'}</strong></div>{quote?.discount > 0 && <div className="discount"><span>Descuento</span><strong>− {currency(quote.discount)}</strong></div>}</div>
-        <div className="payment-studio"><div className="ticket-pay pos-pay"><span>Método de pago</span><div>{[['efectivo', Banknote], ['yape', WalletCards], ['plin', WalletCards]].map(([method, Icon]) => <button type="button" className={pay === method ? 'active' : ''} disabled={busy} onClick={() => selectPay(method)} key={method}><Icon/><span>{method[0].toUpperCase() + method.slice(1)}</span>{pay === method && <Check/>}</button>)}</div></div>
+        <div className="payment-studio">
+          <div className="ticket-pay pos-pay"><span>Método de pago</span><div>
+            <button type="button" className={pay === 'efectivo' ? 'active' : ''} disabled={busy}
+              aria-pressed={pay === 'efectivo'} onClick={() => selectPay('efectivo')}><Banknote/><span>Efectivo</span></button>
+            <button type="button" className={pay !== 'efectivo' ? 'active' : ''} disabled={busy}
+              aria-pressed={pay !== 'efectivo'} onClick={() => { if (pay === 'efectivo') selectPay('') }}>
+              <WalletCards/><span>Yape, Plin y otras billeteras digitales</span>
+            </button>
+          </div></div>
           {pay === 'efectivo' ? <div className="cash-studio"><div className="quick-cash"><span>Pago rápido</span><div>{quickCashSuggestions(quote?.total).map((amount) => <button type="button" disabled={busy || !quoteCurrent} key={amount} onClick={() => { changed(); setCash(String(amount)) }}>S/ {amount}</button>)}</div></div>
             <div className="cash-input premium-cash"><label>Monto recibido<AmountInput value={cash} disabled={busy} onChange={(event) => { changed(); setCash(event.target.value) }} min="0" max={MONEY_MAX_UNITS / 100} step="0.01" inputMode="decimal" placeholder="S/ 0.00" required/></label><div><span>Vuelto para el cliente</span><strong>{quoteCurrent && payment.ready ? currency((decimalUnits(cash, { maxUnits: MONEY_MAX_UNITS }) - decimalUnits(quote.total, { maxUnits: MONEY_MAX_UNITS })) / 100) : '—'}</strong></div></div>
           </div> : <div className="digital-payment">
             <figure className="payment-demo">
               <div className="payment-demo-heading">
-                <img className="payment-brand" src={'/payment/' + pay + '.png'} alt=""/>
-                <strong>{paymentNames[pay]}</strong>
+                <img className="payment-brand" src="/payment/yape.png" alt="Yape"/>
+                <img className="payment-brand" src="/payment/plin.png" alt="Plin"/>
+                <strong>Pago digital</strong>
               </div>
-              <img className="payment-qr" src={'/qr-demo-' + pay + '.svg'} alt="Código QR"/>
+              <img className="payment-qr" src="/qr-pago-digital.svg" alt="Código QR"/>
             </figure>
+            <label className="digital-wallet-field">Billetera utilizada
+              <select value={pay} disabled={busy} required onChange={event => {
+                changed(); setPay(event.target.value); setVerified(false)
+              }}>
+                <option value="">Selecciona la billetera</option>
+                {digitalPaymentMethods.map(method => <option key={method} value={method}>{paymentNames[method]}</option>)}
+              </select>
+            </label>
             <label>Importe recibido<AmountInput min="0" max={MONEY_MAX_UNITS / 100} step="0.01" required disabled={busy} value={cash} onChange={(event) => { changed(); setCash(event.target.value); setVerified(false) }}/></label>
             <label className="access-toggle"><input type="checkbox" checked={verified} disabled={busy} onChange={(event) => { changed(); setVerified(event.target.checked) }}/><span>He comprobado el abono y el importe recibido</span></label>
           </div>}

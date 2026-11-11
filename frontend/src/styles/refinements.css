@@ -59,7 +59,7 @@
 .sale-drawer .decimal-stepper input { width: 52px; min-width: 0; font-size: 12px; }
 .sale-drawer .decimal-stepper button { flex: 0 0 26px; width: 26px; height: 32px; }
 .sale-drawer .discount-row, .sale-drawer .price-summary > div { font-size: 12px; }
-.sale-drawer .payment-studio .pos-pay > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.sale-drawer .payment-studio .pos-pay > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
 .sale-drawer .pos-pay > span, .sale-drawer .quick-cash > span, .sale-drawer .cash-input label,
 .sale-drawer .cash-input span, .sale-drawer .receipt-toggle span, .sale-drawer .payment-status span { font-size: 12px; line-height: 1.5; color: #625e56; }
 .sale-drawer .pos-pay button, .sale-drawer .quick-cash button { font-size: 12px; }
@@ -521,3 +521,16 @@
 .confirmation-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .confirmation-actions .confirmation-danger { color: #912e24; border-color: #dcb7b2; }
 .confirmation-actions .confirmation-danger:disabled { opacity: .5; }
+
+.sale-drawer .pos-pay button span { white-space: normal; }
+.sale-drawer .digital-wallet-field select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #faf9f6;
+}
+.digital-payment-totals { display: grid; gap: 5px; width: 100%; margin: 8px 0 0; font-size: 13px; }
+.digital-payment-totals > div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 2px 8px; }
+.digital-payment-totals dd { margin: 0; font-weight: 600; }
