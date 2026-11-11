@@ -23,7 +23,7 @@ vi.mock('../services/api', () => ({ api: {
   adjustInventory: vi.fn(),
   promotions: vi.fn(), customers: vi.fn(),
   dashboard: vi.fn(), users: vi.fn(), createUser: vi.fn(),
-  orders: vi.fn(), createOrder: vi.fn(), registerDirectPurchase: vi.fn(),
+  orders: vi.fn(), receiveOrder: vi.fn(), registerDirectPurchase: vi.fn(),
   preferences:vi.fn(),savePreferences:vi.fn(),requestReservation:vi.fn(),reservations:vi.fn(),changeReservation:vi.fn(),uploadPhoto:vi.fn(),
 } }))
 const authState=vi.hoisted(()=>({user:{role:'admin',name:'Prueba'}}))
@@ -459,7 +459,7 @@ it('Ventas muestra fecha y hora de Lima para ventas de distintos días en la úl
   ])
 })
 
-it('Compras envía la mercadería ya recibida en una sola operación y conserva la orden pendiente', async () => {
+it('Compras registra la mercadería en una sola operación', async () => {
   const item = { id: 1, name: 'Aceite QA', unit: 'Unidad', category: 'Abarrotes' }
   api.products.mockResolvedValue([item])
   api.orders.mockResolvedValue([])
@@ -469,6 +469,8 @@ it('Compras envía la mercadería ya recibida en una sola operación y conserva 
   await settled(() => expect(element.textContent).toContain('Aún no hay compras registradas.'))
   act(() => button('Registrar compra').click())
   const form = element.querySelector('[role="dialog"] form')
+  expect(form.querySelector('input[name="received"]')).toBeNull()
+  expect(form.elements.reference.required).toBe(true)
   const data = { name: 'Mayorista QA', ruc: 'RUC QA', phone: '999999999', reference: 'BOLETA-QA-001' }
   for (const [key, value] of Object.entries(data)) type(form.elements[key], value)
   const product = form.querySelector('input[type="search"]')
@@ -505,24 +507,25 @@ it('Compras envía la mercadería ya recibida en una sola operación y conserva 
     supplierName: data.name, supplierRuc: data.ruc, supplierPhone: data.phone, reference: data.reference,
     items: [{ productId: 1, quantity: '1', cost: '5.00' }],
   })
-  expect(api.createOrder).not.toHaveBeenCalled()
-  expect(element.textContent).toContain('Compra registrada e ingresada al inventario.')
-  act(() => button('Registrar compra').click())
-  act(() => element.querySelectorAll('input[name="received"]')[1].click())
-  expect(element.querySelector('input[name="reference"]')).toBeNull()
-  api.createOrder.mockResolvedValue({ id: 9, status: 'pending' })
-  const pending = element.querySelector('[role="dialog"] form')
-  for (const name of ['name', 'ruc', 'phone']) type(pending.elements[name], data[name])
-  type(pending.querySelector('input[type="search"]'), 'aceite')
-  act(() => button('Aceite QA').click())
-  type(pending.querySelector('input[type="number"]'), '5.00')
-  await act(async () => button('Guardar orden pendiente').click())
-  expect(api.createOrder).toHaveBeenCalledWith({
-    supplierName: data.name, supplierRuc: data.ruc, supplierPhone: data.phone,
-    items: [{ productId: 1, quantity: '1', cost: '5.00' }],
-  })
   expect(api.registerDirectPurchase).toHaveBeenCalledTimes(1)
-  expect(element.textContent).toContain('Orden registrada como pendiente.')
+  expect(element.textContent).toContain('Compra registrada e ingresada al inventario.')
+})
+
+it('Compras permite registrar una recepción parcial para una orden pendiente anterior', async () => {
+  api.orders.mockResolvedValue([{ id: 9, status: 'pending', supplier_name: 'Mayorista QA', estimated_total: 20,
+    items: [{ id: 3, name: 'Aceite QA', unit: 'Unidad', quantity: 4, received_quantity: 1, unit_cost: 5 }] }])
+  api.products.mockResolvedValue([])
+  api.receiveOrder.mockResolvedValue({})
+  const element = render(<Purchases/>)
+  const button = label => [...element.querySelectorAll('button')].find(control => control.textContent === label)
+  await settled(() => expect(button('Registrar recepción')).toBeDefined())
+  act(() => button('Registrar recepción').click())
+  const form = element.querySelector('[role="dialog"] form')
+  type(form.elements.reference, 'BOLETA-QA-003')
+  type(form.elements['item-3'], '2')
+  await act(async () => button('Confirmar recepción').click())
+  expect(api.receiveOrder).toHaveBeenCalledWith(9, { reference: 'BOLETA-QA-003', items: [{ itemId: 3, quantity: '2' }] })
+  expect(api.registerDirectPurchase).not.toHaveBeenCalled()
 })
 
 it('Editar producto presenta el stock actual como texto y mantiene el umbral editable', () => {

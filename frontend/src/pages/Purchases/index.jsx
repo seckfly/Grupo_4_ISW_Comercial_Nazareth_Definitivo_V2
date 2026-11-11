@@ -9,12 +9,12 @@ import { InventoryDrawer, ProductDrawer } from '../Inventory/InventoryDrawers'
 import { api } from '../../services/api'
 import { currency,quantityLabel } from '../../utils/format'
 import { useInventory } from '../../context/InventoryContext'
-const purchaseLine = (product = null) => ({
+const purchaseLine = () => ({
   key: crypto.randomUUID(),
-  productId: product?.id ?? '',
-  query: product?.name ?? '',
+  productId: '',
+  query: '',
   quantity: '1',
-  cost: product ? String(product.cost) : '',
+  cost: '',
 })
 const emptySupplier = { name: '', ruc: '', phone: '', reference: '' }
 
@@ -70,22 +70,14 @@ function PurchaseProductField({ item, products, disabled, onSearch, onChoose, on
   </div>
 }
 
-export default function Purchases({purchaseProduct}) {
+export default function Purchases() {
   const [rows,setRows]=useState(null),[products,setProducts]=useState([]),[error,setError]=useState(''),[showPurchase,setShowPurchase]=useState(false),[selected,setSelected]=useState(null),[busy,setBusy]=useState(false),[revision,setRevision]=useState(0)
   const [received,setReceived]=useState({})
   const [notice, setNotice] = useState('')
-  const [direct, setDirect] = useState(true)
   const [supplier, setSupplier] = useState(emptySupplier)
   const [newProductLine, setNewProductLine] = useState(null)
   const [items,setItems]=useState(() => [purchaseLine()])
   const {data: inventory, setRevision:refreshStock}=useInventory()
-  useEffect(() => {
-    if (!purchaseProduct) return
-    setItems([purchaseLine(purchaseProduct)])
-    setSupplier(emptySupplier)
-    setDirect(false)
-    setShowPurchase(true)
-  }, [purchaseProduct])
   useEffect(()=>{let active=true;setRows(null);setError('');Promise.all([api.orders(),api.products()]).then(([orders,products])=>{if(active){setRows(orders);setProducts(products)}}).catch(error=>{if(active)setError(error.message)});return()=>{active=false}},[revision])
   async function perform(work, success) {
     if (busy) return
@@ -109,7 +101,6 @@ export default function Purchases({purchaseProduct}) {
     setItems([purchaseLine()])
     setError('')
     setSupplier(emptySupplier)
-    setDirect(true)
     setShowPurchase(true)
   }
   function savePurchase(event) {
@@ -122,11 +113,7 @@ export default function Purchases({purchaseProduct}) {
       supplierName: supplier.name, supplierRuc: supplier.ruc, supplierPhone: supplier.phone,
       items: items.map(({ productId, quantity, cost }) => ({ productId, quantity, cost })),
     }
-    if (direct) {
-      perform(() => api.registerDirectPurchase({ ...purchase, reference: supplier.reference }), 'Compra registrada e ingresada al inventario.')
-    } else {
-      perform(() => api.createOrder(purchase), 'Orden registrada como pendiente.')
-    }
+    perform(() => api.registerDirectPurchase({ ...purchase, reference: supplier.reference }), 'Compra registrada e ingresada al inventario.')
   }
   function updateLine(lineKey, changes) {
     setItems(current => current.map(item => item.key === lineKey ? { ...item, ...changes } : item))
@@ -144,10 +131,10 @@ export default function Purchases({purchaseProduct}) {
     setNewProductLine(null)
     refreshStock(value => value + 1)
   }
-  return <div className="page purchases-page"><PageHeader title="Compras" kicker="Reposición" description="Compras en mayorista y órdenes pendientes" action={<button className="primary" onClick={openPurchase} aria-label="Registrar compra"><Plus/>Registrar compra</button>}/>
+  return <div className="page purchases-page"><PageHeader title="Compras" kicker="Reposición" description="Registra las compras en mayorista e ingresa la mercadería al inventario." action={<button className="primary" onClick={openPurchase} aria-label="Registrar compra"><Plus/>Registrar compra</button>}/>
     {notice && <p className="form-success" role="status">{notice}</p>}
     {!showPurchase&&!selected&&error&&<p className="form-error" role="alert">{error}</p>}
-    {rows===null?!error&&<p>Cargando órdenes…</p>:!rows.length?<Card><p>Aún no hay compras registradas.</p></Card>:rows.map(order=><Card key={order.id}><div className="card-head"><div><h3>{order.status === 'received' ? 'Compra' : 'Orden'} #{order.id} · {order.supplier_name}</h3><p>RUC {order.supplier_ruc} · {order.supplier_phone}</p></div><span>{({pending:'Pendiente',received:'Recibida',cancelled:'Anulada'})[order.status]}</span></div>
+    {rows===null?!error&&<p>Cargando compras…</p>:!rows.length?<Card><p>Aún no hay compras registradas.</p></Card>:rows.map(order=><Card key={order.id}><div className="card-head"><div><h3>{order.status === 'received' ? 'Compra' : 'Orden'} #{order.id} · {order.supplier_name}</h3><p>RUC {order.supplier_ruc} · {order.supplier_phone}</p></div><span>{({pending:'Pendiente',received:'Recibida',cancelled:'Anulada'})[order.status]}</span></div>
       {order.items.map(item=><p key={item.id}>{item.name}: {quantityLabel(item.quantity,item.unit)} · Recibido: {quantityLabel(item.received_quantity,item.unit)} · {currency(item.unit_cost)}</p>)}<strong>Total estimado: {currency(order.estimated_total)}</strong>
       {order.status==='pending'&&<div className="toolbar"><button className="primary" disabled={busy} onClick={()=>{setReceived({});setSelected(order)}}>Registrar recepción</button><button className="secondary" disabled={busy||order.items.some(item=>Number(item.received_quantity)>0)} onClick={()=>perform(()=>api.cancelOrder(order.id))}>Anular orden</button></div>}
     </Card>)}
@@ -182,15 +169,9 @@ export default function Purchases({purchaseProduct}) {
         const line = purchaseLine()
         setItems(current => [...current, line])
       }}>Agregar otro producto</button>
-      <fieldset className="purchase-reception">
-        <legend>¿Ya recibiste la mercadería?</legend>
-        <label><input type="radio" name="received" checked={direct} onChange={() => setDirect(true)} disabled={busy}/>Sí, ya la recibí</label>
-        <label><input type="radio" name="received" checked={!direct} onChange={() => setDirect(false)} disabled={busy}/>Todavía no</label>
-      </fieldset>
-      {direct && <label>N.º de comprobante o referencia de recepción<input name="reference" value={supplier.reference} onChange={supplierField} required/></label>}
-      <p>{direct ? 'Las cantidades recibidas se sumarán al inventario al guardar.' : 'La orden quedará pendiente hasta que registres la recepción.'}</p>
+      <label>N.º de comprobante o referencia de recepción<input name="reference" value={supplier.reference} onChange={supplierField} required/></label>
       {error&&<p className="form-error" role="alert">{error}</p>}
-      <button className="primary" disabled={busy||!items.length}>{direct ? 'Guardar compra e ingresar al inventario' : 'Guardar orden pendiente'}</button>
+      <button className="primary" disabled={busy||!items.length}>Guardar compra e ingresar al inventario</button>
     </form></InventoryDrawer>}
     {showPurchase && newProductLine !== null && <ProductDrawer
       categories={inventory.categories}

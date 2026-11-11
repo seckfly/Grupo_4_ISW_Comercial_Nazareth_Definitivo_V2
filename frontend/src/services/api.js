@@ -27,7 +27,6 @@ export const api = {
   preferences: (signal) => request('/preferences', { signal }),
   savePreferences: (data) => request('/preferences', { method:'PUT',body:JSON.stringify(data) }),
   orders: () => request('/purchase-orders'),
-  createOrder: data => request('/purchase-orders',{method:'POST',body:JSON.stringify(data)}),
   registerDirectPurchase: data => request('/purchase-orders/direct',{method:'POST',body:JSON.stringify(data)}),
   cancelOrder: id => request('/purchase-orders/'+id+'/cancel',{method:'POST'}),
   receiveOrder: (id,data) => request('/purchase-orders/'+id+'/receipts',{method:'POST',body:JSON.stringify(data)}),

@@ -21,16 +21,15 @@ function InventoryStock({ product }) {
   </dl>
 }
 
-function ProductActions({ product, open, buy }) {
+function ProductActions({ product, open }) {
   return <div className="inventory-actions">
     <button className="icon-btn" type="button" onClick={() => open('edit', product)} aria-label={'Editar ' + product.name} title="Editar producto"><Pencil/></button>
     <button className="icon-btn" type="button" onClick={() => open('adjust', product)} aria-label={'Ajustar stock de ' + product.name} title="Ajustar stock"><SlidersHorizontal/></button>
     <button className="icon-btn" type="button" onClick={() => open('history', product)} aria-label={'Ver historial de ' + product.name} title="Historial"><History/></button>
-    {product.isActive&&product.stock<product.minimum&&<button className="icon-btn" type="button" title="Preparar orden de compra" aria-label={'Preparar compra de '+product.name} onClick={()=>buy(product)}><PackagePlus/></button>}
   </div>
 }
 
-export default function Inventory({onNavigate}) {
+export default function Inventory() {
   const { data, setData, loading, error, setRevision } = useInventory()
   useEffect(() => { setRevision(value => value + 1) }, [setRevision])
   const [notice, setNotice] = useState('')
@@ -93,14 +92,14 @@ export default function Inventory({onNavigate}) {
           <td>#{String(product.id).padStart(4, '0')}</td><td>{product.category}</td>
           <td><InventoryStock product={product}/></td>
           <td>{currency(product.cost)}</td><td><strong>{currency(product.price)}</strong></td><td><span className="margin">{margin(product.cost, product.price)}%</span></td>
-          <td><ProductActions product={product} open={open} buy={product=>onNavigate?.('Compras',product)}/></td>
+          <td><ProductActions product={product} open={open}/></td>
         </tr>)}</tbody>
       </table></div></Card> : <div className="product-grid premium-products">{shown.map((product) => <Card key={product.id}>
         <div className="product-card-top"><span className="product-letter">{product.name[0]}</span></div>
         <small>{product.category} · #{String(product.id).padStart(4, '0')}{!product.isActive ? ' · Inactivo' : ''}</small>
         <h3>{product.name}</h3><InventoryStock product={product}/>
         <div className="price-row"><strong>{currency(product.price)}</strong><span>{margin(product.cost, product.price)}% margen</span></div>
-        <ProductActions product={product} open={open} buy={product=>onNavigate?.('Compras',product)}/>
+        <ProductActions product={product} open={open}/>
       </Card>)}</div>}
     {(panel?.type === 'create' || panel?.type === 'edit') && <ProductDrawer product={panel.product} categories={data.categories} close={() => setPanel(null)} saved={saved}/>}
     {panel?.type === 'adjust' && <AdjustmentDrawer product={panel.product} close={() => setPanel(null)} saved={saved}/>}
