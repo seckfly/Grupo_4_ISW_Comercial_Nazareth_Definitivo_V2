@@ -93,6 +93,27 @@ describe('controles numéricos del checkout y de Inventario', () => {
     expect(element.querySelector('form').checkValidity()).toBe(false)
   })
 
+  it('Mi lista incrementa de uno en uno e impide fracciones para productos por unidad', async () => {
+    authState.user.role = 'client'
+    api.products.mockResolvedValue([{ id: 1, name: 'Café', category: 'Abarrotes', unit: 'Unidad', current_stock: 7, sale_price: 10.40 }])
+    api.preferences.mockResolvedValue({ favorites: [], list: [1] })
+    const element = render(<Products/>)
+    await settled(() => expect(element.querySelector('[role="spinbutton"]')).not.toBeNull())
+    const input = element.querySelector('[role="spinbutton"]')
+    const submit = [...element.querySelectorAll('button')].find(button => button.textContent.includes('Solicitar separación'))
+    expect(input.value).toBe('1')
+    act(() => input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true })))
+    expect(input.value).toBe('2')
+    act(() => element.querySelector('[aria-label^="Sumar 1"]').click())
+    expect(input.value).toBe('3')
+    type(input, '1.08')
+    expect(input.getAttribute('aria-invalid')).toBe('true')
+    expect(submit.disabled).toBe(true)
+    type(input, '')
+    expect(input.value).toBe('')
+    expect(submit.disabled).toBe(true)
+  })
+
   it('el carrito admite dos decimales y rechaza cantidades que exceden el stock', () => {
     function Example() {
       const [value, setValue] = useState('0.25')

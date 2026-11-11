@@ -1,11 +1,11 @@
 import { quantityLabel } from '../../utils/format'
 import { useEffect,useMemo,useRef,useState } from 'react'
-import { LayoutDashboard,ShoppingCart,Package,BadgePercent,Users,ChartNoAxesCombined,Settings,LogOut,Menu,X,Plus,Command,Search,Bell,ArrowRight,Clock3,TriangleAlert,CheckCircle2,Store,House } from 'lucide-react'
+import { LayoutDashboard,ShoppingCart,Package,BadgePercent,Users,ChartNoAxesCombined,Settings,LogOut,Menu,X,Plus,Command,Search,Bell,ArrowRight,Clock3,TriangleAlert,CheckCircle2,Store } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useInventory } from '../../context/InventoryContext'
 import { useLiveDateTime } from '../../hooks/useLiveDateTime'
 import { searchCommands,visibleNavigation } from '../../utils/auth'
-const icons={Compras:Package,Reservas:Package,Resumen:LayoutDashboard,Productos:Store,Ventas:ShoppingCart,Inventario:Package,Promociones:BadgePercent,Clientes:Users,Reportes:ChartNoAxesCombined,Configuración:Settings,'Mi hogar':House,'Mi cuenta':Users}
+const icons={Compras:Package,Reservas:Package,Resumen:LayoutDashboard,Productos:Store,Ventas:ShoppingCart,Inventario:Package,Promociones:BadgePercent,Clientes:Users,Reportes:ChartNoAxesCombined,Configuración:Settings,'Mi cuenta':Users}
 export default function AppShell({page,setPage,onSale,children}){
   const {alertCount, data: inventory, loading: stockLoading, error: stockError}=useInventory();
   useEffect(()=>{setNotices(false)},[page])

@@ -210,3 +210,67 @@
 
 .sale-drawer .payment-qr { display:block; width:180px; height:180px; margin:12px auto; background:white; }
 .sale-drawer .digital-payment p { font-size:12px;line-height:1.5;color:#625e56; }
+
+/* Currency and percentage fields accept decimals typed by the user. */
+.amount-input { appearance: textfield; }
+.quantity-field { display: grid; gap: 6px; min-width: 0; }
+.amount-input::-webkit-inner-spin-button,
+.amount-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+.shopping-list-lines article {
+  grid-template-columns: 42px minmax(0, 1fr) 32px;
+  align-items: start;
+}
+.shopping-list-image-placeholder {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+  background: #e2c09f;
+  color: #213d2c;
+  font-weight: 650;
+}
+.shopping-list-lines article strong { overflow-wrap: anywhere; font-size: 13px; }
+.shopping-list-lines article small { font-size: 12px; }
+.shopping-list-quantity { display: block; margin-top: 8px; font-size: 12px; }
+.shopping-list-lines .decimal-stepper {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  gap: 6px;
+  max-width: 166px;
+  margin-top: 4px;
+}
+.shopping-list-lines .decimal-stepper input { height: 36px; padding: 4px; color: #213d2c; background: #faf9f6; }
+.shopping-list-lines .decimal-stepper button { width: 36px; height: 36px; }
+.shopping-list-lines .decimal-stepper button:disabled,
+.shopping-list-lines .shopping-list-remove:disabled { opacity: .45; }
+.shopping-list-lines .shopping-list-remove { width: 32px; height: 32px; }
+.shopping-list-lines .shopping-list-quantity-error { color: #f3c5ad; font-size: 12px; }
+@media (max-width: 480px) {
+  .shopping-list-lines .decimal-stepper { grid-template-columns: 44px minmax(0, 1fr) 44px; max-width: 184px; }
+  .shopping-list-lines .decimal-stepper input,
+  .shopping-list-lines .decimal-stepper button { height: 44px; }
+  .shopping-list-lines .decimal-stepper button { width: 44px; }
+}
+
+.client-account .account-grid { align-items: start; grid-template-columns: minmax(0, 390px) minmax(0, 1fr); }
+.client-account .account-identity { min-height: 0; padding: clamp(22px, 4vw, 32px); }
+.client-account .account-points { margin: 20px 0 0; }
+.client-account .account-contact { padding: clamp(20px, 4vw, 32px); }
+.account-contact h3 { margin: 0; color: #213d2c; }
+.account-contact dl {
+  display: grid;
+  margin: 18px 0 0;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #faf9f6;
+}
+.account-contact dl > div { display: grid; gap: 4px; padding: 14px 0; min-width: 0; }
+.account-contact dl > div + div { border-top: 1px solid var(--line); }
+.account-contact dt { color: #655f56; font-size: 13px; }
+.account-contact dd { margin: 0; color: #213d2c; font-weight: 600; overflow-wrap: anywhere; }
+@media (max-width: 1100px) {
+  .client-account .account-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+}

@@ -1,5 +1,5 @@
 import { randomBytes, createHash } from 'node:crypto'
-import { decimalUnits, decimalText, lineAmount, positiveId, inputError } from '../../../shared/numbers.mjs'
+import { decimalUnits, decimalText, lineAmount, positiveId, inputError, quantityForUnit } from '../../../shared/numbers.mjs'
 import { transaction, heldSql } from './stockService.js'
 import { customerForUser } from './customerService.js'
 import { priceSql } from './priceService.js'
@@ -18,7 +18,7 @@ async function writeItems(db,id,items) {
   for(const [index,item] of items.entries()) {
     const {rows:[product]}=await db.query(`SELECT p.id,p.name,p.unit,${priceSql()}::text AS price,p.is_active FROM nazareth.products p WHERE id=$1`,[item.productId])
     if(!product?.is_active)throw inputError('Producto no disponible',409)
-    total+=lineAmount(decimalUnits(item.quantity),decimalUnits(product.price))
+    total+=lineAmount(quantityForUnit(item.quantity, product.unit),decimalUnits(product.price))
     await db.query('INSERT INTO nazareth.reservation_items(reservation_id,product_id,line_position,quantity,unit_price) VALUES($1,$2,$3,$4,$5)',[id,item.productId,index+1,item.quantity,product.price])
   }
   await db.query('UPDATE nazareth.reservations SET estimated_total=$1 WHERE id=$2',[decimalText(total),id])

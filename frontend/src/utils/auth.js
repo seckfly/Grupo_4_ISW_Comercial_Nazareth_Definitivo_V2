@@ -1,8 +1,7 @@
-export function visibleNavigation(role) { return role === 'admin' ? ['Resumen','Ventas','Inventario','Promociones','Clientes','Reportes','Configuración','Compras','Reservas','Mi cuenta'] : ['Resumen','Productos','Promociones','Mi hogar','Reservas','Mi cuenta'] }
+export function visibleNavigation(role) { return role === 'admin' ? ['Resumen','Ventas','Inventario','Promociones','Clientes','Reportes','Configuración','Compras','Reservas','Mi cuenta'] : ['Resumen','Productos','Promociones','Reservas','Mi cuenta'] }
 const COMMANDS=[{page:'Compras',label:'Registrar compras',hint:'Proveedor, orden y recepción'},{page:'Reservas',label:'Consultar reservas',hint:'Solicitudes y apartados'},
   {page:'Resumen',label:'Ir al resumen',hint:'Vista general del negocio'},
-  {page:'Productos',label:'Explorar productos',hint:'Catálogo, precios y favoritos'},
-  {page:'Mi hogar',label:'Abrir mi hogar',hint:'Reposición, presupuesto y planificación'},
+  {page:'Productos',label:'Explorar productos',hint:'Catálogo, favoritos y Mi lista'},
   {page:'Ventas',label:'Abrir ventas',hint:'Movimientos y caja'},
   {page:'Inventario',label:'Revisar inventario',hint:'Stock, costos y márgenes'},
   {page:'Promociones',label:'Ver promociones',hint:'Ofertas activas y programadas'},

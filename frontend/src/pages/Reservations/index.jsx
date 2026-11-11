@@ -5,6 +5,8 @@ import { InventoryDrawer } from '../Inventory/InventoryDrawers'
 import { api } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { useInventory } from '../../context/InventoryContext'
+import { usesWholeQuantity } from '../../../../shared/numbers.mjs'
+import DecimalInput from '../../components/ui/DecimalInput'
 import { currency,quantityLabel } from '../../utils/format'
 const names={pending:'Pendiente de confirmación',confirmed:'Apartado confirmado',cancelled:'Cancelada',rejected:'Rechazada',expired:'Vencida',collected:'Recogida y pagada'}
 export default function Reservations({openSale}) {
@@ -30,7 +32,7 @@ export default function Reservations({openSale}) {
     </Card>)}
     {editing&&<InventoryDrawer title="Ajustar solicitud" close={()=>setEditing(null)} busy={busy}><form onSubmit={event=>{event.preventDefault();act(editing.id,{action:'edit',items})}}>
       <p>Al guardar se libera cualquier apartado anterior y la solicitud vuelve a Pendiente de confirmación.</p>
-      {items.map((item,index)=><div className="form-row" key={index}><label>Producto<select value={item.productId} onChange={event=>field(index,'productId',event.target.value)} required><option value="">Selecciona</option>{products.map(product=><option value={product.id} key={product.id}>{product.name} · {product.unit}</option>)}</select></label><label>Cantidad<input type="number" min=".01" step=".01" value={item.quantity} onChange={event=>field(index,'quantity',event.target.value)} required/></label><button className="text-btn" type="button" onClick={()=>setItems(items.filter((_,i)=>i!==index))}>Retirar producto</button></div>)}
+      {items.map((item,index)=>{const whole=usesWholeQuantity(products.find(product=>product.id===Number(item.productId))?.unit);return <div className="form-row" key={index}><label>Producto<select value={item.productId} onChange={event=>field(index,'productId',event.target.value)} required><option value="">Selecciona</option>{products.map(product=><option value={product.id} key={product.id}>{product.name} · {product.unit}</option>)}</select></label><div className="quantity-field">Cantidad<DecimalInput label={'Cantidad de la línea '+(index+1)} minUnits={whole?100:1} whole={whole} value={item.quantity} onChange={value=>field(index,'quantity',value)} disabled={busy}/></div><button className="text-btn" type="button" onClick={()=>setItems(items.filter((_,i)=>i!==index))}>Retirar producto</button></div>})}
       <button className="secondary" type="button" disabled={items.length>=3} onClick={()=>setItems([...items,{productId:'',quantity:'1'}])}>Agregar producto</button>
       {error&&<p className="form-error" role="alert">{error}</p>}<button className="primary" disabled={busy||!items.length}>Guardar solicitud</button>
     </form></InventoryDrawer>}

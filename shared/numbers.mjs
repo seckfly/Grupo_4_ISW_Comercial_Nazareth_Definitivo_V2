@@ -17,6 +17,18 @@ export function decimalUnits(value, { signed = false, maxUnits = QUANTITY_MAX_UN
   return negative ? -units : units
 }
 
+export function usesWholeQuantity(unit) {
+  return ['unidad', 'unidades', 'paquete', 'paquetes'].includes(String(unit ?? '').trim().toLowerCase())
+}
+
+export function quantityForUnit(value, unit) {
+  const quantity = decimalUnits(value, { label: 'La cantidad' })
+  if (usesWholeQuantity(unit) && quantity % 100 !== 0) {
+    throw inputError('Ingresa una cantidad entera para ' + unit)
+  }
+  return quantity
+}
+
 export function decimalText(units) {
   const absolute = Math.abs(units)
   return `${units < 0 ? '-' : ''}${Math.floor(absolute / 100)}.${String(absolute % 100).padStart(2, '0')}`

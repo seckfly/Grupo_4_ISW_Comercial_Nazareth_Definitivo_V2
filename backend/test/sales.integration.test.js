@@ -238,6 +238,19 @@ test('PRU-011: solicitud hasta tres productos, 24 horas, código e idempotencia 
   assert.equal(collision.pickup_code,'NZ-NEW-CODE-QA')
 })
 
+test('Separación rechaza fracciones de un producto vendido por unidad', async () => {
+  const item = await product({ unit: 'Unidad', initialStock: 3 })
+  const makeRequest = quantity => request('/api/reservations', {
+    role: 'client-fixture', method: 'POST',
+    body: { requestId: randomUUID(), items: [{ productId: item.id, quantity }] },
+  })
+  const invalid = await makeRequest('1.08')
+  assert.equal(invalid.status, 400)
+  assert.match(JSON.stringify(invalid.body), /cantidad entera/)
+  assert.equal((await request('/api/reservations', { role: 'client-fixture' })).body.length, 0)
+  assert.equal((await makeRequest('2')).status, 200)
+})
+
 test('Apartado: últimas unidades frente a venta concurrente; cancelación, vencimiento y ajuste',async()=>{
   const p=await product({initialStock:3,minimum:1})
   const requested=await request('/api/reservations',{role:'client-fixture',method:'POST',body:{requestId:randomUUID(),items:[{productId:p.id,quantity:3}]}})

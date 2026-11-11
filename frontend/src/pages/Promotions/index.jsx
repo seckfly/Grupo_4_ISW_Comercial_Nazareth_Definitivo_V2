@@ -1,3 +1,4 @@
+import AmountInput from '../../components/ui/AmountInput'
 import { useEffect, useState } from 'react'
 import { ArrowRight, BadgePercent, CalendarDays, Plus, Search, X } from 'lucide-react'
 import PageHeader from '../../components/ui/PageHeader'
@@ -81,7 +82,7 @@ function CampaignModal({ campaign, close, saved }) {
       {<>
         <p className="eyebrow">Nueva campaña</p><h3>{campaign ? 'Editar promoción' : 'Crear promoción'}</h3>
         <label>Producto<select name="productId" required value={productId} onChange={event=>setProductId(event.target.value)}><option value="">Selecciona un producto</option>{campaign&&!products.some(product=>product.id===campaign.productId)&&<option value={campaign.productId}>{campaign.product}</option>}{products.map((product) => <option value={product.id} key={product.id}>{product.name}</option>)}</select></label>
-        <div><label>{discountType === 'percentage' ? 'Descuento (%)' : 'Descuento (S/)'}<input name="discountValue" type="number" min="0.01" step="0.01" max={discountType === 'percentage' ? 100 : 99999999.99} value={discountValue} onChange={event=>setDiscountValue(event.target.value)} required/></label>
+        <div><label>{discountType === 'percentage' ? 'Descuento (%)' : 'Descuento (S/)'}<AmountInput name="discountValue" min="0.01" step="0.01" max={discountType === 'percentage' ? 100 : 99999999.99} value={discountValue} onChange={event=>setDiscountValue(event.target.value)} required/></label>
           <label>Tipo<select name="discountType" value={discountType} onChange={(event) => setDiscountType(event.target.value)}><option value="percentage">Porcentaje</option><option value="fixed">Monto fijo</option></select></label></div>
         <div><label>Inicio<input name="startDate" type="date" defaultValue={dateInput(campaign?.startDate)} required/></label><label>Fin<input name="endDate" type="date" defaultValue={dateInput(campaign?.endDate)} required/></label></div>
         <label>Estado<select name="status" defaultValue={campaign?.status || 'scheduled'}><option value="active">Activa</option><option value="scheduled">Programada</option><option value="paused">Pausada</option><option value="finished">Finalizada</option></select></label>

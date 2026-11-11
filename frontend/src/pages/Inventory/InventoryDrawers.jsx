@@ -4,6 +4,7 @@ import { api } from '../../services/api'
 import { Skeleton, EmptyState } from '../../components/ui/States'
 import DecimalInput from '../../components/ui/DecimalInput'
 import { decimalUnits } from '../../../../shared/numbers.mjs'
+import AmountInput from '../../components/ui/AmountInput'
 import { quantityLabel } from '../../utils/format'
 
 export function InventoryDrawer({ title, kicker, close, busy = false, children }) {
@@ -90,12 +91,12 @@ export function ProductDrawer({ product, categories, close, saved }) {
         <label>Unidad<select value={form.unit} onChange={(event) => field('unit', event.target.value)}>{units.map((unit) => <option key={unit}>{unit}</option>)}</select></label>
       </div>
       <div className="form-row">
-        <label>Costo<input type="number" min="0" max="99999999.99" step="0.01" value={form.cost} onChange={(event) => field('cost', event.target.value)} placeholder="0.00" required/></label>
-        <label>Precio de venta<input type="number" min="0" max="99999999.99" step="0.01" value={form.price} onChange={(event) => field('price', event.target.value)} placeholder="0.00" required/></label>
+        <label>Costo<AmountInput min="0" max="99999999.99" step="0.01" value={form.cost} onChange={(event) => field('cost', event.target.value)} placeholder="0.00" required/></label>
+        <label>Precio de venta<AmountInput min="0" max="99999999.99" step="0.01" value={form.price} onChange={(event) => field('price', event.target.value)} placeholder="0.00" required/></label>
       </div>
       <div className="form-row">
-        <label>{editing ? 'Stock actual' : 'Stock inicial'}<input type="number" min="0" max="99999999.99" step="0.01" value={editing ? product.stock : form.initialStock} readOnly={editing} onChange={(event) => field('initialStock', event.target.value)} required/></label>
-        <label>Alerta mínima<input type="number" min="0" max="99999999.99" step="0.01" value={form.minimum} onChange={(event) => field('minimum', event.target.value)} required/></label>
+        <div className="quantity-field">{editing ? 'Stock actual' : 'Stock inicial'}{editing ? <input value={product.stock} readOnly/> : <DecimalInput label="Stock inicial" value={form.initialStock} onChange={value=>field('initialStock',value)} disabled={busy}/>}</div>
+        <div className="quantity-field">Alerta mínima<DecimalInput label="Alerta mínima" value={form.minimum} onChange={value=>field('minimum',value)} disabled={busy}/></div>
       </div>
       {editing && <small className="muted">Para cambiar las existencias, usa Ajustar stock e indica el motivo.</small>}
       <label className="access-toggle"><input type="checkbox" checked={form.isActive} onChange={(event) => field('isActive', event.target.checked)}/><span><strong>Producto activo</strong></span></label>
@@ -135,7 +136,7 @@ export function AdjustmentDrawer({ product, close, saved }) {
   return <InventoryDrawer title="Ajustar stock" kicker={product.name} close={close} busy={busy}>
     <form onSubmit={submit} aria-busy={busy}>
       <div className="form-row"><label>Stock consultado<input value={product.stock} readOnly/></label><label>Saldo previsto<input value={Number(result.toFixed(2))} readOnly aria-invalid={result < Number(product.held||0)} aria-describedby={result < Number(product.held||0) ? 'negative-stock-warning' : undefined}/>{result < Number(product.held||0) && <span id="negative-stock-warning" className="form-error" role="alert">El saldo no puede ser negativo ni inferior a las unidades apartadas. Reduce la cantidad retirada.</span>}</label></div>
-      <label>Variación de existencias<DecimalInput label="Variación de existencias" name="change" value={form.change} signed onChange={(value) => field('change', value)} disabled={busy}/></label>
+      <div className="quantity-field">Variación de existencias<DecimalInput label="Variación de existencias" name="change" value={form.change} signed onChange={(value) => field('change', value)} disabled={busy}/></div>
       <small className="muted">Usa un valor positivo para agregar unidades y uno negativo para retirarlas. El saldo se comprueba al guardar.</small>
       <label>Motivo<input value={form.reason} onChange={(event) => field('reason', event.target.value)} placeholder="Ej. Producto dañado" required/></label>
       {error && <p className="form-error" role="alert">{error}</p>}
