@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { ChevronDown, Plus } from 'lucide-react'
+import { ChevronDown, Plus, X } from 'lucide-react'
 import { decimalUnits } from '../../../../shared/numbers.mjs'
 import DecimalInput from '../../components/ui/DecimalInput'
 import AmountInput from '../../components/ui/AmountInput'
@@ -157,7 +157,16 @@ export default function Purchases({purchaseProduct}) {
         <label>RUC<input name="ruc" value={supplier.ruc} onChange={supplierField} required/></label>
         <label>Teléfono<input name="phone" value={supplier.phone} onChange={supplierField} required/></label>
       </div>
-      {items.map((item, index) => <div key={item.key}>
+      {items.map((item, index) => <div key={item.key} className="purchase-line"
+        role="group" aria-labelledby={'purchase-line-' + item.key}>
+        <div className="purchase-line-heading">
+          <h3 id={'purchase-line-' + item.key}>Producto {index + 1}</h3>
+          {items.length > 1 && <button type="button" className="secondary purchase-remove-product" disabled={busy}
+            aria-label={'Quitar producto ' + (index + 1) + ' de la compra'}
+            onClick={() => setItems(current => current.length > 1 ? current.filter(line => line.key !== item.key) : current)}>
+            <X aria-hidden="true"/>Quitar
+          </button>}
+        </div>
         <PurchaseProductField item={item} products={products} disabled={busy}
           onSearch={query => updateLine(item.key, { query, productId: '' })}
           onChoose={product => updateLine(item.key, { query: product.name, productId: product.id })}
@@ -168,9 +177,6 @@ export default function Purchases({purchaseProduct}) {
           <label>Costo unitario<AmountInput min=".01" step=".01" required value={item.cost}
             onChange={event => updateLine(item.key, { cost: event.target.value })}/></label>
         </div>
-        {items.length > 1 && <button type="button" className="text-btn" disabled={busy} onClick={() => setItems(current =>
-          current.length > 1 ? current.filter(line => line.key !== item.key) : current
-        )}>Retirar línea</button>}
       </div>)}
       <button className="secondary" type="button" disabled={busy} onClick={() => {
         const line = purchaseLine()
