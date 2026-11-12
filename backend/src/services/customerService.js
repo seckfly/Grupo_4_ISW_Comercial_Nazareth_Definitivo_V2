@@ -1,17 +1,35 @@
 import { positiveId, inputError } from '../../../shared/numbers.mjs'
 import { transaction } from './stockService.js'
 export async function customerForUser(db,userId) {
-  const {rows:[customer]}=await db.query('SELECT id,name,phone,points FROM nazareth.customers WHERE user_id=$1',[positiveId(userId)])
+  const { rows: [customer] } = await db.query(`
+    SELECT c.id, c.name, c.phone,
+      (c.points + trunc(COALESCE((
+        SELECT SUM(s.total_amount)
+        FROM nazareth.sales s
+        WHERE s.customer_id = c.id AND s.status = 'completed'
+      ), 0)))::float8 AS points
+    FROM nazareth.customers c
+    WHERE c.user_id = $1`, [positiveId(userId)])
   if(!customer)throw inputError('No existe un cliente asociado a esta cuenta',404)
   return customer
 }
 export async function customerDirectory(db) {
-  const {rows}=await db.query(`SELECT c.id,p.name,p.email,c.phone,c.points,
-    (SELECT COUNT(*)::int FROM nazareth.sales s WHERE s.customer_id=c.id AND s.status='completed') AS visits,
-    COALESCE((SELECT SUM(total_amount)::float8 FROM nazareth.sales s WHERE s.customer_id=c.id AND s.status='completed'),0) AS spent,
-    COALESCE((SELECT json_agg(x ORDER BY x."createdAt" DESC) FROM (SELECT id,created_at AS "createdAt",total_amount::float8 AS total,payment_method AS "paymentMethod" FROM nazareth.sales WHERE customer_id=c.id AND status='completed') x),'[]') AS purchases
-    FROM nazareth.customers c JOIN nazareth.account_directory p ON p.id=c.user_id
-    WHERE p.role='client' AND p.access_removed_at IS NULL ORDER BY p.name,c.id`)
+  const { rows } = await db.query(`
+    SELECT c.id, p.name, p.email, c.phone,
+      (c.points + trunc(history.spent))::float8 AS points,
+      history.visits, history.spent::float8 AS spent, history.purchases
+    FROM nazareth.customers c
+    JOIN nazareth.account_directory p ON p.id = c.user_id
+    CROSS JOIN LATERAL (
+      SELECT COUNT(*)::int AS visits, COALESCE(SUM(s.total_amount), 0) AS spent,
+        COALESCE(json_agg(json_build_object(
+          'id', s.id, 'createdAt', s.created_at, 'total', s.total_amount, 'paymentMethod', s.payment_method
+        ) ORDER BY s.created_at DESC), '[]') AS purchases
+      FROM nazareth.sales s
+      WHERE s.customer_id = c.id AND s.status = 'completed'
+    ) history
+    WHERE p.role = 'client' AND p.access_removed_at IS NULL
+    ORDER BY p.name, c.id`)
   return rows
 }
 export async function preferences(db,userId) {

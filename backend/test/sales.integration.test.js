@@ -408,20 +408,22 @@ test('Una respuesta perdida después de guardar una campaña se recupera sin dup
   assert.equal(Number((await separate(reservation)).body.estimated_total), 8.4)
 })
 
-test('PRU-004/012/015: Cliente Demo, venta sin cliente, portal propio, frecuencia y puntos persistidos',async()=>{
-  const p=await product()
-  const linked=await request('/api/sales',{method:'POST',body:await salePayload(p.id,{customerId:1})})
+test('PRU-004/012/015: cada cliente acumula puntos por sus ventas completadas',async()=>{
+  const p=await product({price:'13.75'})
+  assert.equal((await request('/api/customer-account',{role:'client-fixture'})).body.points,0)
+  const linked=await request('/api/sales',{method:'POST',body:await salePayload(p.id,{customerId:1,discount:'0.25'})})
   const anonymous=await request('/api/sales',{method:'POST',body:await salePayload(p.id)})
   assert.equal(linked.status,201);assert.equal(anonymous.status,201)
   assert.equal(anonymous.body.customerId,null)
   const purchases=await request('/api/customer-sales',{role:'client-fixture'})
   assert.deepEqual(purchases.body.map(s=>s.id),[linked.body.id])
-  await postgres.admin.query('UPDATE nazareth.customers SET points=37 WHERE id=1')
+  assert.equal(linked.body.total,41)
   const account=await request('/api/customer-account',{role:'client-fixture'})
-  assert.equal(account.body.points,37)
+  assert.equal(account.body.points,41)
   const clients=(await request('/api/customers')).body
+  assert.equal(clients[0].points,41)
   assert.equal(clients[0].visits,1);assert.equal(clients[0].purchases[0].id,linked.body.id)
-  const report=await dashboard(pool,'week');assert.equal(report.today.total,40.2);assert.equal(report.activity.filter(a=>a.kind==='sale').length,2)
+  const report=await dashboard(pool,'week');assert.equal(report.today.total,82.25);assert.equal(report.activity.filter(a=>a.kind==='sale').length,2)
   assert.equal((await request('/api/inventory')).body.products[0].stock,4)
   const otherIdentity=randomUUID()
   await postgres.admin.query(`INSERT INTO auth.users VALUES($1,'otra@example.test');`,[otherIdentity])
@@ -431,8 +433,8 @@ test('PRU-004/012/015: Cliente Demo, venta sin cliente, portal propio, frecuenci
   assert.deepEqual((await request('/api/customer-sales',{role:'client-fixture'})).body.map(sale=>sale.id),[linked.body.id])
   const other=await request('/api/customer-sales',{role:'other-fixture'})
   assert.equal(other.body.length,1);assert.equal(other.body[0].customerId,2)
-  assert.equal((await request('/api/customer-account?userId=3',{role:'client-fixture'})).body.points,37)
-  assert.equal((await request('/api/customer-account',{role:'other-fixture'})).body.points,99)
+  assert.equal((await request('/api/customer-account?userId=3',{role:'client-fixture'})).body.points,41)
+  assert.equal((await request('/api/customer-account',{role:'other-fixture'})).body.points,112)
 })
 
 test('PRU-007: favoritos y lista persistidos y aislados por cuenta',async()=>{
@@ -548,6 +550,7 @@ test('Recojo: venta vinculada y cierre conjuntos, reintentos y conexiones simult
   const p=await product({initialStock:3})
   const requested=await request('/api/reservations',{role:'client-fixture',method:'POST',body:{requestId:randomUUID(),items:[{productId:p.id,quantity:3}]}})
   assert.equal((await request('/api/reservations/'+requested.body.id,{method:'POST',body:{action:'confirm'}})).status,200)
+  assert.equal((await request('/api/customer-account',{role:'client-fixture'})).body.points,0)
   const payload=await salePayload(p.id,{reservationId:requested.body.id,customerId:1})
   await postgres.admin.query(`CREATE FUNCTION nazareth.fail_pickup_qa() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.status='collected' THEN RAISE EXCEPTION 'Fallo QA aislado'; END IF; RETURN NEW; END $$;
     CREATE TRIGGER fail_pickup_qa BEFORE UPDATE ON nazareth.reservations FOR EACH ROW EXECUTE FUNCTION nazareth.fail_pickup_qa()`)
@@ -564,6 +567,7 @@ test('Recojo: venta vinculada y cierre conjuntos, reintentos y conexiones simult
   assert.equal(inventory.stock,0);assert.equal(inventory.held,0)
   assert.equal((await request('/api/reservations',{role:'client-fixture'})).body[0].status,'collected')
   assert.equal((await request('/api/customer-sales',{role:'client-fixture'})).body.length,1)
+  assert.equal((await request('/api/customer-account',{role:'client-fixture'})).body.points,20)
   const history=await request('/api/inventory/products/'+p.id+'/history')
   assert.equal(history.body.movements.filter(row=>row.type==='sale').length,1)
   assert.equal((await request('/api/sales',{method:'POST',body:{...payload,requestId:randomUUID()}})).status,409)
