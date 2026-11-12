@@ -21,7 +21,7 @@ Reinicia Express tras aplicar las migraciones pendientes. El bucket de fotos adm
 
 Mantener en `backend/.env`: `DATABASE_URL`, `DATABASE_SSL_CA_FILE` si corresponde, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `CLIENT_ORIGIN`, `PORT`. Mantener en `frontend/.env`: `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`.
 
-La clave `SUPABASE_SECRET_KEY` configurada devolvió HTTP 401 «Invalid API key» durante la verificación alojada. En Supabase Dashboard, abrir Project Settings → API Keys y configurar una clave secreta válida del mismo proyecto en **backend/.env**, nunca en Vite ni en el chat. Confirmar que URL, clave publicable y clave secreta correspondan al mismo proyecto. No copiar claves privilegiadas al repositorio. Este bloqueo también impide verificar en vivo las operaciones administrativas de Auth que necesitan esa clave.
+Para las operaciones administrativas de Auth y Storage, configura `SUPABASE_SECRET_KEY` en el servidor con una clave del mismo proyecto que la URL y la clave publicable. Guarda la clave secreta en Express y reserva las variables `VITE_*` para la configuración publicable.
 
 ## Fotos
 
@@ -33,7 +33,7 @@ Mi cuenta está disponible para administrador y cliente. Se solicita contraseña
 
 Se utiliza `current_password` con la versión de supabase-js fijada en el proyecto; ver [contraseñas de Supabase](https://supabase.com/docs/guides/auth/passwords) y [seguridad y reautenticación](https://supabase.com/docs/guides/auth/password-security). Mantener la política de seguridad del proyecto. El inicio reciente del verificador atiende la reautenticación requerida; si Supabase exige otro control, se muestra el error y se pide volver a autenticar, sin eludirlo.
 
-Pruebas locales del flujo con dobles de Auth: coincidencia de confirmación, contraseña actual incorrecta, actualización e inicio posterior. **No se declara verificado el cambio real en Supabase**: la creación de la cuenta temporal se bloqueó por la clave inválida antes de crear usuarios o cambiar contraseñas.
+Las pruebas locales usan dobles de Auth para comprobar la confirmación, el rechazo de una contraseña actual incorrecta y el inicio posterior con la nueva. El estado de la comprobación alojada figura en el [informe de verificación](../../reportes/verificacion-v2.md).
 
 Para repetir expresamente las pruebas alojadas una vez configuradas las claves:
 
@@ -56,7 +56,7 @@ Recoger y pagar abre Registrar venta con cliente y líneas del apartado. Precio 
 
 Caja muestra un QR común al seleccionar pago digital. El operador elige Yape, Plin u otra billetera, ingresa el importe exacto a dos decimales y confirma que comprobó el abono. El QR no confirma la venta. La referencia es opcional en la API y las referencias históricas se conservan en el detalle.
 
-Promociones permite crear, editar, activar, pausar y eliminar campañas reales. Las fechas ingresadas son inclusivas en hora de Lima. El precio promocional usa la misma consulta en catálogo, cotización de venta y solicitud de separación; no es negativo. Si coinciden campañas se aplica el precio menor, sin acumular descuentos. Ese criterio explícito debe formalizarse en la actualización futura del SRS. Los puntos del cliente se leen de `customers.points`; no se agregó una fórmula de acumulación porque el SRS no la define.
+Promociones permite crear, editar, activar, pausar y eliminar campañas reales. Las fechas ingresadas son inclusivas en hora de Lima. El precio promocional usa la misma consulta en catálogo, cotización de venta y solicitud de separación; no es negativo. Si coinciden campañas se aplica el precio menor, sin acumular descuentos, según BR-002. El saldo de fidelización combina los puntos iniciales de `customers.points`, la parte entera del importe acumulado de compras y el consumo de beneficios, según BR-010. [SRS](../../docs/SRS.md#reglas-del-negocio).
 
 ## Respaldo recuperable
 

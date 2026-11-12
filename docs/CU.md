@@ -139,7 +139,7 @@ Postcondición de éxito: la campaña conserva el tipo, el valor, la vigencia y 
 
 ## CU-005: Solicitar y gestionar reservas
 
-Actor: Cliente registrado.
+Actores: cliente registrado y administrador. El cliente solicita y consulta su reserva. El administrador confirma, edita o rechaza la solicitud y puede abrir Caja para el recojo.
 
 Requisitos relacionados: RF-007 y RF-009.
 
@@ -153,7 +153,8 @@ Precondiciones: sesión del cliente en el portal y productos disponibles para co
 2. El sistema calcula el importe estimado.
 3. El cliente solicita la separación.
 4. El sistema registra la solicitud, genera un código de recojo y muestra el estado pendiente de confirmación.
-5. La atención en tienda permite comprobar la disponibilidad y concretar la venta mediante CU-001.
+5. El administrador comprueba la disponibilidad y confirma el apartado. El sistema reserva las unidades.
+6. En el recojo, el administrador abre Caja con los datos del apartado y completa la venta mediante CU-001.
 
 ### Alternativas y excepciones
 
@@ -170,7 +171,7 @@ Postcondición de éxito: queda registrada una solicitud con sus productos, impo
 
 Actor: Responsable de almacén, rol desempeñado por Humberto Dávalos.
 
-Requisitos relacionados: RF-002 y RF-015.
+Requisitos relacionados: RF-002, RF-015 y RF-016.
 
 Relación: Humberto usa las alertas de inventario para decidir qué registrar en Compras.
 
@@ -182,7 +183,7 @@ Precondiciones: Humberto tiene una sesión administrativa activa con acceso auto
 2. El sistema muestra el stock y el mínimo configurado y señala los productos activos cuyo stock es menor o igual al mínimo.
 3. Humberto elige consultar el historial, mantener un producto, realizar un ajuste manual o iniciar la reposición cuando corresponda.
 4. Para un ajuste manual, Humberto indica el cambio de existencias y su motivo.
-5. El sistema comprueba que el motivo contenga al menos un carácter distinto de espacios, que la cantidad sea válida y que el stock resultante no sea negativo.
+5. El sistema comprueba que el motivo contenga al menos un carácter distinto de espacios, que la cantidad sea válida y que el stock resultante no sea negativo ni quede por debajo de las unidades apartadas.
 6. El sistema guarda el ajuste y su motivo en el historial y actualiza el stock en una misma transacción.
 7. El sistema confirma el ajuste. Humberto consulta el historial, que muestra sus motivos y conserva los registros anteriores.
 
@@ -205,7 +206,7 @@ Precondiciones: Humberto tiene una sesión administrativa activa con acceso auto
 
 Postcondición de éxito: la consulta refleja las existencias; las modificaciones autorizadas quedan guardadas. Cada ajuste manual conserva su motivo en el historial, junto con los ajustes anteriores.
 
-La exigencia del motivo corresponde a los ajustes manuales. Las salidas por ventas siguen CU-001 y las entradas por recepción siguen CU-009.
+La exigencia del motivo corresponde a los ajustes manuales. Las salidas por ventas siguen CU-001 y las entradas de mercadería siguen CU-008 o CU-009 según el tipo de compra.
 
 El [proceso crítico](proceso-critico.md) presenta el flujo de CU-006 y sus controles.
 

@@ -40,7 +40,7 @@ Vínculos entre el [SRS de V2](../docs/SRS.md), los [casos de uso](../docs/CU.md
 
 ## Reglas del negocio
 
-| ID | Regla verificada | Pruebas documentadas |
+| ID | Regla del negocio | Pruebas documentadas |
 |---|---|---|
 | BR-001 | Pago digital con importe exacto y confirmación manual | PRU-020 |
 | BR-002 | Precio calculado y menor precio promocional vigente | PRU-003, PRU-010 |

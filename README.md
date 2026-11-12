@@ -12,10 +12,10 @@ Sistema de gestión de ventas, inventario, compras y portal de clientes. La carp
 | [Casos de uso](docs/CU.md) | Flujos de venta, catálogo, promociones, reservas, inventario y compras. |
 | [Modelos](modelos/modelos-v2.md) | Despliegue, clases del dominio, casos de uso y flujos de operación. |
 | [Matriz de trazabilidad](matrices/trazabilidad.md) | Relaciones entre requisitos, reglas, pruebas y solicitudes de cambio. |
-| [Impacto](matrices/impacto.md) y [riesgos](matrices/riesgos.md) | Evaluación de todas las solicitudes de cambio. |
+| [Impacto CR](matrices/impacto-cr.md) y [Riesgos CR](matrices/riesgos-cr.md) | Evaluación de todas las solicitudes de cambio. |
 | [Pruebas](pruebas/pruebas.md) | Escenarios de aceptación y referencias de evidencia. |
 | [Registro de cambios](docs/cambios-v2.md) | Solicitudes de cambio CR-001 a CR-011. |
-| [Informe de verificación](reportes/verificacion-v2.md) | Revisión de referencia y comprobaciones pendientes para la demo. |
+| [Informe de verificación](reportes/verificacion-v2.md) | Resultados locales y comprobaciones en el entorno publicado. |
 
 ## Ejecución
 

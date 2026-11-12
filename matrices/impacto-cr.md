@@ -1,4 +1,4 @@
-# Matriz de impacto de solicitudes de cambio
+# Impacto CR
 
 Cada fila relaciona el cambio con el comportamiento y la comprobación correspondiente. Consulta el [registro de cambios](../docs/cambios-v2.md) y el [catálogo de pruebas](../pruebas/pruebas.md).
 

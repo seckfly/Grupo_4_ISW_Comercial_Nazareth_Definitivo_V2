@@ -44,4 +44,4 @@
 
 ## Evidencia de ejecución
 
-El [informe de verificación técnica](../docs/cierre-requisitos.md) conserva resultados de pruebas locales y verificaciones alojadas pendientes. Los casos añadidos arriba son el catálogo de aceptación de V2. Los resultados de Render, Storage y las pruebas por dispositivo se registran después de ejecutarlas en el entorno de la entrega.
+Este catálogo describe qué probar y qué resultado esperar. Consulta el [informe de verificación](../reportes/verificacion-v2.md) para ver las pruebas ejecutadas y el estado de las comprobaciones en la entrega publicada.

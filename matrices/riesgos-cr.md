@@ -1,4 +1,4 @@
-# Matriz de riesgos de solicitudes de cambio
+# Riesgos CR
 
 La prioridad estima la consecuencia del fallo. El [catálogo de pruebas](../pruebas/pruebas.md) describe cómo comprobar las medidas de control.
 

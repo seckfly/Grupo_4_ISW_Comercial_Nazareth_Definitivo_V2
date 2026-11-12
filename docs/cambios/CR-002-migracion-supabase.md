@@ -1,6 +1,6 @@
 # CR-002 · Migración tecnológica a Supabase
 
-**Estado:** integración implementada. El [cierre de requisitos](../cierre-requisitos.md) registra las comprobaciones locales y el alcance de la evidencia alojada.
+La integración está implementada. El [informe de verificación](../../reportes/verificacion-v2.md) reúne los resultados locales y las comprobaciones de la versión publicada.
 
 **Línea base:** [SRS de Comercial Nazareth, sección Alcance](../SRS.md#alcance).
 
@@ -14,4 +14,4 @@
 
 Los vínculos directos de esta etapa son **RF-006**, **RF-013**, **RNF-002**, **PRU-009** y **PRU-014**. La base sirve a los flujos transaccionales de ventas, inventario y recepción. Las evidencias de rendimiento y respaldo se deben obtener en los escenarios de **PRU-021**, **PRU-022** y **PRU-023** conforme al SRS.
 
-[CR-001](../../matrices/impacto.md) conserva su alcance histórico. RF-015 y CU-006 mantienen la validación del motivo, su historial y la transacción de ajuste con PRU-016 a PRU-019. El esquema y la restricción de motivo forman parte del flujo de ajuste vigente.
+[CR-001](../../matrices/impacto-cr.md) conserva su alcance histórico. RF-015 y CU-006 mantienen la validación del motivo, su historial y la transacción de ajuste con PRU-016 a PRU-019. El esquema y la restricción de motivo forman parte del flujo de ajuste vigente.

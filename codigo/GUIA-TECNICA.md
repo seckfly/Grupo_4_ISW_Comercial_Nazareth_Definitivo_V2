@@ -4,11 +4,11 @@ Sistema de gestión comercial y portal de clientes con React/Vite, Express, Post
 
 La [especificación aprobada](../docs/SRS.md) define el alcance y los identificadores. [CR-002](../docs/cambios/CR-002-migracion-supabase.md) registra el cambio de tecnología en esta implementación.
 
-La [evidencia de requisitos](../docs/cierre-requisitos.md) registra las pruebas ejecutadas. La [configuración del alcance completo](database/CONFIGURACION-ALCANCE-COMPLETO.md) detalla la aplicación de las migraciones 001 a 016.
+El [informe de verificación](../reportes/verificacion-v2.md) registra las pruebas ejecutadas. La [configuración del alcance completo](database/CONFIGURACION-ALCANCE-COMPLETO.md) detalla la aplicación de las migraciones 001 a 016.
 
 ## Instalación
 
-La versión comprobada se indica en `.node-version`. Se requiere Node.js 22 o superior. Desde la carpeta `codigo/`, en PowerShell:
+Instala Node.js 22.22.2 o una revisión posterior de la serie 22, o Node.js 24.15.0 o posterior de la serie 24. Desde la carpeta `codigo/`, en PowerShell:
 
 ```powershell
 npm.cmd --prefix backend ci --include=optional

@@ -1,6 +1,6 @@
 # Reporte de trazabilidad de Comercial Nazareth (v1.1)
 
-Registro histórico. Para conocer el alcance y las pruebas de la versión vigente, consulta el [cierre de requisitos](../docs/cierre-requisitos.md).
+Este reporte registra el cambio de v1.0 a v1.1. Las cifras y los nombres de clases corresponden a ese momento. Los resultados de Definitivo V2 están en su [informe de verificación](verificacion-v2.md).
 
 CR aplicado: motivo obligatorio en ajustes manuales de RF-015. La comparación se limita a los cinco requisitos revisados para ese cambio.
 
@@ -24,7 +24,7 @@ En v1.0, RF-015 exigía conservar el historial de ajustes, pero no obligaba a in
 |---|---|
 | [SRS](../docs/SRS.md) | RF-015 incorpora el motivo obligatorio y su conservación en el historial. |
 | [Casos de uso](../docs/CU.md) | CU-006 incorpora el ingreso y la validación del motivo, el guardado conjunto y el rechazo sin cambios cuando el motivo no es válido. |
-| [Diagrama editable](../modelos/clases.drawio) y [PNG](../modelos/clases.png) | CLS-MovimientoInventario incorpora el atributo motivo y el método validarMotivo(motivo: String): boolean. registrarAjuste recibe el motivo. Los elementos añadidos o modificados se muestran en naranja. |
+| Diagrama de clases de v1.1 | El cambio de esa versión agregó el atributo motivo y la operación validarMotivo en CLS-MovimientoInventario. registrarAjuste pasó a recibir el motivo. |
 | [Pruebas](../pruebas/pruebas.md) | PRU-016 comprueba dos ajustes con sus respectivos motivos. PRU-017 comprueba el rechazo de un motivo vacío y PRU-018, el de un motivo compuesto solo por espacios. |
 | [Matriz](../matrices/trazabilidad.md) | RF-015 enlaza las tres pruebas de ajustes y registra CR-001 en la columna Último CR. |
 
