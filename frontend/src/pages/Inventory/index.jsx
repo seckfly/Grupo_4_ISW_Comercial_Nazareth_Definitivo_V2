@@ -9,6 +9,7 @@ import { useInventory } from '../../context/InventoryContext'
 import { usePhoneLayout } from '../../hooks/usePhoneLayout'
 import { currency, margin, quantityLabel } from '../../utils/format'
 import { ProductDrawer, AdjustmentDrawer, HistoryDrawer } from './InventoryDrawers'
+import OfferPrice from '../../components/ui/OfferPrice'
 
 function InventoryStock({ product }) {
   return <dl className="inventory-stock">
@@ -133,7 +134,7 @@ export default function Inventory() {
           <td><div className="product-cell"><span>{product.name[0]}</span><div><strong>{product.name}</strong>{!product.isActive && <small className="inventory-detail">{product.archivedAt ? 'Archivado' : 'Inactivo'}</small>}</div></div></td>
           <td>#{String(product.id).padStart(4, '0')}</td><td>{product.category}</td>
           <td><InventoryStock product={product}/></td>
-          <td>{currency(product.cost)}</td><td><strong>{currency(product.price)}</strong></td><td><span className="margin">{margin(product.cost, product.price)}%</span></td>
+          <td>{currency(product.cost)}</td><td><OfferPrice regularPrice={product.price} price={product.currentPrice ?? product.price}/></td><td><span className="margin">{margin(product.cost, product.price)}%</span></td>
           <td><ProductActions product={product} open={open} compact={phone}/></td>
         </tr>)}</tbody>
       </table></div></Card> : <div className="product-grid premium-products">{shown.map((product) => <Card key={product.id}>
@@ -141,7 +142,7 @@ export default function Inventory() {
         <small>{product.category} · #{String(product.id).padStart(4, '0')}{product.archivedAt ? ' · Archivado' : !product.isActive ? ' · Inactivo' : ''}</small>
         <h3>{product.name}</h3><InventoryStock product={product}/>
         <small>Costo promedio por unidad · {currency(product.cost)}</small>
-        <div className="price-row"><strong>{currency(product.price)}</strong><span>{margin(product.cost, product.price)}% margen</span></div>
+        <div className="price-row"><OfferPrice regularPrice={product.price} price={product.currentPrice ?? product.price}/><span>{margin(product.cost, product.price)}% margen</span></div>
         <ProductActions product={product} open={open} compact={phone}/>
       </Card>)}</div>}
     {['archive', 'restore', 'delete'].includes(panel?.type) && <ConfirmationDrawer
