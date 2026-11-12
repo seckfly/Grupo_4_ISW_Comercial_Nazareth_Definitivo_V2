@@ -2,10 +2,12 @@ import { startTransition, useLayoutEffect, useRef, useState } from 'react'
 import { AuthProvider,useAuth } from './context/AuthContext'
 import { InventoryProvider, useInventory } from './context/InventoryContext'
 import AppShell from './components/layout/AppShell'
+import OverviewPage from './pages/Overview'
+import ClientHomePage from './pages/ClientHome'
 import DeferredModule, { deferredModule } from './components/ui/DeferredModule'
 const Login = deferredModule(() => import('./pages/Login'))
 const SaleDrawer = deferredModule(() => import('./components/ui/SaleDrawer'))
-const Overview = deferredModule(() => import('./pages/Overview'))
+const Overview = deferredModule(() => Promise.resolve({ default: OverviewPage }))
 const Sales = deferredModule(() => import('./pages/Sales'))
 const Inventory = deferredModule(() => import('./pages/Inventory'))
 const Promotions = deferredModule(() => import('./pages/Promotions'))
@@ -13,7 +15,7 @@ const Customers = deferredModule(() => import('./pages/Customers'))
 const Reports = deferredModule(() => import('./pages/Reports'))
 const Settings = deferredModule(() => import('./pages/Settings'))
 const Account = deferredModule(() => import('./pages/Account'))
-const ClientHome = deferredModule(() => import('./pages/ClientHome'))
+const ClientHome = deferredModule(() => Promise.resolve({ default: ClientHomePage }))
 const Products = deferredModule(() => import('./pages/Products'))
 const Purchases = deferredModule(() => import('./pages/Purchases'))
 const Reservations = deferredModule(() => import('./pages/Reservations'))
