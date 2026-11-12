@@ -24,30 +24,11 @@ Humberto Dávalos desempeña los roles de vendedor, administrador, responsable d
 
 ## Clases del dominio
 
-La venta sirve de punto de partida para leer el modelo. Cada venta guarda sus líneas con el producto, la cantidad y el precio aplicado. Al confirmarla, el sistema actualiza el stock y registra los movimientos de salida. El cliente se vincula si se identifica en Caja.
+![Diagrama de clases de Comercial Nazareth V2](clases.svg)
 
-```mermaid
-classDiagram
-    direction LR
-    class LineaVenta["Línea de venta"]
-    class MovimientoInventario["Movimiento de inventario"]
-    Cliente "0..1" -- "0..*" Venta : se vincula
-    Venta "1" -- "1..*" LineaVenta : contiene
-    Producto "1" -- "0..*" LineaVenta : figura en
-    Venta "0..1" -- "1..*" MovimientoInventario : genera salidas
-    Producto "1" -- "0..*" MovimientoInventario : conserva historial
-```
+[Diagrama editable en Draw.io](clases.drawio) · [Esquema comercial](../codigo/database/migrations/001_commercial_schema.sql) · [Relación entre reservas y ventas](../codigo/database/migrations/005_full_scope.sql) · [Beneficios de fidelización](../codigo/database/migrations/013_loyalty_benefits.sql).
 
-En compras, la orden indica qué se espera recibir y la recepción registra lo que entró al inventario. En reservas, la confirmación aparta unidades y el recojo enlaza la reserva con una venta. Estos recorridos se muestran en los flujos de esta página.
-
-<details>
-<summary>Modelo de dominio completo</summary>
-
-![Diagrama completo de clases](clases.png)
-
-El modelo agrupa entidades persistidas, sus atributos principales y sus relaciones. Las líneas de venta, de reserva y de orden guardan el detalle por producto. Consulta el [diagrama editable](clases.drawio), el [esquema comercial](../codigo/database/migrations/001_commercial_schema.sql), los [vínculos entre reservas y ventas](../codigo/database/migrations/005_full_scope.sql) y la [migración de beneficios](../codigo/database/migrations/013_loyalty_benefits.sql).
-
-</details>
+El diagrama reúne las 18 entidades principales del dominio. **Producto** conecta ventas, inventario, compras, reservas y catálogo. Las multiplicidades y vínculos corresponden al esquema relacional. Las operaciones representan responsabilidades del dominio realizadas por los servicios de Express; no son necesariamente métodos JavaScript declarados dentro de cada entidad.
 
 ## Reserva y recojo
 

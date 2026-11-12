@@ -1,0 +1,375 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3535" height="2340" viewBox="0 0 3535 2340" role="img" aria-label="Diagrama de clases de Comercial Nazareth V2">
+<rect x="0" y="0" width="3535" height="2340" fill="#ffffff"/>
+<path d="M540.0,345.0 L705.0,345.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M1110.0,345.0 L1275.0,345.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M1680.0,345.0 L1845.0,345.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<polygon points="1680.0,345.0 1693.0,352.0 1706.0,345.0 1693.0,338.0" fill="#111111"/>
+<path d="M972.3,145.0 L972.3,96.0 L2552.7,96.0 L2552.7,145.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M834.6,145.0 L834.6,79.0 L3260.4,79.0 L3260.4,145.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M761.7,545.0 L761.7,674.0 L426.6,674.0 L426.6,870.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M842.7,545.0 L842.7,715.0 L2666.1,715.0 L2666.1,870.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M398.3,545.0 L398.3,752.0 L2552.7,752.0 L2552.7,870.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M483.3,545.0 L483.3,630.0 L3219.9,630.0 L3219.9,870.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M540.0,1070.0 L705.0,1070.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<polygon points="540.0,1070.0 553.0,1077.0 566.0,1070.0 553.0,1063.0" fill="#111111"/>
+<path d="M1110.0,1070.0 L1275.0,1070.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M1680.0,1070.0 L1845.0,1070.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M2415.0,1070.0 L2250.0,1070.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<polygon points="2415.0,1070.0 2402.0,1063.0 2389.0,1070.0 2402.0,1077.0" fill="#111111"/>
+<path d="M398.3,1270.0 L398.3,1315.0 L2496.0,1315.0 L2496.0,1270.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M3122.7,545.0 L3122.7,790.0 L2767.3,790.0 L2767.3,870.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M2108.3,545.0 L2108.3,650.0 L1607.1,650.0 L1607.1,870.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M2617.5,545.0 L2617.5,610.0 L1388.4,610.0 L1388.4,870.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M1396.5,870.0 L1396.5,690.0 L3114.6,690.0 L3114.6,870.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M442.8,1595.0 L442.8,1450.0 L1347.9,1450.0 L1347.9,1270.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M1453.2,1270.0 L1453.2,1415.0 L972.3,1415.0 L972.3,1595.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M1574.7,1270.0 L1574.7,1490.0 L1388.4,1490.0 L1388.4,1595.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M2739.0,1270.0 L2739.0,1355.0 L858.9,1355.0 L858.9,1595.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M1845.0,1795.0 L1680.0,1795.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<polygon points="1845.0,1795.0 1832.0,1788.0 1819.0,1795.0 1832.0,1802.0" fill="#111111"/>
+<path d="M2250.0,1795.0 L2415.0,1795.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M2820.0,1795.0 L2985.0,1795.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<polygon points="2820.0,1795.0 2833.0,1802.0 2846.0,1795.0 2833.0,1788.0" fill="#111111"/>
+<path d="M1485.6,1995.0 L1485.6,2095.0 L3236.1,2095.0 L3236.1,1995.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M2524.3,1995.0 L2524.3,2060.0 L948.0,2060.0 L948.0,1995.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M135.0,233.0 L49.0,233.0 L49.0,2235.0 L1934.1,2235.0 L1934.1,1995.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M135.0,317.0 L75.0,317.0 L75.0,2210.0 L2613.4,2210.0 L2613.4,1995.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<path d="M135.0,405.0 L101.0,405.0 L101.0,2175.0 L765.8,2175.0 L765.8,1995.0" stroke="#222222" stroke-width="1.8" fill="none" stroke-linejoin="miter"/>
+<rect x="135" y="145" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="135" y1="187" x2="540" y2="187" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="337.5" y="175" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-Perfil</text>
+<text x="146" y="213" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: int</text>
+<text x="146" y="237" font-family="Arial,sans-serif" font-size="19" fill="#111111">- authUserId: uuid</text>
+<text x="146" y="261" font-family="Arial,sans-serif" font-size="19" fill="#111111">- nombre: String</text>
+<text x="146" y="285" font-family="Arial,sans-serif" font-size="19" fill="#111111">- rol: admin | client</text>
+<text x="146" y="309" font-family="Arial,sans-serif" font-size="19" fill="#111111">- activo: boolean</text>
+<text x="146" y="333" font-family="Arial,sans-serif" font-size="19" fill="#111111">- protegido: boolean</text>
+<text x="146" y="357" font-family="Arial,sans-serif" font-size="19" fill="#111111">- telefono: String [0..1]</text>
+<line x1="135" y1="447" x2="540" y2="447" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="146" y="477" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ actualizarContacto(): void</text>
+<text x="146" y="501" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ gestionarAcceso(): void</text>
+<text x="146" y="525" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ retirarAcceso(): void</text>
+<rect x="705" y="145" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="705" y1="187" x2="1110" y2="187" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="907.5" y="175" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-Cliente</text>
+<text x="716" y="213" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: int</text>
+<text x="716" y="237" font-family="Arial,sans-serif" font-size="19" fill="#111111">- userId: int [0..1]</text>
+<text x="716" y="261" font-family="Arial,sans-serif" font-size="19" fill="#111111">- nombre: String</text>
+<text x="716" y="285" font-family="Arial,sans-serif" font-size="19" fill="#111111">- telefono: String [0..1]</text>
+<text x="716" y="309" font-family="Arial,sans-serif" font-size="19" fill="#111111">- puntos: int</text>
+<text x="716" y="333" font-family="Arial,sans-serif" font-size="19" fill="#111111">- totalGastado: decimal</text>
+<text x="716" y="357" font-family="Arial,sans-serif" font-size="19" fill="#111111">- visitas: int</text>
+<line x1="705" y1="467" x2="1110" y2="467" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="716" y="497" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ consultarHistorial(): Venta[]</text>
+<text x="716" y="521" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ consultarPuntos(): int</text>
+<rect x="1275" y="145" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="1275" y1="187" x2="1680" y2="187" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="1477.5" y="175" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-ListaProductos</text>
+<text x="1286" y="213" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: int</text>
+<text x="1286" y="237" font-family="Arial,sans-serif" font-size="19" fill="#111111">- customerId: int</text>
+<text x="1286" y="261" font-family="Arial,sans-serif" font-size="19" fill="#111111">- nombre: String</text>
+<line x1="1275" y1="447" x2="1680" y2="447" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="1286" y="477" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ crear(): void</text>
+<text x="1286" y="501" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ agregarProducto(): void</text>
+<text x="1286" y="525" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ quitarProducto(): void</text>
+<rect x="1845" y="145" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="1845" y1="187" x2="2250" y2="187" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="2047.5" y="175" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-ProductoEnLista</text>
+<text x="1856" y="213" font-family="Arial,sans-serif" font-size="19" fill="#111111">- listId: int</text>
+<text x="1856" y="237" font-family="Arial,sans-serif" font-size="19" fill="#111111">- productId: int</text>
+<line x1="1845" y1="467" x2="2250" y2="467" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="1856" y="497" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ agregar(): void</text>
+<text x="1856" y="521" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ quitar(): void</text>
+<rect x="2415" y="145" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="2415" y1="187" x2="2820" y2="187" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="2617.5" y="175" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-Favorito</text>
+<text x="2426" y="213" font-family="Arial,sans-serif" font-size="19" fill="#111111">- customerId: int</text>
+<text x="2426" y="237" font-family="Arial,sans-serif" font-size="19" fill="#111111">- productId: int</text>
+<line x1="2415" y1="467" x2="2820" y2="467" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="2426" y="497" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ guardar(): void</text>
+<text x="2426" y="521" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ quitar(): void</text>
+<rect x="2985" y="145" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="2985" y1="187" x2="3390" y2="187" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="3187.5" y="175" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-Beneficio</text>
+<text x="2996" y="213" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: uuid</text>
+<text x="2996" y="237" font-family="Arial,sans-serif" font-size="19" fill="#111111">- customerId: int</text>
+<text x="2996" y="261" font-family="Arial,sans-serif" font-size="19" fill="#111111">- costoPuntos: int</text>
+<text x="2996" y="285" font-family="Arial,sans-serif" font-size="19" fill="#111111">- descuento: decimal</text>
+<text x="2996" y="309" font-family="Arial,sans-serif" font-size="19" fill="#111111">- reclamadoEn: datetime</text>
+<text x="2996" y="333" font-family="Arial,sans-serif" font-size="19" fill="#111111">- canceladoEn: datetime [0..1]</text>
+<text x="2996" y="357" font-family="Arial,sans-serif" font-size="19" fill="#111111">- ventaId: int [0..1]</text>
+<line x1="2985" y1="447" x2="3390" y2="447" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="2996" y="477" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ reclamar(): void</text>
+<text x="2996" y="501" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ cancelar(): void</text>
+<text x="2996" y="525" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ aplicarEnVenta(): void</text>
+<rect x="135" y="870" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="135" y1="912" x2="540" y2="912" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="337.5" y="900" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-Reserva</text>
+<text x="146" y="938" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: int</text>
+<text x="146" y="962" font-family="Arial,sans-serif" font-size="19" fill="#111111">- customerId: int</text>
+<text x="146" y="986" font-family="Arial,sans-serif" font-size="19" fill="#111111">- codigoRecojo: String</text>
+<text x="146" y="1010" font-family="Arial,sans-serif" font-size="19" fill="#111111">- estado: String</text>
+<text x="146" y="1034" font-family="Arial,sans-serif" font-size="19" fill="#111111">- totalEstimado: decimal</text>
+<text x="146" y="1058" font-family="Arial,sans-serif" font-size="19" fill="#111111">- vencimiento: datetime</text>
+<text x="146" y="1082" font-family="Arial,sans-serif" font-size="19" fill="#111111">- requestId: uuid [0..1]</text>
+<line x1="135" y1="1172" x2="540" y2="1172" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="146" y="1202" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ solicitar(): void</text>
+<text x="146" y="1226" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ cambiarEstado(): void</text>
+<text x="146" y="1250" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ validarRecojo(): boolean</text>
+<rect x="705" y="870" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="705" y1="912" x2="1110" y2="912" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="907.5" y="900" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-LineaReserva</text>
+<text x="716" y="938" font-family="Arial,sans-serif" font-size="19" fill="#111111">- reservationId: int</text>
+<text x="716" y="962" font-family="Arial,sans-serif" font-size="19" fill="#111111">- productId: int</text>
+<text x="716" y="986" font-family="Arial,sans-serif" font-size="19" fill="#111111">- posicion: int</text>
+<text x="716" y="1010" font-family="Arial,sans-serif" font-size="19" fill="#111111">- cantidad: decimal</text>
+<text x="716" y="1034" font-family="Arial,sans-serif" font-size="19" fill="#111111">- precioUnitario: decimal</text>
+<line x1="705" y1="1192" x2="1110" y2="1192" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="716" y="1222" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ actualizarCantidad(): void</text>
+<rect x="1275" y="870" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="1275" y1="912" x2="1680" y2="912" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="1477.5" y="900" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-Producto</text>
+<text x="1286" y="938" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: int</text>
+<text x="1286" y="962" font-family="Arial,sans-serif" font-size="19" fill="#111111">- categoriaId: int</text>
+<text x="1286" y="986" font-family="Arial,sans-serif" font-size="19" fill="#111111">- nombre: String</text>
+<text x="1286" y="1010" font-family="Arial,sans-serif" font-size="19" fill="#111111">- unidad: String</text>
+<text x="1286" y="1034" font-family="Arial,sans-serif" font-size="19" fill="#111111">- costo: decimal</text>
+<text x="1286" y="1058" font-family="Arial,sans-serif" font-size="19" fill="#111111">- precioVenta: decimal</text>
+<text x="1286" y="1082" font-family="Arial,sans-serif" font-size="19" fill="#111111">- stock: decimal</text>
+<text x="1286" y="1106" font-family="Arial,sans-serif" font-size="19" fill="#111111">- stockMinimo: decimal</text>
+<text x="1286" y="1130" font-family="Arial,sans-serif" font-size="19" fill="#111111">- activo: boolean</text>
+<line x1="1275" y1="1149" x2="1680" y2="1149" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="1286" y="1179" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ registrar(): void</text>
+<text x="1286" y="1203" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ editar(): void</text>
+<text x="1286" y="1227" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ ajustarStock(): void</text>
+<text x="1286" y="1251" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ archivar(): void</text>
+<rect x="1845" y="870" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="1845" y1="912" x2="2250" y2="912" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="2047.5" y="900" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-LineaVenta</text>
+<text x="1856" y="938" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: int</text>
+<text x="1856" y="962" font-family="Arial,sans-serif" font-size="19" fill="#111111">- saleId: int</text>
+<text x="1856" y="986" font-family="Arial,sans-serif" font-size="19" fill="#111111">- productId: int</text>
+<text x="1856" y="1010" font-family="Arial,sans-serif" font-size="19" fill="#111111">- cantidad: decimal</text>
+<text x="1856" y="1034" font-family="Arial,sans-serif" font-size="19" fill="#111111">- precioUnitario: decimal</text>
+<text x="1856" y="1058" font-family="Arial,sans-serif" font-size="19" fill="#111111">- subtotal: decimal</text>
+<line x1="1845" y1="1192" x2="2250" y2="1192" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="1856" y="1222" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ calcularSubtotal(): decimal</text>
+<rect x="2415" y="870" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="2415" y1="912" x2="2820" y2="912" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="2617.5" y="900" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-Venta</text>
+<text x="2426" y="938" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: int</text>
+<text x="2426" y="962" font-family="Arial,sans-serif" font-size="19" fill="#111111">- userId: int</text>
+<text x="2426" y="986" font-family="Arial,sans-serif" font-size="19" fill="#111111">- customerId: int [0..1]</text>
+<text x="2426" y="1010" font-family="Arial,sans-serif" font-size="19" fill="#111111">- reservationId: int [0..1]</text>
+<text x="2426" y="1034" font-family="Arial,sans-serif" font-size="19" fill="#111111">- total: decimal</text>
+<text x="2426" y="1058" font-family="Arial,sans-serif" font-size="19" fill="#111111">- medioPago: String</text>
+<text x="2426" y="1082" font-family="Arial,sans-serif" font-size="19" fill="#111111">- referenciaPago: String [0..1]</text>
+<text x="2426" y="1106" font-family="Arial,sans-serif" font-size="19" fill="#111111">- estado: String</text>
+<text x="2426" y="1130" font-family="Arial,sans-serif" font-size="19" fill="#111111">- fecha: datetime</text>
+<line x1="2415" y1="1192" x2="2820" y2="1192" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="2426" y="1222" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ cotizar(): decimal</text>
+<text x="2426" y="1246" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ confirmar(): void</text>
+<rect x="2985" y="870" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="2985" y1="912" x2="3390" y2="912" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="3187.5" y="900" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-Promocion</text>
+<text x="2996" y="938" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: int</text>
+<text x="2996" y="962" font-family="Arial,sans-serif" font-size="19" fill="#111111">- productId: int</text>
+<text x="2996" y="986" font-family="Arial,sans-serif" font-size="19" fill="#111111">- tipo: porcentaje | fijo</text>
+<text x="2996" y="1010" font-family="Arial,sans-serif" font-size="19" fill="#111111">- valorDescuento: decimal</text>
+<text x="2996" y="1034" font-family="Arial,sans-serif" font-size="19" fill="#111111">- inicio: datetime</text>
+<text x="2996" y="1058" font-family="Arial,sans-serif" font-size="19" fill="#111111">- fin: datetime</text>
+<text x="2996" y="1082" font-family="Arial,sans-serif" font-size="19" fill="#111111">- estado: String</text>
+<line x1="2985" y1="1172" x2="3390" y2="1172" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="2996" y="1202" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ crear(): void</text>
+<text x="2996" y="1226" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ editar(): void</text>
+<text x="2996" y="1250" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ cambiarEstado(): void</text>
+<rect x="135" y="1595" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="135" y1="1637" x2="540" y2="1637" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="337.5" y="1625" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-Categoria</text>
+<text x="146" y="1663" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: int</text>
+<text x="146" y="1687" font-family="Arial,sans-serif" font-size="19" fill="#111111">- nombre: String</text>
+<line x1="135" y1="1917" x2="540" y2="1917" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="146" y="1947" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ consultarProductos(): Producto[]</text>
+<rect x="705" y="1595" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="705" y1="1637" x2="1110" y2="1637" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="907.5" y="1625" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-MovimientoInventario</text>
+<text x="716" y="1663" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: int</text>
+<text x="716" y="1687" font-family="Arial,sans-serif" font-size="19" fill="#111111">- productId: int</text>
+<text x="716" y="1711" font-family="Arial,sans-serif" font-size="19" fill="#111111">- tipo: entrada | venta | ajuste</text>
+<text x="716" y="1735" font-family="Arial,sans-serif" font-size="19" fill="#111111">- variacion: decimal</text>
+<text x="716" y="1759" font-family="Arial,sans-serif" font-size="19" fill="#111111">- stockAntes: decimal [0..1]</text>
+<text x="716" y="1783" font-family="Arial,sans-serif" font-size="19" fill="#111111">- stockDespues: decimal [0..1]</text>
+<text x="716" y="1807" font-family="Arial,sans-serif" font-size="19" fill="#111111">- motivo: String [0..1]</text>
+<text x="716" y="1831" font-family="Arial,sans-serif" font-size="19" fill="#111111">- ventaId: int [0..1]</text>
+<text x="716" y="1855" font-family="Arial,sans-serif" font-size="19" fill="#111111">- recepcionId: int [0..1]</text>
+<text x="716" y="1879" font-family="Arial,sans-serif" font-size="19" fill="#111111">- autorId: int [0..1]</text>
+<line x1="705" y1="1897" x2="1110" y2="1897" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="716" y="1927" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ registrarEntrada(): void</text>
+<text x="716" y="1951" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ registrarSalida(): void</text>
+<text x="716" y="1975" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ registrarAjuste(): void</text>
+<rect x="1275" y="1595" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="1275" y1="1637" x2="1680" y2="1637" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="1477.5" y="1625" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-LineaOrdenCompra</text>
+<text x="1286" y="1663" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: int</text>
+<text x="1286" y="1687" font-family="Arial,sans-serif" font-size="19" fill="#111111">- ordenId: int</text>
+<text x="1286" y="1711" font-family="Arial,sans-serif" font-size="19" fill="#111111">- productoId: int</text>
+<text x="1286" y="1735" font-family="Arial,sans-serif" font-size="19" fill="#111111">- cantidad: decimal</text>
+<text x="1286" y="1759" font-family="Arial,sans-serif" font-size="19" fill="#111111">- costoUnitario: decimal</text>
+<text x="1286" y="1783" font-family="Arial,sans-serif" font-size="19" fill="#111111">- cantidadRecibida: decimal</text>
+<line x1="1275" y1="1917" x2="1680" y2="1917" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="1286" y="1947" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ calcularPendiente(): decimal</text>
+<rect x="1845" y="1595" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="1845" y1="1637" x2="2250" y2="1637" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="2047.5" y="1625" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-OrdenCompra</text>
+<text x="1856" y="1663" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: int</text>
+<text x="1856" y="1687" font-family="Arial,sans-serif" font-size="19" fill="#111111">- proveedorNombre: String</text>
+<text x="1856" y="1711" font-family="Arial,sans-serif" font-size="19" fill="#111111">- proveedorRUC: String</text>
+<text x="1856" y="1735" font-family="Arial,sans-serif" font-size="19" fill="#111111">- proveedorTelefono: String</text>
+<text x="1856" y="1759" font-family="Arial,sans-serif" font-size="19" fill="#111111">- estado: String</text>
+<text x="1856" y="1783" font-family="Arial,sans-serif" font-size="19" fill="#111111">- totalEstimado: decimal</text>
+<text x="1856" y="1807" font-family="Arial,sans-serif" font-size="19" fill="#111111">- creadorId: int</text>
+<text x="1856" y="1831" font-family="Arial,sans-serif" font-size="19" fill="#111111">- fecha: datetime</text>
+<line x1="1845" y1="1917" x2="2250" y2="1917" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="1856" y="1947" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ registrarCompra(): void</text>
+<text x="1856" y="1971" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ cancelar(): void</text>
+<rect x="2415" y="1595" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="2415" y1="1637" x2="2820" y2="1637" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="2617.5" y="1625" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-Recepcion</text>
+<text x="2426" y="1663" font-family="Arial,sans-serif" font-size="19" fill="#111111">- id: int</text>
+<text x="2426" y="1687" font-family="Arial,sans-serif" font-size="19" fill="#111111">- ordenId: int</text>
+<text x="2426" y="1711" font-family="Arial,sans-serif" font-size="19" fill="#111111">- referencia: String</text>
+<text x="2426" y="1735" font-family="Arial,sans-serif" font-size="19" fill="#111111">- recibidoPor: int</text>
+<text x="2426" y="1759" font-family="Arial,sans-serif" font-size="19" fill="#111111">- fecha: datetime</text>
+<line x1="2415" y1="1917" x2="2820" y2="1917" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="2426" y="1947" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ registrarIngreso(): void</text>
+<rect x="2985" y="1595" width="405" height="400" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.7"/>
+<line x1="2985" y1="1637" x2="3390" y2="1637" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="3187.5" y="1625" fill="#111111" font-family="Arial,sans-serif" font-size="21" font-weight="bold" text-anchor="middle">CLS-LineaRecepcion</text>
+<text x="2996" y="1663" font-family="Arial,sans-serif" font-size="19" fill="#111111">- ordenId: int</text>
+<text x="2996" y="1687" font-family="Arial,sans-serif" font-size="19" fill="#111111">- recepcionId: int</text>
+<text x="2996" y="1711" font-family="Arial,sans-serif" font-size="19" fill="#111111">- lineaOrdenId: int</text>
+<text x="2996" y="1735" font-family="Arial,sans-serif" font-size="19" fill="#111111">- cantidad: decimal</text>
+<line x1="2985" y1="1917" x2="3390" y2="1917" stroke="#6c8ebf" stroke-width="1.4"/>
+<text x="2996" y="1947" font-family="Arial,sans-serif" font-size="19" fill="#111111">+ registrarCantidad(): void</text>
+<text x="135" y="71" font-family="Arial,sans-serif" font-size="32" font-weight="bold" fill="#111111">Diagrama de clases - Comercial Nazareth V2</text>
+<rect x="550" y="322" width="64" height="25" fill="white"/>
+<text x="554" y="346" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..1</text>
+<rect x="641" y="322" width="64" height="25" fill="white"/>
+<text x="645" y="346" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..1</text>
+<rect x="1120" y="322" width="64" height="25" fill="white"/>
+<text x="1124" y="346" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="1211" y="322" width="64" height="25" fill="white"/>
+<text x="1215" y="346" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="1690" y="322" width="64" height="25" fill="white"/>
+<text x="1694" y="346" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="1781" y="322" width="64" height="25" fill="white"/>
+<text x="1785" y="346" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="984.3" y="120" width="64" height="25" fill="white"/>
+<text x="988.3" y="144" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="2564.7" y="120" width="64" height="25" fill="white"/>
+<text x="2568.7" y="144" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="846.6" y="120" width="64" height="25" fill="white"/>
+<text x="850.6" y="144" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="3272.4" y="120" width="64" height="25" fill="white"/>
+<text x="3276.4" y="144" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="773.7" y="551" width="64" height="25" fill="white"/>
+<text x="777.7" y="575" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="438.59999999999997" y="845" width="64" height="25" fill="white"/>
+<text x="442.59999999999997" y="869" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="854.7" y="551" width="64" height="25" fill="white"/>
+<text x="858.7" y="575" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..1</text>
+<rect x="2678.1" y="845" width="64" height="25" fill="white"/>
+<text x="2682.1" y="869" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="410.25" y="551" width="64" height="25" fill="white"/>
+<text x="414.25" y="575" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="2564.7" y="845" width="64" height="25" fill="white"/>
+<text x="2568.7" y="869" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="495.3" y="551" width="64" height="25" fill="white"/>
+<text x="499.3" y="575" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..1</text>
+<rect x="3231.9" y="845" width="64" height="25" fill="white"/>
+<text x="3235.9" y="869" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="550" y="1047" width="64" height="25" fill="white"/>
+<text x="554" y="1071" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="641" y="1047" width="64" height="25" fill="white"/>
+<text x="645" y="1071" font-family="Arial,sans-serif" font-size="17" fill="#111111">1..*</text>
+<rect x="1120" y="1047" width="64" height="25" fill="white"/>
+<text x="1124" y="1071" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="1211" y="1047" width="64" height="25" fill="white"/>
+<text x="1215" y="1071" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="1690" y="1047" width="64" height="25" fill="white"/>
+<text x="1694" y="1071" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="1781" y="1047" width="64" height="25" fill="white"/>
+<text x="1785" y="1071" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="2351" y="1047" width="64" height="25" fill="white"/>
+<text x="2355" y="1071" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="2260" y="1047" width="64" height="25" fill="white"/>
+<text x="2264" y="1071" font-family="Arial,sans-serif" font-size="17" fill="#111111">1..*</text>
+<rect x="410.25" y="1276" width="64" height="25" fill="white"/>
+<text x="414.25" y="1300" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..1</text>
+<rect x="2508" y="1276" width="64" height="25" fill="white"/>
+<text x="2512" y="1300" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..1</text>
+<rect x="3134.7" y="551" width="64" height="25" fill="white"/>
+<text x="3138.7" y="575" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..1</text>
+<rect x="2779.35" y="845" width="64" height="25" fill="white"/>
+<text x="2783.35" y="869" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..1</text>
+<rect x="2120.25" y="551" width="64" height="25" fill="white"/>
+<text x="2124.25" y="575" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="1619.1" y="845" width="64" height="25" fill="white"/>
+<text x="1623.1" y="869" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="2629.5" y="551" width="64" height="25" fill="white"/>
+<text x="2633.5" y="575" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="1400.4" y="845" width="64" height="25" fill="white"/>
+<text x="1404.4" y="869" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="1408.5" y="845" width="64" height="25" fill="white"/>
+<text x="1412.5" y="869" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="3126.6" y="845" width="64" height="25" fill="white"/>
+<text x="3130.6" y="869" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="454.8" y="1570" width="64" height="25" fill="white"/>
+<text x="458.8" y="1594" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="1359.9" y="1276" width="64" height="25" fill="white"/>
+<text x="1363.9" y="1300" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="1465.2" y="1276" width="64" height="25" fill="white"/>
+<text x="1469.2" y="1300" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="984.3" y="1570" width="64" height="25" fill="white"/>
+<text x="988.3" y="1594" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="1586.7" y="1276" width="64" height="25" fill="white"/>
+<text x="1590.7" y="1300" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="1400.4" y="1570" width="64" height="25" fill="white"/>
+<text x="1404.4" y="1594" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="2751" y="1276" width="64" height="25" fill="white"/>
+<text x="2755" y="1300" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..1</text>
+<rect x="870.9" y="1570" width="64" height="25" fill="white"/>
+<text x="874.9" y="1594" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="1781" y="1772" width="64" height="25" fill="white"/>
+<text x="1785" y="1796" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="1690" y="1772" width="64" height="25" fill="white"/>
+<text x="1694" y="1796" font-family="Arial,sans-serif" font-size="17" fill="#111111">1..*</text>
+<rect x="2260" y="1772" width="64" height="25" fill="white"/>
+<text x="2264" y="1796" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="2351" y="1772" width="64" height="25" fill="white"/>
+<text x="2355" y="1796" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="2830" y="1772" width="64" height="25" fill="white"/>
+<text x="2834" y="1796" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="2921" y="1772" width="64" height="25" fill="white"/>
+<text x="2925" y="1796" font-family="Arial,sans-serif" font-size="17" fill="#111111">1..*</text>
+<rect x="1497.6" y="2001" width="64" height="25" fill="white"/>
+<text x="1501.6" y="2025" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="3248.1" y="2001" width="64" height="25" fill="white"/>
+<text x="3252.1" y="2025" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="2536.35" y="2001" width="64" height="25" fill="white"/>
+<text x="2540.35" y="2025" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..1</text>
+<rect x="960" y="2001" width="64" height="25" fill="white"/>
+<text x="964" y="2025" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="71" y="210" width="64" height="25" fill="white"/>
+<text x="75" y="234" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="1946.1" y="2001" width="64" height="25" fill="white"/>
+<text x="1950.1" y="2025" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="71" y="294" width="64" height="25" fill="white"/>
+<text x="75" y="318" font-family="Arial,sans-serif" font-size="17" fill="#111111">1</text>
+<rect x="2625.45" y="2001" width="64" height="25" fill="white"/>
+<text x="2629.45" y="2025" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+<rect x="71" y="382" width="64" height="25" fill="white"/>
+<text x="75" y="406" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..1</text>
+<rect x="777.75" y="2001" width="64" height="25" fill="white"/>
+<text x="781.75" y="2025" font-family="Arial,sans-serif" font-size="17" fill="#111111">0..*</text>
+</svg>
