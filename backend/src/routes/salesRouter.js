@@ -2,6 +2,8 @@ import { Router } from 'express'
 import { requireRole } from '../middleware/role.js'
 import { createSale, quoteSale, listSales, getSale, findSaleCustomers } from '../services/saleService.js'
 
+import { customerBenefits } from '../services/loyaltyService.js'
+
 export function createSalesRouter({ db, authenticate }) {
   const router = Router()
   router.use(authenticate, requireRole('admin'))
@@ -11,6 +13,9 @@ export function createSalesRouter({ db, authenticate }) {
   })
   router.get('/customers', async (req, res, next) => {
     try { res.json(await findSaleCustomers(db, req.query.q, { allowEmpty: req.query.all === 'true' })) } catch (error) { next(error) }
+  })
+  router.get('/customers/:id/benefits', async (req, res, next) => {
+    try { res.json(await customerBenefits(db, req.params.id, true)) } catch (error) { next(error) }
   })
   router.post('/quote', async (req, res, next) => {
     try { res.json(await quoteSale(db, req.body)) } catch (error) { next(error) }

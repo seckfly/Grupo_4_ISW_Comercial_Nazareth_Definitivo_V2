@@ -14,15 +14,16 @@ import Products from '../pages/Products'
 import Inventory from '../pages/Inventory'
 import Purchases from '../pages/Purchases'
 import Settings from '../pages/Settings'
+import Account from '../pages/Account'
 import Reservations from '../pages/Reservations'
 import { api } from '../services/api'
 
 vi.mock('../services/api', () => ({ api: {
-  products: vi.fn(), quoteSale: vi.fn(), createSale: vi.fn(), saleCustomers: vi.fn(),
+  products: vi.fn(), quoteSale: vi.fn(), createSale: vi.fn(), saleCustomers: vi.fn(), saleBenefits: vi.fn().mockResolvedValue([]),
   sales: vi.fn(), productHistory: vi.fn(), updateProduct: vi.fn(), createProduct: vi.fn(),
   adjustInventory: vi.fn(), deleteProduct: vi.fn(), archiveProduct: vi.fn(),
   promotions: vi.fn(), createPromotion: vi.fn(), customers: vi.fn(),
-  dashboard: vi.fn(), users: vi.fn(), createUser: vi.fn(), updateUser: vi.fn(), deleteUser: vi.fn(),
+  dashboard: vi.fn(), customerAccount: vi.fn(), claimBenefit: vi.fn(), cancelBenefit: vi.fn(), users: vi.fn(), createUser: vi.fn(), updateUser: vi.fn(), deleteUser: vi.fn(),
   orders: vi.fn(), receiveOrder: vi.fn(), registerDirectPurchase: vi.fn(),
   preferences:vi.fn(),savePreferences:vi.fn(),requestReservation:vi.fn(),reservations:vi.fn(),changeReservation:vi.fn(),uploadPhoto:vi.fn(),
 } }))
@@ -891,4 +892,25 @@ it.each([false, true])('Compras conserva la solicitud y la línea al reintentar 
     vi.useRealTimers()
     inventoryState.data = previousData
   }
+})
+
+
+it('Mi cuenta confirma el reclamo y permite recuperar los puntos del beneficio disponible', async () => {
+  authState.user.role = 'client'
+  const reward = { points: 100, discount: 5, minimum: 30 }
+  const benefit = { id: 'benefit-1', pointsCost: 100, discount: 5, status: 'available' }
+  api.customerAccount.mockResolvedValue({ points: 124, reward, benefits: [] })
+  api.claimBenefit.mockResolvedValue({ points: 24, reward, benefits: [benefit] })
+  api.cancelBenefit.mockResolvedValue({ points: 124, reward, benefits: [{ ...benefit, status: 'cancelled' }] })
+  const element = render(<Account/>)
+  const button = text => [...element.querySelectorAll('button')].find(item => item.textContent.includes(text))
+  await settled(() => expect(button('Reclamar')).toBeTruthy())
+  act(() => button('Reclamar').click())
+  expect(api.claimBenefit).not.toHaveBeenCalled()
+  await act(async () => button('Confirmar canje').click())
+  expect(element.querySelector('.account-points strong').textContent).toBe('24')
+  await act(async () => button('Cancelar y recuperar').click())
+  expect(api.cancelBenefit).toHaveBeenCalledWith('benefit-1')
+  expect(element.querySelector('.account-points strong').textContent).toBe('124')
+  expect(element.querySelector('.account-benefits').textContent).toContain('Cancelado')
 })

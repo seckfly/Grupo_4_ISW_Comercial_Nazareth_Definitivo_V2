@@ -1,8 +1,9 @@
 import { Router } from 'express'
 import { requireRole } from '../middleware/role.js'
 import { purchaseOrders, createOrder, registerDirectPurchase, cancelOrder, receiveOrder } from '../services/purchaseService.js'
-import { customerDirectory, customerForUser, preferences, savePreferences } from '../services/customerService.js'
+import { customerDirectory, preferences, savePreferences } from '../services/customerService.js'
 import { reservations,requestReservation,changeReservation } from '../services/reservationService.js'
+import { loyaltyAccount, claimBenefit, cancelBenefit } from '../services/loyaltyService.js'
 const handle=work=>async(req,res,next)=>{try{res.json(await work(req))}catch(error){next(error)}}
 export function fullScopeRouter({db,authenticate}) {
   const router=Router()
@@ -11,7 +12,9 @@ export function fullScopeRouter({db,authenticate}) {
   router.get('/reservations',handle(req=>reservations(db,req.user)))
   router.post('/reservations',requireRole('client'),handle(req=>requestReservation(db,req.user.id,req.body)))
   router.post('/reservations/:id',handle(req=>changeReservation(db,req.user,req.params.id,req.body)))
-  router.get('/customer-account',requireRole('client'),handle(req=>customerForUser(db,req.user.id)))
+  router.get('/customer-account',requireRole('client'),handle(req=>loyaltyAccount(db,req.user.id)))
+  router.post('/customer-account/benefits',requireRole('client'),handle(req=>claimBenefit(db,req.user.id,req.body?.requestId)))
+  router.post('/customer-account/benefits/:id/cancel',requireRole('client'),handle(req=>cancelBenefit(db,req.user.id,req.params.id)))
   router.get('/preferences',requireRole('client'),handle(req=>preferences(db,req.user.id)))
   router.put('/preferences',requireRole('client'),handle(req=>savePreferences(db,req.user.id,req.body)))
   router.get('/purchase-orders',requireRole('admin'),handle(()=>purchaseOrders(db)))

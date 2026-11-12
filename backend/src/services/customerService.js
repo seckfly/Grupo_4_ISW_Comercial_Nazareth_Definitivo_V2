@@ -1,13 +1,26 @@
 import { positiveId, inputError } from '../../../shared/numbers.mjs'
 import { transaction } from './stockService.js'
-export async function customerForUser(db,userId) {
+const reservedPoints = `COALESCE((
+  SELECT SUM(b.points_cost) FROM nazareth.loyalty_benefits b
+  WHERE b.customer_id = c.id AND b.cancelled_at IS NULL
+), 0)`
+
+export async function customerForUser(db, userId, { includeBenefits = false } = {}) {
   const { rows: [customer] } = await db.query(`
     SELECT c.id, c.name, c.phone,
       (c.points + trunc(COALESCE((
         SELECT SUM(s.total_amount)
         FROM nazareth.sales s
         WHERE s.customer_id = c.id AND s.status = 'completed'
-      ), 0)))::float8 AS points
+      ), 0)) - ${reservedPoints})::float8 AS points
+      ${includeBenefits ? `, COALESCE((
+        SELECT json_agg(json_build_object(
+          'id', b.id, 'discount', b.discount_amount, 'pointsCost', b.points_cost,
+          'claimedAt', b.claimed_at, 'saleId', b.sale_id,
+          'status', CASE WHEN b.sale_id IS NOT NULL THEN 'used' WHEN b.cancelled_at IS NOT NULL THEN 'cancelled' ELSE 'available' END
+        ) ORDER BY b.claimed_at DESC, b.id)
+        FROM nazareth.loyalty_benefits b WHERE b.customer_id = c.id
+      ), '[]') AS benefits` : ''}
     FROM nazareth.customers c
     WHERE c.user_id = $1`, [positiveId(userId)])
   if(!customer)throw inputError('No existe un cliente asociado a esta cuenta',404)
@@ -16,7 +29,7 @@ export async function customerForUser(db,userId) {
 export async function customerDirectory(db) {
   const { rows } = await db.query(`
     SELECT c.id, p.name, p.email, c.phone,
-      (c.points + trunc(history.spent))::float8 AS points,
+      (c.points + trunc(history.spent) - ${reservedPoints})::float8 AS points,
       history.visits, history.spent::float8 AS spent, history.purchases
     FROM nazareth.customers c
     JOIN nazareth.account_directory p ON p.id = c.user_id

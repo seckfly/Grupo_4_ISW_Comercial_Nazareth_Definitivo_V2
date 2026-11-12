@@ -81,7 +81,7 @@ export default function Sales({ openSale, revision = 0 }) {
       <div className="inventory-history sale-details">
         <p>{selected.customerName || 'Venta sin cliente'} · {paymentNames[selected.paymentMethod]}</p>
         {selected.items.map((item, index) => <article className="inventory-movement" key={index}><strong>{item.name}</strong><div><span>{quantityLabel(item.quantity, item.unit)} × {currency(item.unitPrice)}</span><b>{currency(item.subtotal)}</b></div></article>)}
-        <div className="price-summary"><div><span>Subtotal</span><strong>{currency(selected.subtotal)}</strong></div><div><span>Descuento</span><strong>{currency(selected.discount)}</strong></div><div className="grand-total"><span>Total</span><strong>{currency(selected.total)}</strong></div></div>
+        <div className="price-summary"><div><span>Subtotal</span><strong>{currency(selected.subtotal)}</strong></div><div><span>Descuento</span><strong>{currency(selected.discount - (selected.loyaltyDiscount ?? 0))}</strong></div>{selected.loyaltyDiscount > 0 && <div><span>Beneficio de fidelización</span><strong>− {currency(selected.loyaltyDiscount)}</strong></div>}<div className="grand-total"><span>Total</span><strong>{currency(selected.total)}</strong></div></div>
         {selected.cashReceived !== null && <p>Recibido: {currency(selected.cashReceived)} · Vuelto: {currency(selected.change)}</p>}
         {selected.paymentReference && <p>Referencia: {selected.paymentReference}</p>}
       </div>

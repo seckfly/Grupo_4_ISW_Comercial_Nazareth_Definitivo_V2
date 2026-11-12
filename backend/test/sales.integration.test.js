@@ -38,7 +38,7 @@ before(async () => {
   await postgres.admin.query(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
     CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY, email text NOT NULL);
     CREATE TABLE auth.sessions (id uuid PRIMARY KEY, user_id uuid, not_after timestamptz)`)
-  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql', '008_promotion_creation_requests.sql', '009_archive_and_remove_access.sql', '010_retire_inventory_products.sql', '011_sync_unavailable_product_campaigns.sql', '012_other_digital_payments.sql']) {
+  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql', '008_promotion_creation_requests.sql', '009_archive_and_remove_access.sql', '010_retire_inventory_products.sql', '011_sync_unavailable_product_campaigns.sql', '012_other_digital_payments.sql', '013_loyalty_benefits.sql']) {
     await postgres.admin.query(await readFile(new URL('../../database/migrations/' + file, import.meta.url), 'utf8'))
   }
   pool = await postgres.applicationPool()
@@ -865,4 +865,93 @@ test('las ventas anteriores a 004 se leen con sus importes y unidades disponible
   assert.equal(response.body.discount, 0)
   assert.equal(response.body.items[0].unit, 'Kg')
   assert.equal(response.body.cashReceived, null)
+})
+
+test('Fidelización: conserva puntos históricos, admite campañas y evita canjes duplicados', async () => {
+  const accountPath = '/api/customer-account'
+  const claimsPath = accountPath + '/benefits'
+  const client = { role: 'client-fixture' }
+  const item = await product({ price: '31.00', initialStock: 20 })
+
+  const purchase = await salePayload(item.id, { customerId: 1, items: [{ productId: item.id, quantity: '4' }], cashReceived: '124' })
+  assert.equal((await request('/api/sales', { method: 'POST', body: purchase })).status, 201)
+  assert.equal((await request(accountPath, client)).body.points, 124)
+
+  const claim = requestId => request(claimsPath, { ...client, method: 'POST', body: { requestId } })
+  const claimId = randomUUID()
+  const [first, retry] = await Promise.all([claim(claimId), claim(claimId)])
+  assert.equal(first.status, 200, JSON.stringify(first.body))
+  assert.equal(retry.status, 200, JSON.stringify(retry.body))
+  assert.equal(first.body.points, 24)
+  assert.equal(retry.body.benefits.length, 1)
+  assert.equal((await claim(randomUUID())).status, 409)
+  assert.equal((await request('/api/sales/customers/1/benefits', client)).status, 403)
+  assert.equal((await request('/api/sales/customers/1/benefits')).body[0].id, claimId)
+
+  const campaign = await request('/api/promotions', { method: 'POST', body: {
+    productId: item.id, discountType: 'fixed', discountValue: 1, status: 'active',
+    startDate: '2020-01-01', endDate: '2090-01-01', requestId: randomUUID(),
+  } })
+  assert.equal(campaign.status, 200, JSON.stringify(campaign.body))
+
+  const items = [{ productId: item.id, quantity: '1' }]
+  const quote = body => request('/api/sales/quote', { method: 'POST', body: { items, customerId: 1, benefitId: claimId, ...body } })
+  assert.equal((await quote({ discount: '0.01' })).status, 400)
+  assert.equal((await quote({ customerId: 2 })).status, 409)
+  const eligible = await quote({})
+  assert.equal(eligible.status, 200, JSON.stringify(eligible.body))
+  assert.equal(eligible.body.subtotal, 30)
+  assert.equal(eligible.body.total, 25)
+
+  const sale = await salePayload(item.id, { items, customerId: 1, benefitId: claimId, cashReceived: '25' })
+  const sell = body => request('/api/sales', { method: 'POST', body })
+  assert.equal((await sell({ ...sale, cashReceived: '24' })).status, 400)
+  const otherSale = { ...sale, requestId: randomUUID() }
+  const [sold, duplicate] = await Promise.all([sell(sale), sell(otherSale)])
+  const success = [sold, duplicate].find(result => result.status === 201)
+  assert.ok(success, JSON.stringify([sold, duplicate]))
+  assert.ok([sold, duplicate].some(result => result.status === 409))
+  assert.equal(success.body.loyaltyDiscount, 5)
+  const winningPayload = sold.status === 201 ? sale : otherSale
+  assert.equal((await sell(winningPayload)).status, 200)
+
+  const finalAccount = (await request(accountPath, client)).body
+  assert.equal(finalAccount.points, 49)
+  assert.equal(finalAccount.benefits[0].status, 'used')
+  assert.equal(finalAccount.benefits[0].saleId, success.body.id)
+  assert.equal((await request(claimsPath + '/' + claimId + '/cancel', { ...client, method: 'POST' })).status, 409)
+})
+
+test('Fidelización: un beneficio cancelado devuelve los puntos una sola vez', async () => {
+  await postgres.admin.query('UPDATE nazareth.customers SET points = 100 WHERE id = 1')
+  const id = randomUUID()
+  const path = '/api/customer-account/benefits'
+  const client = { role: 'client-fixture', method: 'POST' }
+  assert.equal((await request(path, { ...client, body: { requestId: id } })).body.points, 0)
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const response = await request(path + '/' + id + '/cancel', client)
+    assert.equal(response.status, 200)
+    assert.equal(response.body.points, 100)
+    assert.equal(response.body.benefits[0].status, 'cancelled')
+  }
+})
+
+test('Fidelización: el beneficio se utiliza al cobrar una reserva confirmada', async () => {
+  await postgres.admin.query('UPDATE nazareth.customers SET points = 100 WHERE id = 1')
+  const item = await product({ price: '30.00' })
+  const benefitId = randomUUID()
+  const client = { role: 'client-fixture' }
+  await request('/api/customer-account/benefits', { ...client, method: 'POST', body: { requestId: benefitId } })
+  const items = [{ productId: item.id, quantity: '1' }]
+  const reservation = await request('/api/reservations', { ...client, method: 'POST', body: { requestId: randomUUID(), items } })
+  const reservationPath = '/api/reservations/' + reservation.body.id
+  assert.equal((await request(reservationPath, { method: 'POST', body: { action: 'confirm' } })).status, 200)
+
+  const body = await salePayload(item.id, { customerId: 1, benefitId, reservationId: reservation.body.id, items, cashReceived: '25' })
+  const result = await request('/api/sales', { method: 'POST', body })
+  assert.equal(result.status, 201, JSON.stringify(result.body))
+  assert.equal(result.body.total, 25)
+  assert.equal(result.body.loyaltyDiscount, 5)
+  assert.equal((await request('/api/reservations', client)).body[0].status, 'collected')
+  assert.equal((await request('/api/customer-account', client)).body.benefits[0].status, 'used')
 })

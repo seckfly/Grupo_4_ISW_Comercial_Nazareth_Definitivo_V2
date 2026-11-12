@@ -4,6 +4,8 @@ import { validatePickup } from './reservationService.js'
 import { priceSql } from './priceService.js'
 import { decimalUnits, decimalText, lineAmount, positiveId, MONEY_MAX_UNITS, QUANTITY_MAX_UNITS, inputError } from '../../../shared/numbers.mjs'
 
+import { availableBenefit, benefitId } from './loyaltyService.js'
+import { loyalty } from '../../../shared/loyalty.mjs'
 import { paymentNames } from '../../../shared/paymentMethods.mjs'
 
 const uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i
@@ -46,7 +48,7 @@ export function validateSaleInput(payload) {
   const cash = payload.paymentMethod === 'efectivo'
     ? decimalUnits(payload.cashReceived, { maxUnits: MONEY_MAX_UNITS, label: 'El monto recibido' })
     : null
-  return { ...cart, userId, customerId, digitalReceived, reservationId: payload.reservationId == null ? null : positiveId(payload.reservationId), requestId: payload.requestId, quoteId: payload.quoteId, paymentMethod: payload.paymentMethod, paymentReference, cash }
+  return { ...cart, ...(payload.benefitId == null ? {} : { benefitId: benefitId(payload.benefitId) }), userId, customerId, digitalReceived, reservationId: payload.reservationId == null ? null : positiveId(payload.reservationId), requestId: payload.requestId, quoteId: payload.quoteId, paymentMethod: payload.paymentMethod, paymentReference, cash }
 }
 
 export function saleResponse(id, total, createdAt) { return { id, total, createdAt } }
@@ -58,7 +60,7 @@ async function loadCart(db, cart, lock = false) {
   return new Map(rows.map((row) => [row.id, row]))
 }
 
-function priceCart(cart, products) {
+function priceCart(cart, products, benefit) {
   let subtotal = 0
   let quantity = 0
   const items = cart.items.map((item) => {
@@ -77,21 +79,31 @@ function priceCart(cart, products) {
   })
   if (subtotal > MONEY_MAX_UNITS) throw inputError('La venta supera el máximo admitido')
   if (cart.discount > subtotal) throw inputError('El descuento no puede superar el subtotal')
-  const quote = { items, units: quantity / 100, subtotal: subtotal / 100, discount: cart.discount / 100, total: (subtotal - cart.discount) / 100 }
-  const quoteId = fingerprint({ items: items.map(({ productId, quantity, unitPrice, subtotal }) => ({ productId, quantity, unitPrice, subtotal })), discount: cart.discount })
+  const beforeBenefit = subtotal - cart.discount
+  if (benefit && beforeBenefit < loyalty.minimum * 100) {
+    throw inputError('El beneficio requiere una compra de al menos S/ 30 antes de aplicarlo')
+  }
+  const loyaltyDiscount = benefit ? decimalUnits(benefit.discount, { maxUnits: MONEY_MAX_UNITS }) : 0
+  const discount = cart.discount + loyaltyDiscount
+  const quote = { items, units: quantity / 100, subtotal: subtotal / 100, discount: discount / 100,
+    loyaltyDiscount: loyaltyDiscount / 100, total: (subtotal - discount) / 100 }
+  const quoteId = fingerprint({ items: items.map(({ productId, quantity, unitPrice, subtotal }) => ({ productId, quantity, unitPrice, subtotal })), discount: cart.discount, ...(benefit ? { benefitId: benefit.id, loyaltyDiscount } : {}) })
   return { ...quote, quoteId }
 }
 
 export async function quoteSale(db, payload) {
   const cart = cartInput(payload)
   cart.reservationId=payload.reservationId==null?null:positiveId(payload.reservationId)
-  return priceCart(cart, await loadCart(db, cart))
+  const benefit = payload.benefitId == null ? null : await availableBenefit(db,
+    payload.customerId == null ? null : positiveId(payload.customerId), benefitId(payload.benefitId))
+  return priceCart(cart, await loadCart(db, cart), benefit)
 }
 
 const saleFields = `s.id, s.reservation_id AS "reservationId",s.digital_received::float8 AS "digitalReceived",s.created_at AS "createdAt", s.user_id AS "userId", s.customer_id AS "customerId",
   c.name AS "customerName", s.payment_method AS "paymentMethod", s.payment_reference AS "paymentReference",
   COALESCE(s.subtotal_amount, (SELECT SUM(subtotal) FROM nazareth.sale_items WHERE sale_id = s.id), s.total_amount)::float8 AS subtotal,
   s.discount_amount::float8 AS discount, s.total_amount::float8 AS total,
+  COALESCE((SELECT b.discount_amount FROM nazareth.loyalty_benefits b WHERE b.sale_id = s.id), 0)::float8 AS "loyaltyDiscount",
   s.cash_received::float8 AS "cashReceived", s.change_amount::float8 AS change,
   COALESCE((SELECT json_agg(json_build_object(
     'productId', i.product_id, 'name', COALESCE(i.product_name, p.name), 'unit', COALESCE(i.product_unit, p.unit),
@@ -167,7 +179,8 @@ export async function createSale(pool, payload) {
       if(collected)throw inputError('El apartado ya tiene una venta registrada',409)
       await validatePickup(connection,data.reservationId,data.items,data.customerId)
     }
-    const quote = priceCart(data, products)
+    const benefit = data.benefitId ? await availableBenefit(connection, data.customerId, data.benefitId, true) : null
+    const quote = priceCart(data, products, benefit)
     if (quote.quoteId !== data.quoteId) throw inputError('El precio cambió. Revisa el cálculo actualizado antes de confirmar.', 409)
     if(data.digitalReceived!==null&&data.digitalReceived!==decimalUnits(quote.total,{maxUnits:MONEY_MAX_UNITS}))throw inputError('El importe digital recibido debe coincidir con el total a dos decimales')
     if (data.cash !== null && data.cash < decimalUnits(quote.total, { maxUnits: MONEY_MAX_UNITS })) {
@@ -185,9 +198,12 @@ export async function createSale(pool, payload) {
        cash_received, change_amount, request_id, request_fingerprint,digital_received)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
     [data.userId, data.customerId, decimalText(decimalUnits(quote.subtotal, { maxUnits: MONEY_MAX_UNITS })),
-      decimalText(data.discount), decimalText(decimalUnits(quote.total, { maxUnits: MONEY_MAX_UNITS })),
+      decimalText(decimalUnits(quote.discount, { maxUnits: MONEY_MAX_UNITS })), decimalText(decimalUnits(quote.total, { maxUnits: MONEY_MAX_UNITS })),
       data.paymentMethod, data.paymentReference, cash, change, data.requestId, requestFingerprint,data.digitalReceived===null?null:decimalText(data.digitalReceived)])
 
+    if (benefit) {
+      await connection.query('UPDATE nazareth.loyalty_benefits SET sale_id = $1 WHERE id = $2', [created.id, benefit.id])
+    }
     for (const item of quote.items) {
       const amount = decimalText(decimalUnits(item.quantity))
       const { rows: [balance] } = await connection.query(`UPDATE nazareth.products SET current_stock = current_stock - $1::numeric

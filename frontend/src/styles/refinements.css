@@ -253,7 +253,7 @@
 
 .client-account .account-grid { align-items: start; grid-template-columns: minmax(0, 390px) minmax(0, 1fr); }
 .client-account .account-identity { min-height: 0; padding: clamp(22px, 4vw, 32px); }
-.client-account .account-points { margin: 20px 0 0; }
+.client-account .account-points { margin: 20px 0 0; text-align: center; }
 .client-account .account-contact { padding: clamp(20px, 4vw, 32px); }
 .account-contact h3 { margin: 0; color: #213d2c; }
 .account-contact dl {
@@ -795,3 +795,13 @@
   }
   .premium-app :is(.admin-overview, .reports-page) .card { padding: 14px; }
 }
+
+.account-loyalty { margin-top: 18px; }
+.account-loyalty progress { display: block; width: min(100%, 360px); accent-color: #345e40; }
+.account-loyalty .primary { white-space: normal; }
+.account-benefit-actions > button { margin: 0 8px 8px 0; }
+.account-benefits { list-style: none; padding: 0; margin: 16px 0 0; }
+.account-benefits li { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--line); }
+.account-benefits li span { display: block; }
+.sale-benefit-select { display: grid; gap: 6px; margin: 10px 0; font-size: 13px; }
+.sale-benefit-select select { width: 100%; min-height: 40px; border: 1px solid var(--line); border-radius: 8px; padding: 0 8px; background: white; color: inherit; }

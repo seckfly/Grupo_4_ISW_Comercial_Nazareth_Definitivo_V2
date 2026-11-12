@@ -45,6 +45,11 @@ export const api = {
   uploadPhoto: file => request('/product-photos',{method:'POST',headers:{'Content-Type':file.type},body:file}),
   customers: (signal) => request('/customers', { signal }),
   customerAccount: (signal) => request('/customer-account', { signal }),
+  claimBenefit: (requestId) => request('/customer-account/benefits', {
+    method: 'POST', replaySafe: true, body: JSON.stringify({ requestId }),
+  }),
+  cancelBenefit: (id) => request('/customer-account/benefits/' + id + '/cancel', { method: 'POST', replaySafe: true }),
+  saleBenefits: (customerId, signal) => request('/sales/customers/' + customerId + '/benefits', { signal }),
   preferences: (signal) => request('/preferences', { signal }),
   savePreferences: (data) => request('/preferences', { method:'PUT',body:JSON.stringify(data) }),
   orders: () => request('/purchase-orders'),

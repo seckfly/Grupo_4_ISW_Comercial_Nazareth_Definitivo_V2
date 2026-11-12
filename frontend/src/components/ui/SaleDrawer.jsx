@@ -9,6 +9,7 @@ import DecimalInput from './DecimalInput'
 import { Skeleton, EmptyState } from './States'
 
 import { digitalPaymentMethods, paymentNames } from '../../../../shared/paymentMethods.mjs'
+import { loyalty } from '../../../../shared/loyalty.mjs'
 import { usePhoneLayout } from '../../hooks/usePhoneLayout'
 
 function quantityUnits(value) {
@@ -44,6 +45,9 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
   const [requestId, setRequestId] = useState(() => crypto.randomUUID())
   const [choosingCustomer, setChoosingCustomer] = useState(false)
   const [customer, setCustomer] = useState(()=>reservation?{id:reservation.customer_id,name:reservation.customerName}:null)
+  const [benefits, setBenefits] = useState([])
+  const [selectedBenefit, setSelectedBenefit] = useState('')
+  const [benefitError, setBenefitError] = useState('')
   const [customerQuery, setCustomerQuery] = useState('')
   const [customers, setCustomers] = useState([])
   const [customerError, setCustomerError] = useState('')
@@ -77,7 +81,25 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
     return () => { active = false }
   }, [refresh])
 
+  const customerId = customer?.id ?? null
+  const benefitId = benefits.some(benefit => benefit.id === selectedBenefit) ? selectedBenefit : undefined
+
+  useEffect(() => {
+    if (!customerId || createdSale) return
+    const controller = new AbortController()
+    setBenefitError('')
+    api.saleBenefits(customerId, controller.signal).then(rows => {
+      if (controller.signal.aborted) return
+      setBenefits(rows)
+      setSelectedBenefit(current => rows.some(benefit => benefit.id === current) ? current : '')
+    }).catch(error => {
+      if (!controller.signal.aborted) setBenefitError(error.message)
+    })
+    return () => controller.abort()
+  }, [customerId, refresh, createdSale])
+
   const cartPayload = JSON.stringify(cart.map((item) => ({ productId: item.id, quantity: item.qty })))
+  const quoteKey = JSON.stringify([cartPayload, discount, benefitId])
   useEffect(() => {
     setQuote(null)
     setQuoteError('')
@@ -85,12 +107,12 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
     const controller = new AbortController()
     setQuoting(true)
     const timer = setTimeout(() => {
-      api.quoteSale({ items: JSON.parse(cartPayload), discount: discount || '0',reservationId:reservation?.id }, controller.signal)
-        .then((result) => setQuote({ ...result, inputKey: cartPayload + '|' + discount })).catch((error) => { if (!controller.signal.aborted) setQuoteError(error.message) })
+      api.quoteSale({ items: JSON.parse(cartPayload), discount: discount || '0', reservationId: reservation?.id, ...(benefitId ? { benefitId, customerId } : {}) }, controller.signal)
+        .then((result) => setQuote({ ...result, inputKey: quoteKey })).catch((error) => { if (!controller.signal.aborted) setQuoteError(error.message) })
         .finally(() => { if (!controller.signal.aborted) setQuoting(false) })
     }, 180)
     return () => { clearTimeout(timer); controller.abort() }
-  }, [cartPayload, discount, refresh, createdSale])
+  }, [cartPayload, discount, benefitId, customerId, quoteKey, refresh, createdSale, reservation?.id])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -107,6 +129,16 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
   }, [choosingCustomer, customerQuery])
 
   function changed() { setRequestId(crypto.randomUUID()); setError('') }
+  function chooseCustomer(next) {
+    changed()
+    if (next?.id !== customer?.id) {
+      setBenefits([])
+      setSelectedBenefit('')
+      setBenefitError('')
+    }
+    setCustomer(next)
+    setChoosingCustomer(false)
+  }
   function add(product) {
     const available = decimalUnits(product.stock)
     if (!available || busy) return
@@ -128,7 +160,7 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
   const categories = ['Todos', ...new Set(products.map((product) => product.category))]
   const visible = useMemo(() => filterSaleProducts(products, query).filter((product) => category === 'Todos' || product.category === category), [products, query, category])
   const payment = quote ? paymentState(pay, quote.total, cash, verified) : { ready: false, message: 'Espera el cálculo del servicio' }
-  const quoteCurrent = quote && quote.inputKey === cartPayload + '|' + discount && !quoting && !quoteError
+  const quoteCurrent = quote && quote.inputKey === quoteKey && !quoting && !quoteError
   const invalidCart = cart.some((item) => quantityUnits(item.qty) <= 0 || quantityUnits(item.qty) > decimalUnits(products.find((product) => product.id === item.id)?.stock ?? item.stock))
 
   async function confirmSale(event) {
@@ -139,7 +171,7 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
     setError('')
     try {
       const sale = await api.createSale({
-        items: JSON.parse(cartPayload), discount: discount || '0', customerId: customer?.id ?? null,
+        items: JSON.parse(cartPayload), discount: discount || '0', customerId, benefitId,
         paymentMethod: pay, cashReceived: cash, digitalReceived: cash, paymentConfirmed: verified,
         requestId, quoteId: quote.quoteId,reservationId:reservation?.id,
       })
@@ -205,10 +237,10 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
         <div className="checkout-top"><div><p className="eyebrow">Nueva venta</p><h3 ref={stepHeading} tabIndex={phonePayment ? -1 : undefined}>Detalle del pedido</h3></div><span>{quote ? countLabel(quote.units, 'unidad', 'unidades') : '— unidades'}</span></div>
         <button type="button" className="customer-select" disabled={busy || Boolean(reservation)} onClick={() => setChoosingCustomer((value) => !value)} aria-expanded={choosingCustomer}><UserRound/><div><span>Cliente</span><strong>{customer?.name || 'Venta sin cliente'}</strong></div><ChevronDown/></button>
         {choosingCustomer && <div className="sale-customer-search"><label className="search"><Search/><input aria-label="Buscar cliente registrado" placeholder="Nombre, correo o teléfono" value={customerQuery} onChange={(event) => setCustomerQuery(event.target.value)}/></label>
-          <button className="text-btn" type="button" onClick={() => { changed(); setCustomer(null); setChoosingCustomer(false) }}>Continuar sin cliente</button>
+          <button className="text-btn" type="button" onClick={() => chooseCustomer(null)}>Continuar sin cliente</button>
           {searching && <small role="status">Buscando…</small>}{customerError && <p className="form-error" role="alert">{customerError}</p>}
           {!searching && customerQuery.trim() && !customers.length && !customerError && <small>No se encontraron clientes.</small>}
-          {customers.map((item) => <button className="secondary" type="button" key={item.id} onClick={() => { changed(); setCustomer(item); setChoosingCustomer(false) }}>{item.name} · {item.phone || item.email}</button>)}
+          {customers.map((item) => <button className="secondary" type="button" key={item.id} onClick={() => chooseCustomer(item)}>{item.name} · {item.phone || item.email}</button>)}
         </div>}
         <div className="ticket-lines pos-lines">{cart.length ? cart.map((item) => <article key={item.id}>
           <span className="line-thumb">{item.name[0]}</span><div><strong>{item.name}</strong><small>{currency(quote?.items.find((line) => line.productId === item.id)?.unitPrice ?? item.price)} / {item.unit}</small></div>
@@ -217,8 +249,22 @@ export default function SaleDrawer({ close, onCreated, reservation = null }) {
           <button className="trash" type="button" disabled={busy || Boolean(reservation)} aria-label={'Retirar ' + item.name} onClick={() => { changed(); setCart((current) => current.filter((product) => product.id !== item.id)) }}><Trash2/></button>
         </article>) : <div className="empty-cart"><ShoppingBasket/><strong>La venta está vacía</strong><span>Selecciona productos del catálogo para comenzar.</span></div>}</div>
         <div className="discount-row"><Tag/><span>Descuento</span><AmountInput aria-label="Descuento de la venta en soles" min="0" max={quote?.subtotal ?? '9999999999.99'} step="0.01" inputMode="decimal" value={discount} disabled={busy} onChange={(event) => { changed(); setDiscount(event.target.value) }} placeholder="S/ 0.00"/></div>
+        {benefits.length > 0 && <label className="sale-benefit-select">Beneficio de fidelización
+          <select value={benefitId ?? ''} disabled={busy} onChange={event => {
+            changed()
+            setSelectedBenefit(event.target.value)
+            setVerified(false)
+          }}>
+            <option value="">Sin beneficio</option>
+            {benefits.map((benefit, index) => <option value={benefit.id} key={benefit.id}>
+              {currency(benefit.discount)} de descuento{benefits.length > 1 ? ` · Beneficio ${index + 1}` : ''}
+            </option>)}
+          </select>
+          <small>Para compras desde {currency(loyalty.minimum)} antes del beneficio.</small>
+        </label>}
+        {benefitError && <p className="form-error" role="alert">{benefitError}</p>}
         {quoteError && <p className="form-error" role="alert">{quoteError}</p>}
-        <div className="price-summary" aria-live="polite"><div><span>Subtotal</span><strong>{quoteCurrent ? currency(quote.subtotal) : '—'}</strong></div>{quote?.discount > 0 && <div className="discount"><span>Descuento</span><strong>− {currency(quote.discount)}</strong></div>}</div>
+        <div className="price-summary" aria-live="polite"><div><span>Subtotal</span><strong>{quoteCurrent ? currency(quote.subtotal) : '—'}</strong></div>{quoteCurrent && quote.discount > (quote.loyaltyDiscount ?? 0) && <div className="discount"><span>Descuento</span><strong>− {currency(quote.discount - (quote.loyaltyDiscount ?? 0))}</strong></div>}{quoteCurrent && quote.loyaltyDiscount > 0 && <div className="discount"><span>Beneficio de fidelización</span><strong>− {currency(quote.loyaltyDiscount)}</strong></div>}</div>
         <div className="payment-studio">
           <div className="ticket-pay pos-pay"><span>Método de pago</span><div>
             <button type="button" className={pay === 'efectivo' ? 'active' : ''} disabled={busy}
