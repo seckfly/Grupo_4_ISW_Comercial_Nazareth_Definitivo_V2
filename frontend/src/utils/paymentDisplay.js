@@ -1,8 +1,7 @@
-import { paymentNames } from '../../../shared/paymentMethods.mjs'
+import { digitalPaymentMethods, paymentNames } from '../../../shared/paymentMethods.mjs'
 
 export const digitalPaymentGroups = [
-  { value: 'yape_plin', label: 'Yape / Plin', methods: ['yape', 'plin'] },
-  { value: 'otro_digital', label: paymentNames.otro_digital, methods: ['otro_digital'] },
+  { value: 'digital', label: 'Pagos digitales', methods: digitalPaymentMethods },
 ]
 
 export const paymentFilterGroups = [

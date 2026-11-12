@@ -13,5 +13,12 @@ export const formatStoreDateTime = (value = new Date()) => {
   const shortDate = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', day: '2-digit', month: 'short' }).format(value).replace('.', '').replace('-', ' ').toUpperCase()
   return { date, time, weekday, shortDate }
 }
+export const formatHourRange = hour => {
+  if (hour === null || hour === undefined || hour === '') return null
+  const start = Number(hour)
+  if (!Number.isInteger(start) || start < 0 || start > 23) return null
+  const end = (start + 1) % 24
+  return `${String(start).padStart(2, '0')}:00–${String(end).padStart(2, '0')}:00`
+}
 export const margin = (cost, price) => price ? Math.round(((price - cost) / price) * 100) : 0
 export const stockLevel = (stock) => stock < 5 ? 'critical' : stock < 10 ? 'warning' : 'ok'

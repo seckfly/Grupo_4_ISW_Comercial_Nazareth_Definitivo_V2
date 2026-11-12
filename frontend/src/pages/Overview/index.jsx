@@ -4,7 +4,7 @@ import PageHeader from '../../components/ui/PageHeader'
 import { Card, StockPill } from '../../components/ui/Card'
 import { Skeleton } from '../../components/ui/States'
 import DeferredModule, { deferredModule } from '../../components/ui/DeferredModule'
-import { currency, quantityLabel, countLabel } from '../../utils/format'
+import { currency, quantityLabel, countLabel, formatHourRange } from '../../utils/format'
 import { formatSaleCreatedAt } from '../../utils/sale'
 import { useDashboard } from '../../hooks/useDashboard'
 import { useInventory } from '../../context/InventoryContext'
@@ -28,7 +28,7 @@ export function Analytics({ report = false, onNavigate }) {
     </div><div className="command-cash"><div className="cash-head"><span>Caja de hoy</span><WalletCards/></div><strong>{currency(data.today.total)}</strong>
       <div className="cash-detail"><div><b>{data.today.saleCount}</b><span>{data.today.saleCount === 1 ? 'operación' : 'operaciones'}</span></div><div><b>{currency(data.today.cashTotal)}</b><span>Efectivo cobrado</span></div>{digitalPaymentGroups.map(group => <div key={group.value}><b>{currency(paymentGroupTotal(data.today.paymentTotals, group))}</b><span>{group.label}</span></div>)}</div></div></section>}
     {!report && <section className="pulse-strip">
-      {[['Proyección de cierre', data.projection === null ? insufficient : currency(data.projection)],['Vs. ayer (mismo horario)',data.comparison === null ? insufficient : data.comparison + '%'],['Hora más fuerte del periodo',data.strongestHour === null ? insufficient : data.strongestHour + ':00–' + (Number(data.strongestHour)+1) + ':00']].map(([label,value]) => <article className="pulse-metric" key={label}><div><span>{label}</span></div><strong className="analytics-value">{value}</strong></article>)}
+      {[['Proyección de cierre', data.projection === null ? 'Historial insuficiente' : currency(data.projection)],['Vs. ayer (mismo horario)',data.comparison === null ? 'Sin datos comparables' : data.comparison + '%'],['Hora más fuerte del periodo',formatHourRange(data.strongestHour) ?? 'Sin suficientes ventas']].map(([label,value]) => <article className="pulse-metric" key={label}><div><span>{label}</span></div><strong className="analytics-value">{value}</strong></article>)}
       <article className="pulse-metric"><div><span>Ventas de ayer (día completo)</span></div><strong className="analytics-value">{data.yesterday ? currency(data.yesterday.total) : insufficient}</strong>{data.yesterday && <small>{countLabel(data.yesterday.saleCount, 'operación', 'operaciones')}</small>}</article>
     </section>}
     <div className="report-range"><button className={period === 'week' ? 'active' : ''} onClick={() => setPeriod('week')}>Últimos 7 días</button><button className={period === 'month' ? 'active' : ''} onClick={() => setPeriod('month')}>Este mes</button></div>
