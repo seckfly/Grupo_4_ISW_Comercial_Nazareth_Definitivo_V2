@@ -6,4 +6,4 @@ Para ajustar el inventario, el administrador selecciona un producto e ingresa la
 
 La reposición se registra desde Compras. La entrada de mercadería se produce con el ingreso directo o con la recepción de una orden pendiente.
 
-[Flujo de ajuste de V2](../modelos/modelos-v2.md#ajuste-de-inventario) · [CU-006](CU.md#cu-006-gestionar-inventario) · [Pruebas](../pruebas/pruebas.md).
+[Flujo de ajuste de V2](../../modelos/modelos-v2.md#ajuste-de-inventario) · [CU-006](CU.md#cu-006-gestionar-inventario) · [Pruebas](../../pruebas/pruebas.md).

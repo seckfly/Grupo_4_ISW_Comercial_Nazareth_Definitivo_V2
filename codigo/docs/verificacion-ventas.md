@@ -2,7 +2,7 @@
 
 ## Referencia
 
-Se conservan los identificadores RF-001, RF-010, BR-001, BR-002 y BR-003 del [SRS definitivo](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/blob/e98e1400cb4fa5ec47eef3585037a0e105af2b11/docs/SRS.md). Los escenarios se contrastan con [CU-001 y CU-002](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/blob/e98e1400cb4fa5ec47eef3585037a0e105af2b11/docs/CU.md) y [PRU-001, PRU-003, PRU-004 y PRU-020](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/blob/e98e1400cb4fa5ec47eef3585037a0e105af2b11/pruebas/pruebas.md).
+Se conservan los identificadores RF-001, RF-010, BR-001, BR-002 y BR-003 del [SRS definitivo](SRS.md). Los escenarios se contrastan con [CU-001 y CU-002](CU.md) y [PRU-001, PRU-003, PRU-004 y PRU-020](../../pruebas/pruebas.md).
 
 ## Errores encontrados y correcciones
 

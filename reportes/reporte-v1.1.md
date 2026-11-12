@@ -20,8 +20,8 @@ En v1.0, RF-015 exigía conservar el historial de ajustes, pero no obligaba a in
 
 | Archivo | Cambio |
 |---|---|
-| [SRS](../docs/SRS.md) | RF-015 incorpora el motivo obligatorio y su conservación en el historial. |
-| [Casos de uso](../docs/CU.md) | CU-006 incorpora el ingreso y la validación del motivo, el guardado conjunto y el rechazo sin cambios cuando el motivo no es válido. |
+| [SRS](../codigo/docs/SRS.md) | RF-015 incorpora el motivo obligatorio y su conservación en el historial. |
+| [Casos de uso](../codigo/docs/CU.md) | CU-006 incorpora el ingreso y la validación del motivo, el guardado conjunto y el rechazo sin cambios cuando el motivo no es válido. |
 | [Diagrama editable](../modelos/clases.drawio) y [PNG](../modelos/clases.png) | CLS-MovimientoInventario incorpora el atributo motivo y el método validarMotivo(motivo: String): boolean. registrarAjuste recibe el motivo. Los elementos añadidos o modificados se muestran en naranja. |
 | [Pruebas](../pruebas/pruebas.md) | PRU-016 comprueba dos ajustes con sus respectivos motivos. PRU-017 comprueba el rechazo de un motivo vacío y PRU-018, el de un motivo compuesto solo por espacios. |
 | [Matriz](../matrices/trazabilidad.md) | RF-015 enlaza las tres pruebas de ajustes y registra CR-001 en la columna Último CR. |

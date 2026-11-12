@@ -4,13 +4,13 @@
 
 El sistema organiza las ventas, las existencias y la reposición de Comercial Nazareth, negocio minorista de abarrotes ubicado en Ascope, La Libertad. Humberto Dávalos es el propietario y único trabajador. Registra sus operaciones en cuadernos y estima el stock mediante revisión visual; necesita conocer las cantidades disponibles para decidir qué comprar y cuánto reponer.
 
-Esta revisión describe la implementación de [Comercial_Nazareth_Codigo en `58611e9`](https://github.com/seckfly/Comercial_Nazareth_Codigo/tree/58611e91ce6a14d4eefcddbfc54dc789e818f0b4). El [registro de cambios](cambios-v2.md) identifica las diferencias respecto de Definitivo V1. Los resultados y pendientes de verificación se registran en [pruebas](../pruebas/pruebas.md).
+El [registro de cambios](cambios-v2.md) documenta las decisiones del sistema. Los resultados y pendientes de verificación se registran en [pruebas](../../pruebas/pruebas.md).
 
 ## Alcance
 
 Se incluyen ventas, consulta de productos y existencias, mantenimiento de productos e inventario, promociones, solicitudes de separación, apartados y recojo, consultas del portal y beneficios de clientes, administración de accesos, resúmenes de ventas, órdenes de compra y recepción de mercadería.
 
-La interfaz usa React/Vite y la API usa Express. Los datos se guardan en PostgreSQL alojado en Supabase. Supabase Auth autentica las cuentas y Express comprueba el perfil y autoriza las operaciones. Las fotos opcionales usan Supabase Storage. La entrega web contempla la interfaz en Vercel y la API en Render. El [modelo de despliegue](../modelos/modelos-v2.md#despliegue) recoge esas dependencias.
+La interfaz usa React/Vite y la API usa Express. Los datos se guardan en PostgreSQL alojado en Supabase. Supabase Auth autentica las cuentas y Express comprueba el perfil y autoriza las operaciones. Las fotos opcionales usan Supabase Storage. La entrega web contempla la interfaz en Vercel y la API en Render. El [modelo de despliegue](../../modelos/modelos-v2.md#despliegue) recoge esas dependencias.
 
 Quedan fuera del alcance la contabilidad integral, la facturación electrónica, los pagos a proveedores, la apertura y el cierre formal de caja, las notificaciones automáticas y la detección de stock mediante cámaras. El proveedor se comunica con Humberto fuera de la aplicación y no tiene credenciales de acceso.
 
@@ -84,4 +84,4 @@ El cálculo de descuentos debe coincidir entre la interfaz y el servicio. En los
 
 ## Trazabilidad
 
-La [matriz](../matrices/trazabilidad.md) vincula los requisitos y reglas con los [casos de uso](CU.md), los [modelos V2](../modelos/modelos-v2.md) y el [catálogo de pruebas](../pruebas/pruebas.md).
+La [matriz](../../matrices/trazabilidad.md) vincula los requisitos y reglas con los [casos de uso](CU.md), los [modelos V2](../../modelos/modelos-v2.md) y el [catálogo de pruebas](../../pruebas/pruebas.md).

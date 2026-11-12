@@ -1,8 +1,8 @@
 ﻿# Cierre de correspondencia: SRS completo y extensiones
 
-Referencia: [alcance aprobado y auditoría inicial](alcance-y-evidencia.md). El 2026-11-11 se comprobó que main del definitivo sigue en e98e1400cb4fa5ec47eef3585037a0e105af2b11, sin diferencias con el enlace aprobado del README. No se usó Lab 7 como límite. El repositorio definitivo no se modificó.
+Referencia: [alcance y auditoría inicial](alcance-y-evidencia.md).
 
-**Implementado no equivale a prueba alojada aprobada.** No quedan comportamientos funcionales del SRS intencionadamente ausentes en código; las limitaciones de configuración y evidencia se marcan por separado. Los archivos de código de las tablas son relativos a la raíz del repositorio.
+**Implementado no equivale a prueba alojada aprobada.** No quedan comportamientos funcionales del SRS intencionadamente ausentes en código; las limitaciones de configuración y evidencia se marcan por separado. Los archivos de código de las tablas son relativos a la carpeta `codigo/`.
 
 ## 15 RF
 
