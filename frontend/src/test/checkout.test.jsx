@@ -908,6 +908,19 @@ it.each([false, true])('Compras conserva la solicitud y la línea al reintentar 
 })
 
 
+it.each([
+  ['987 654 321', '987 654 321'],
+  [null, 'Sin teléfono registrado'],
+])('Mi cuenta muestra el teléfono del cliente (%s)', async (phone, expected) => {
+  authState.user.role = 'client'
+  api.customerAccount.mockResolvedValue({ points: 130, phone })
+  const element = render(<Account/>)
+  await settled(() => expect(element.querySelector('.account-points strong').textContent).toBe('130'))
+  const rows = [...element.querySelectorAll('.account-contact dl > div')]
+  const phoneRow = rows.find(row => row.querySelector('dt')?.textContent === 'Teléfono')
+  expect(phoneRow?.querySelector('dd')?.textContent).toBe(expected)
+})
+
 it('Mi cuenta confirma el reclamo y permite recuperar los puntos del beneficio disponible', async () => {
   authState.user.role = 'client'
   const reward = { points: 100, discount: 5, minimum: 30 }
