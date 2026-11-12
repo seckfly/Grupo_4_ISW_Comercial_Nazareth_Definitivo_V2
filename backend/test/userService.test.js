@@ -21,3 +21,12 @@ test('la cuenta protegida no puede perder el rol administrativo ni desactivarse'
   assert.equal(canChangeAccess(target, { role: 'admin', isActive: true }), true)
   assert.equal(canChangeAccess({ isProtected: false }, { role: 'client', isActive: false }), true)
 })
+
+test('el teléfono del cliente es opcional y admite números nacionales e internacionales', () => {
+  assert.deepEqual(validateUserPayload({ phone: '' }, true), [])
+  assert.deepEqual(validateUserPayload({ phone: '987 654 321' }, true), [])
+  assert.deepEqual(validateUserPayload({ phone: '+51 987 654 321' }, true), [])
+  assert.equal(validateUserPayload({ phone: '123' }, true).length, 1)
+  assert.equal(validateUserPayload({ phone: 'abc123456' }, true).length, 1)
+  assert.equal(validateUserPayload({ phone: null }, true).length, 1)
+})

@@ -7,7 +7,7 @@ import PasswordForm from '../../components/ui/PasswordForm';
 import PasswordVisibilityControl from '../../components/ui/PasswordVisibilityControl';
 import ConfirmationDrawer from '../../components/ui/ConfirmationDrawer';
 
-const EMPTY_FORM = { name: '', email: '', password: '', role: 'client', isActive: true };
+const EMPTY_FORM = { name: '', email: '', password: '', phone: '', role: 'client', isActive: true };
 export default function Settings() {
   const [section, setSection] = useState('credentials');
   const temporaryPasswordId = useId();
@@ -70,7 +70,7 @@ export default function Settings() {
   function editUser(user) {
     setEditingId(user.id);
     setShowPassword(false);
-    setForm({ name: user.name, email: user.email, password: '', role: user.role, isActive: user.isActive });
+    setForm({ name: user.name, email: user.email, password: '', phone: user.phone || '', role: user.role, isActive: user.isActive });
     setError('');
     document.querySelector('.credential-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -169,6 +169,9 @@ export default function Settings() {
               </div>
               <label>Tipo de acceso<select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} disabled={protectedAccess}><option value="client">Cliente</option><option value="admin">Administrador</option></select></label>
             </div>
+            {form.role === 'client' && <div className="form-row">
+              <label>Teléfono (opcional)<input type="tel" autoComplete="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Ej. 987 654 321" maxLength={25}/></label>
+            </div>}
             {editing && !protectedAccess && <label className="access-toggle"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} /><span><strong>Acceso activo</strong><small>El usuario puede iniciar sesión en el sistema.</small></span></label>}
             {error && <p className="form-error" role="alert">{error}</p>}
             {notice && <p className="form-success" role="status">{notice}</p>}
