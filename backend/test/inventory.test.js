@@ -124,6 +124,25 @@ test('PRU-002: alerta por debajo e igual al mínimo, con exclusión de inactivos
   assert.equal(result.body.products.find((product) => product.id === inactive.id).stock, 4)
 })
 
+test('inventario devuelve el precio promocional vigente sin sustituir el precio regular', async (t) => {
+  const fixture = await inventoryFixture(t)
+  const product = await fixture.create({ price: '6.70' })
+  await fixture.database.query(`INSERT INTO nazareth.promotions
+    (product_id, discount_type, discount_value, start_date, end_date, status)
+    VALUES ($1, 'percentage', 20, now() - interval '1 day', now() + interval '1 day', 'active')`, [product.id])
+
+  const active = await fixture.request()
+  const activeProduct = active.body.products.find(item => item.id === product.id)
+  assert.equal(activeProduct.price, 6.7)
+  assert.equal(activeProduct.currentPrice, 5.36)
+
+  await fixture.database.query("UPDATE nazareth.promotions SET status = 'paused' WHERE product_id = $1", [product.id])
+  const paused = await fixture.request()
+  const pausedProduct = paused.body.products.find(item => item.id === product.id)
+  assert.equal(pausedProduct.price, 6.7)
+  assert.equal(pausedProduct.currentPrice, 6.7)
+})
+
 test('PRU-016: alta, precio actualizado y dos ajustes con historial conservado', async (t) => {
   const fixture = await inventoryFixture(t)
   const product = await fixture.create()
