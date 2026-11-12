@@ -3,7 +3,7 @@ import { transaction } from './stockService.js'
 
 export function validateUserPayload(payload, partial = false) {
   const errors = []
-  const { name, email, password, role, isActive } = payload
+  const { name, email, password, role, isActive, phone } = payload
   if ((!partial || name !== undefined) && (typeof name !== 'string' || !name.trim())) errors.push('El nombre es obligatorio')
   if ((!partial || email !== undefined) && (typeof email !== 'string' || !/^\S+@\S+\.\S+$/.test(email.trim()))) errors.push('El correo no es válido')
   if ((!partial || password !== undefined) && (typeof password !== 'string' || password.length < 8)) {
@@ -11,6 +11,13 @@ export function validateUserPayload(payload, partial = false) {
   }
   if (role !== undefined && !['admin', 'client'].includes(role)) errors.push('El rol no es válido')
   if (isActive !== undefined && typeof isActive !== 'boolean') errors.push('El estado del acceso no es válido')
+  if (phone !== undefined) {
+    const value = typeof phone === 'string' ? phone.trim() : null
+    const digits = value?.replace(/\D/g, '').length ?? 0
+    if (value === null || (value && (!/^[+\d()\s.-]+$/.test(value) || value.length > 25 || digits < 6 || digits > 15))) {
+      errors.push('El teléfono debe contener entre 6 y 15 dígitos y solo caracteres telefónicos habituales')
+    }
+  }
   return errors
 }
 

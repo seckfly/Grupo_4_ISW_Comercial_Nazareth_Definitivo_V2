@@ -32,8 +32,8 @@ export async function listUsers(_req, res, next) {
 }
 
 export async function createUser(req, res, next) {
-  const { name, email, password, role = 'client' } = req.body
-  const [error] = validateUserPayload({ name, email, password, role })
+  const { name, email, password, role = 'client', phone } = req.body
+  const [error] = validateUserPayload({ name, email, password, role, phone })
   if (error) return res.status(400).json({ message: error })
 
   let connection
@@ -49,7 +49,7 @@ export async function createUser(req, res, next) {
     checkAuthError(authError)
     authUserId = data.user.id
     const id = await User.create(connection, { authUserId, name: name.trim(), role })
-    if (role === 'client') await User.ensureCustomer(connection, id, name.trim())
+    if (role === 'client') await User.ensureCustomer(connection, id, name.trim(), phone === undefined ? undefined : phone.trim() || null)
     const profile = await User.findById(connection, id)
     commitStarted = true
     await connection.query('COMMIT')
@@ -70,8 +70,8 @@ export async function updateUser(req, res, next) {
   const id = Number(req.params.id)
   if (!Number.isSafeInteger(id) || id <= 0 || id > 2147483647) return res.status(400).json({ message: 'Usuario no válido' })
 
-  const { name, email, password, role, isActive } = req.body
-  const [error] = validateUserPayload({ name, email, password, role, isActive }, true)
+  const { name, email, password, role, isActive, phone } = req.body
+  const [error] = validateUserPayload({ name, email, password, role, isActive, phone }, true)
   if (error) return res.status(400).json({ message: error })
 
   let connection
@@ -86,7 +86,7 @@ export async function updateUser(req, res, next) {
     if (!canChangeAccess(target, updates)) throw operationError(409, 'La cuenta administrativa protegida debe conservar su acceso')
 
     await User.update(connection, id, updates)
-    if (updates.role === 'client') await User.ensureCustomer(connection, id, updates.name)
+    if (updates.role === 'client') await User.ensureCustomer(connection, id, updates.name, phone === undefined ? undefined : phone.trim() || null)
     const normalizedEmail = email?.trim().toLowerCase() ?? target.email
     if (normalizedEmail !== target.email || password) {
       const changes = {}
