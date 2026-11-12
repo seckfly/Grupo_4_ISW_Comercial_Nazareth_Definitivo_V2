@@ -116,11 +116,18 @@ test('Una reserva confirmada vacía Mi lista persistida sin borrar favoritos y c
   assert.deepEqual((await request('/api/preferences', { role: 'client-fixture' })).body,
     { favorites: [item.id], list: [] })
 
+  await savePreferences(pool, 2, { favorites: [item.id], list: [item.id] })
   const retry = await request('/api/reservations', { method: 'POST', role: 'client-fixture', body: payload })
   assert.equal(retry.status, 200, JSON.stringify(retry.body))
   assert.equal(retry.body.id, first.body.id)
   assert.deepEqual((await request('/api/preferences', { role: 'client-fixture' })).body,
-    { favorites: [item.id], list: [] })
+    { favorites: [item.id], list: [item.id] })
+
+  const failed = await request('/api/reservations', { method: 'POST', role: 'client-fixture',
+    body: { requestId: randomUUID(), expectedTotal: '999.99', items: [{ productId: item.id, quantity: '1' }] } })
+  assert.equal(failed.status, 409)
+  assert.deepEqual((await request('/api/preferences', { role: 'client-fixture' })).body,
+    { favorites: [item.id], list: [item.id] })
 
   const history = await request('/api/reservations', { role: 'client-fixture' })
   assert.equal(history.body.length, 1)

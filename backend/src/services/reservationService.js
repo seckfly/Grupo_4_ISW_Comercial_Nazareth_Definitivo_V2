@@ -61,7 +61,6 @@ export async function requestReservation(pool,userId,input,generateCode=()=> 'NZ
     const {rows:[previous]}=await db.query('SELECT * FROM nazareth.reservations WHERE request_id=$1',[input.requestId])
     if(previous) {
       if(previous.request_fingerprint!==hash)throw inputError('La solicitud ya se utilizó con otros datos',409)
-      await clearSavedShoppingList(db, customer.id)
       return previous
     }
     let saved

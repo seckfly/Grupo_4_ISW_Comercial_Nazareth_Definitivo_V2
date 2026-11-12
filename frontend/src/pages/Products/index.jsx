@@ -107,6 +107,7 @@ export default function Products({onNavigate}){
       setCreated(saved)
       setList([])
       setQuantities({})
+      setRequestId(crypto.randomUUID())
     } catch (error) {
       const pricesUpdated = error.status !== 409 || await refreshPrices()
       setError(pricesUpdated ? error.message : 'No se pudo actualizar el catálogo. Recarga la página antes de enviar tu solicitud.')
