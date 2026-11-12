@@ -13,7 +13,7 @@ Humberto Dávalos desempeña los cuatro roles internos; el cliente registrado ut
 | CU-008 | Registrar compra mayorista | Responsable de compras | RF-003, RF-004, RF-007 |
 | CU-009 | Gestionar compras (Recepción de mercadería) | Responsable de compras | RF-004, RF-005 |
 
-![Diagrama general de casos de uso](../modelos/casos-de-uso.png)
+![Diagrama general de casos de uso](../../modelos/casos-de-uso.png)
 
 ## CU-001: Registrar venta
 
@@ -261,4 +261,4 @@ Postcondición de éxito: queda guardada una recepción sin duplicados y el stoc
 
 - **Mi cuenta.** Administrador y cliente pueden cambiar su propia contraseña. Se verifica la contraseña actual y se actualiza la misma identidad. El cliente consulta su contacto, incluido el teléfono cuando está registrado.
 - **Fidelización.** El cliente consulta su saldo, reclama un beneficio disponible y puede cancelarlo antes del canje. El administrador selecciona el beneficio del titular en Caja. El uso se confirma con la venta.
-- **Modelos de V2.** Los recorridos de venta, reserva, inventario y compra se representan en [modelos-v2.md](../modelos/modelos-v2.md).
+- **Modelos de V2.** Los recorridos de venta, reserva, inventario y compra se representan en [modelos-v2.md](../../modelos/modelos-v2.md).

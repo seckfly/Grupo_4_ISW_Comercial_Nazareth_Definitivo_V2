@@ -1,6 +1,6 @@
 # Configuración del alcance completo
 
-Se mantienen React/Vite, Express, PostgreSQL alojado, Supabase Auth y las decisiones CR-001/CR-002. No se modificó el repositorio definitivo. Aplicar primero las migraciones anteriores 001–004 si no estuvieran aplicadas. Las 001 y 002 existentes no se reemplazan.
+Se mantienen React/Vite, Express, PostgreSQL alojado, Supabase Auth y las decisiones CR-001/CR-002. Aplicar primero las migraciones anteriores 001–004 si no estuvieran aplicadas. Las 001 y 002 existentes no se reemplazan.
 
 ## Migraciones nuevas
 

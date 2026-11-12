@@ -1,6 +1,6 @@
 # Verificación de Definitivo V2
 
-La revisión documental compara [V1 en 5b3c9b1](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/tree/5b3c9b1e67bd41b4c9f56c19a77a8d6db10d67c9) con la [implementación 58611e9](https://github.com/seckfly/Comercial_Nazareth_Codigo/tree/58611e91ce6a14d4eefcddbfc54dc789e818f0b4). El [catálogo de pruebas](../pruebas/pruebas.md) registra el resultado esperado de cada escenario.
+El [catálogo de pruebas](../pruebas/pruebas.md) registra el resultado esperado de cada escenario.
 
 | Área | Evidencia consultada | Comprobación para la entrega |
 |---|---|---|
@@ -13,4 +13,4 @@ La revisión documental compara [V1 en 5b3c9b1](https://github.com/seckfly/Grupo
 | Despliegue | Registro del backend en Render y PR de preparación. | Confirmar la revisión servida y ejecutar PRU-032. |
 | Respaldo | El informe de origen describe una restauración en una base temporal. | Configurar la ejecución al cierre en el entorno de uso. |
 
-La [evidencia de origen](https://github.com/seckfly/Comercial_Nazareth_Codigo/blob/58611e91ce6a14d4eefcddbfc54dc789e818f0b4/docs/cierre-requisitos.md) corresponde a la ejecución descrita allí. Este informe deja constancia de la revisión documental y de las verificaciones de la demo pendientes de ejecución.
+La [evidencia técnica](../codigo/docs/cierre-requisitos.md) corresponde a la ejecución registrada en el informe técnico. Este informe deja constancia de la revisión documental y de las verificaciones de la demo pendientes de ejecución.

@@ -42,4 +42,4 @@
 
 ## Evidencia de ejecución
 
-El [informe del código de origen](https://github.com/seckfly/Comercial_Nazareth_Codigo/blob/58611e91ce6a14d4eefcddbfc54dc789e818f0b4/docs/cierre-requisitos.md) conserva resultados de pruebas locales y verificaciones alojadas pendientes. Los casos añadidos arriba son el catálogo de aceptación de V2. Los resultados de Render, Storage y las pruebas por dispositivo se registran después de ejecutarlas en el entorno de la entrega.
+El [informe de verificación técnica](../codigo/docs/cierre-requisitos.md) conserva resultados de pruebas locales y verificaciones alojadas pendientes. Los casos añadidos arriba son el catálogo de aceptación de V2. Los resultados de Render, Storage y las pruebas por dispositivo se registran después de ejecutarlas en el entorno de la entrega.

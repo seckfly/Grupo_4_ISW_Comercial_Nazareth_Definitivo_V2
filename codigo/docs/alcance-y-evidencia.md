@@ -1,8 +1,8 @@
 ﻿# Alcance completo y evidencia de implementación
 
-Referencia aprobada: [SRS](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/blob/e98e1400cb4fa5ec47eef3585037a0e105af2b11/docs/SRS.md), [CU](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/blob/e98e1400cb4fa5ec47eef3585037a0e105af2b11/docs/CU.md), [matriz](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/blob/e98e1400cb4fa5ec47eef3585037a0e105af2b11/matrices/trazabilidad.md) y [23 PRU](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/blob/e98e1400cb4fa5ec47eef3585037a0e105af2b11/pruebas/pruebas.md).
+Referencia aprobada: [SRS](SRS.md), [CU](CU.md), [matriz](../../matrices/trazabilidad.md) y [pruebas](../../pruebas/pruebas.md).
 
-GitHub consultado antes de editar: main = e98e1400cb4fa5ec47eef3585037a0e105af2b11, comparación identical y sin archivos modificados. Lab 7 no sustituye el alcance completo. Base de implementación: 9933241. React/Vite, Express y CR-002 (Supabase/PostgreSQL/Auth) se mantienen. No se modifica el repositorio definitivo.
+La auditoría inicial registra el estado previo a las verificaciones descritas en el [cierre de requisitos](cierre-requisitos.md).
 
 ## Auditoría inicial
 

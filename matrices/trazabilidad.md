@@ -1,6 +1,6 @@
 # Matriz de trazabilidad de Comercial Nazareth V2
 
-Vínculos entre el [SRS de V2](../docs/SRS.md), los [casos de uso](../docs/CU.md), los [modelos](../modelos/modelos-v2.md) y el [catálogo de pruebas](../pruebas/pruebas.md).
+Vínculos entre el [SRS de V2](../codigo/docs/SRS.md), los [casos de uso](../codigo/docs/CU.md), los [modelos](../modelos/modelos-v2.md) y el [catálogo de pruebas](../pruebas/pruebas.md).
 
 ## Requisitos funcionales
 

@@ -1,6 +1,6 @@
 # Modelos de Comercial Nazareth V2
 
-Los modelos describen los módulos y servicios de la [revisión 58611e9](https://github.com/seckfly/Comercial_Nazareth_Codigo/tree/58611e91ce6a14d4eefcddbfc54dc789e818f0b4). El modelo de clases representa entidades del dominio y sus relaciones, tal como se reflejan en el esquema y los servicios.
+Los modelos describen los módulos, servicios y entidades del sistema. El modelo de clases representa las entidades del dominio y sus relaciones según el esquema y los servicios.
 
 ## Despliegue
 

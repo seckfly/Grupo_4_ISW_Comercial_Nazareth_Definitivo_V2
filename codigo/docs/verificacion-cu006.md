@@ -2,12 +2,12 @@
 
 ## Referencia aprobada
 
-La implementación mantiene RF-002, RF-015 y BR-006 de la línea base del repositorio definitivo, commit `e98e1400cb4fa5ec47eef3585037a0e105af2b11`.
+La verificación de inventario abarca RF-002, RF-015 y BR-006.
 
-- [SRS](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/blob/e98e1400cb4fa5ec47eef3585037a0e105af2b11/docs/SRS.md).
-- [Proceso crítico](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/blob/e98e1400cb4fa5ec47eef3585037a0e105af2b11/docs/proceso-critico.md).
-- [Trazabilidad](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/blob/e98e1400cb4fa5ec47eef3585037a0e105af2b11/matrices/trazabilidad.md).
-- [Pruebas de aceptación](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/blob/e98e1400cb4fa5ec47eef3585037a0e105af2b11/pruebas/pruebas.md).
+- [SRS](SRS.md).
+- [Proceso crítico](proceso-critico.md).
+- [Trazabilidad](../../matrices/trazabilidad.md).
+- [Pruebas de aceptación](../../pruebas/pruebas.md).
 
 ## Implementación
 
