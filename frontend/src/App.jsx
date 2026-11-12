@@ -45,9 +45,13 @@ function Dashboard() {
   const Screen=page==='Resumen'&&user.role==='client'?ClientHome:(screens[page]||Overview)
   function navigate(destination) { startTransition(() => setPage(destination)) }
   function registerSale(){setRevision(value=>value+1);setSalesRevision(value=>value+1);navigate('Ventas')}
+  function openSale(reservation) {
+    // Sales-page buttons pass a click event; only a real reservation carries an items array.
+    setSale(reservation && Array.isArray(reservation.items) ? reservation : true)
+  }
   const closeSale=()=>setSale(false)
   return <AppShell page={page} setPage={navigate} onSale={()=>setSale(true)}>
-    <DeferredModule definition={Screen} label={page} componentProps={{openSale:reservation=>setSale(reservation||true),onNavigate:navigate,revision:salesRevision}}/>
+    <DeferredModule definition={Screen} label={page} componentProps={{openSale,onNavigate:navigate,revision:salesRevision}}/>
     {sale&&user.role==='admin'&&<DeferredModule definition={SaleDrawer} label="Nueva venta"
       fallback={<SaleLoadingFrame close={closeSale}><p role="status">Cargando Nueva venta…</p></SaleLoadingFrame>}
       errorFrame={content=><SaleLoadingFrame close={closeSale}>{content}</SaleLoadingFrame>}
