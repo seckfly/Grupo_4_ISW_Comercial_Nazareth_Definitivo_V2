@@ -934,3 +934,31 @@
     font-size: 12px;
   }
 }
+
+/* Inventory: keep promotional prices at the same scale as the original table values.
+   The larger .offer-price typography belongs only to the client campaign presentation. */
+.inventory-page .offer-price {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin: 0;
+  color: inherit;
+  font-size: 12px;
+  line-height: inherit;
+  white-space: nowrap;
+}
+
+.inventory-page .offer-price strong {
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: inherit;
+}
+
+.inventory-page .offer-price del {
+  margin: 0;
+  color: #898279;
+  font-size: 0.88em;
+  line-height: inherit;
+}
