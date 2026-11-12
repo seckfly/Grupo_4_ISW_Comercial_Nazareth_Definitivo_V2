@@ -8,12 +8,13 @@ Sistema de gestión de ventas, inventario, compras y portal de clientes. La carp
 
 | Documento | Contenido |
 |---|---|
-| [SRS de V2](docs/SRS.md) | 17 requisitos funcionales, 7 no funcionales y 11 reglas de negocio. |
+| [SRS de V2](docs/SRS.md) | 19 requisitos funcionales, 7 no funcionales y 14 reglas de negocio. |
 | [Casos de uso](docs/CU.md) | Flujos de venta, catálogo, promociones, reservas, inventario y compras. |
 | [Modelos](modelos/modelos-v2.md) | Despliegue, clases del dominio, casos de uso y flujos de operación. |
 | [Matriz de trazabilidad](matrices/trazabilidad.md) | Relaciones entre requisitos, reglas, pruebas y solicitudes de cambio. |
+| [Impacto](matrices/impacto-cr-001.md) y [riesgos](matrices/riesgos-cr-001.md) | Evaluación de todas las solicitudes de cambio. |
 | [Pruebas](pruebas/pruebas.md) | Escenarios de aceptación y referencias de evidencia. |
-| [Registro de cambios](docs/cambios-v2.md) | Antecedente CR-001 e Issues CR-002 a CR-010. |
+| [Registro de cambios](docs/cambios-v2.md) | Solicitudes de cambio CR-001 a CR-011. |
 | [Informe de verificación](reportes/verificacion-v2.md) | Revisión de referencia y comprobaciones pendientes para la demo. |
 
 ## Ejecución

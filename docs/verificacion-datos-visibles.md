@@ -1,5 +1,7 @@
 # Campañas, clientes e icono de alertas
 
+Registro histórico. Para conocer el alcance y las pruebas de la versión vigente, consulta el [cierre de requisitos](cierre-requisitos.md).
+
 - El icono usa `notice-icon stock-alert`, con el mismo fondo y color anteriores. La regla global `.alert` se conserva. El contenedor vuelve a usar exclusivamente la cuadrícula centrada de `.notice-icon`, sin el padding de `.alert` que desplazaba el triángulo.
 - Promociones consulta GET `/api/promotions`. Ya no incorpora campañas, cifras, recomendaciones ni preferencias de muestra desde constantes o localStorage. Se corrigió el paso del rol desde el controlador al modelo para permitir la consulta administrativa completa.
 - La consulta de solo lectura a PostgreSQL devolvió 0 campañas. La vista vacía dice «Aún no hay campañas». Los errores se muestran con Reintentar, sin interpretarlos como ausencia de registros.

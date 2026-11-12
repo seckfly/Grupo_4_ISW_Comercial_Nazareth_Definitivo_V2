@@ -1,5 +1,7 @@
 # Reporte de trazabilidad de Comercial Nazareth (v1.1)
 
+Registro histórico. Para conocer el alcance y las pruebas de la versión vigente, consulta el [cierre de requisitos](../docs/cierre-requisitos.md).
+
 CR aplicado: motivo obligatorio en ajustes manuales de RF-015. La comparación se limita a los cinco requisitos revisados para ese cambio.
 
 | Métrica | v1.0 | v1.1 |

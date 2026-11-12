@@ -1,184 +1,150 @@
+<?xml version='1.0' encoding='utf-8'?>
 <mxfile host="app.diagrams.net">
-  <diagram name="Página-1" id="7iB1w_aTyXr9aUizHCnS">
-    <mxGraphModel dx="982" dy="544" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+  <diagram name="Comercial Nazareth V2 · Clases del dominio">
+    <mxGraphModel grid="1" page="1" pageWidth="1654" pageHeight="1169">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="titulo" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=16;fontStyle=1;" value="Diagrama de clases - Comercial Nazareth (v1.1)" vertex="1">
-          <mxGeometry height="30" width="600" x="40" y="20" as="geometry" />
+        <mxCell id="perfil" value="Perfil&#10;rol · activo · protegido&#10;teléfono de admin" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="1231" y="101" width="178" height="62" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-Cliente" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="CLS-Cliente" vertex="1">
-          <mxGeometry height="160" width="280" x="40" y="80" as="geometry" />
+        <mxCell id="cliente" value="Cliente&#10;teléfono · puntos iniciales" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="1218" y="229" width="204" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-Cliente-attrs" parent="CLS-Cliente" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- idCliente: int&lt;br&gt;- nombre: String" vertex="1">
-          <mxGeometry height="48" width="280" y="26" as="geometry" />
+        <mxCell id="categoria" value="Categoría&#10;nombre" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="717" y="229" width="94" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-Cliente-sep" parent="CLS-Cliente" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
-          <mxGeometry height="8" width="280" y="74" as="geometry" />
+        <mxCell id="producto" value="Producto&#10;precio · costo · stock · mínimo&#10;foto · archivo · baja" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="648" y="344" width="233" height="62" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-Cliente-meths" parent="CLS-Cliente" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ crearLista(nombre, tipo): ListaProductos" vertex="1">
-          <mxGeometry height="78" width="280" y="82" as="geometry" />
+        <mxCell id="promocion" value="Promoción&#10;tipo · descuento · vigencia · estado" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="445" y="472" width="265" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-Venta" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="CLS-Venta" vertex="1">
-          <mxGeometry height="210" width="280" x="440" y="80" as="geometry" />
+        <mxCell id="venta" value="Venta&#10;importe · medio de pago" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="1445" y="472" width="196" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-Venta-attrs" parent="CLS-Venta" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- idVenta: int&lt;br&gt;- fecha: datetime&lt;br&gt;- metodoPago: Efectivo | Yape | Plin&lt;br&gt;- montoRecibido: decimal&lt;br&gt;- referenciaDigital: String&lt;br&gt;- total: decimal" vertex="1">
-          <mxGeometry height="99" width="280" y="26" as="geometry" />
+        <mxCell id="linea_venta" value="Línea de venta&#10;cantidad · precio registrado" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="855" y="593" width="214" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-Venta-sep" parent="CLS-Venta" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
-          <mxGeometry height="8" width="280" y="125" as="geometry" />
+        <mxCell id="reserva" value="Reserva&#10;código · estado · vencimiento" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="1206" y="350" width="229" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-Venta-meths" parent="CLS-Venta" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ vincularCliente(cliente): void&lt;br&gt;+ calcularTotal(): decimal&lt;br&gt;+ calcularVuelto(): decimal&lt;br&gt;+ confirmar(): void" vertex="1">
-          <mxGeometry height="77" width="280" y="133" as="geometry" />
+        <mxCell id="linea_res" value="Línea de reserva&#10;cantidad · precio" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="1249" y="472" width="142" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-DetalleVenta" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="CLS-DetalleVenta" vertex="1">
-          <mxGeometry height="210" width="280" x="840" y="80" as="geometry" />
+        <mxCell id="beneficio" value="Beneficio&#10;puntos · descuento · venta opcional" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="1467" y="350" width="269" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-DetalleVenta-attrs" parent="CLS-DetalleVenta" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- cantidad: int&lt;br&gt;- precioUnitario: decimal&lt;br&gt;- subtotal: decimal" vertex="1">
-          <mxGeometry height="68" width="280" y="26" as="geometry" />
+        <mxCell id="orden" value="Orden de compra&#10;proveedor · estado" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="242" y="350" width="156" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-DetalleVenta-sep" parent="CLS-DetalleVenta" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
-          <mxGeometry height="8" width="280" y="94" as="geometry" />
+        <mxCell id="linea_ord" value="Línea de orden&#10;cantidad · costo · recibido" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="30" y="472" width="203" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-DetalleVenta-meths" parent="CLS-DetalleVenta" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ calcularSubtotal(): decimal" vertex="1">
-          <mxGeometry height="108" width="280" y="102" as="geometry" />
+        <mxCell id="recepcion" value="Recepción&#10;referencia · fecha" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="265" y="472" width="147" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-ListaProductos" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="CLS-ListaProductos" vertex="1">
-          <mxGeometry height="330" width="280" x="40" y="400" as="geometry" />
+        <mxCell id="linea_rec" value="Línea de recepción&#10;cantidad" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="190" y="593" width="156" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-ListaProductos-attrs" parent="CLS-ListaProductos" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- nombre: String&lt;br&gt;- tipo: Favoritos | Lista" vertex="1">
-          <mxGeometry height="48" width="280" y="26" as="geometry" />
+        <mxCell id="movimiento" value="Movimiento de inventario&#10;tipo · variación · saldo antes/después&#10;motivo · identificador de ajuste" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="587" width="281" height="62" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-ListaProductos-sep" parent="CLS-ListaProductos" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
-          <mxGeometry height="8" width="280" y="74" as="geometry" />
+        <mxCell id="lista" value="Lista de productos&#10;nombre" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="913" y="350" width="153" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-ListaProductos-meths" parent="CLS-ListaProductos" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ agregarProducto(producto): void&lt;br&gt;+ quitarProducto(producto): void" vertex="1">
-          <mxGeometry height="248" width="280" y="82" as="geometry" />
+        <mxCell id="linea_lista" value="Producto en lista" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="849" y="472" width="142" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-MovimientoInventario" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="CLS-MovimientoInventario" vertex="1">
-          <mxGeometry height="330" width="280" x="440" y="400" as="geometry" />
+        <mxCell id="favorito" value="Favorito" style="rounded=0;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#e8f3f5;" vertex="1" parent="1">
+          <mxGeometry x="1133" y="472" width="83" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="CLS-MovimientoInventario-attrs" parent="CLS-MovimientoInventario" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- idMovimiento: int&lt;br&gt;- tipo: Salida | Ajuste&lt;br&gt;- cantidad: int&lt;br&gt;- fecha: datetime&lt;br&gt;&lt;font color=&quot;#e69138&quot;&gt;- motivo: String [0..1]&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#e69138&quot;&gt;{obligatorio si tipo = Ajuste}&lt;/font&gt;" vertex="1">
-          <mxGeometry height="118" width="280" y="26" as="geometry" />
-        </mxCell>
-        <mxCell id="CLS-MovimientoInventario-sep" parent="CLS-MovimientoInventario" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
-          <mxGeometry height="8" width="280" y="144" as="geometry" />
-        </mxCell>
-        <mxCell id="CLS-MovimientoInventario-meths" parent="CLS-MovimientoInventario" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ registrarSalida(): void&lt;br&gt;&lt;font color=&quot;#e69138&quot;&gt;+ registrarAjuste(motivo: String): void&lt;/font&gt;&lt;br&gt;+ consultarHistorial(): MovimientoInventario[]&lt;br&gt;&lt;font color=&quot;#e69138&quot;&gt;+ validarMotivo(motivo: String): boolean&lt;/font&gt;" vertex="1">
-          <mxGeometry height="178" width="280" y="152" as="geometry" />
-        </mxCell>
-        <mxCell id="CLS-Producto" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="CLS-Producto" vertex="1">
-          <mxGeometry height="330" width="280" x="840" y="400" as="geometry" />
-        </mxCell>
-        <mxCell id="CLS-Producto-attrs" parent="CLS-Producto" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="- idProducto: int&lt;br&gt;- nombre: String&lt;br&gt;- categoria: String&lt;br&gt;- precio: decimal&lt;br&gt;- stock: int&lt;br&gt;- stockMinimo: int&lt;br&gt;- activo: boolean" vertex="1">
-          <mxGeometry height="148" width="280" y="26" as="geometry" />
-        </mxCell>
-        <mxCell id="CLS-Producto-sep" parent="CLS-Producto" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
-          <mxGeometry height="8" width="280" y="174" as="geometry" />
-        </mxCell>
-        <mxCell id="CLS-Producto-meths" parent="CLS-Producto" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+ buscar(nombre, categoria): Producto[]&lt;br&gt;+ registrar(): void&lt;br&gt;+ actualizarPrecio(precio): void&lt;br&gt;+ estaDisponible(): boolean&lt;br&gt;+ tieneStockBajo(): boolean&lt;br&gt;+ descontarStock(cantidad): void&lt;br&gt;+ ajustarStock(cantidad): void" vertex="1">
-          <mxGeometry height="148" width="280" y="182" as="geometry" />
-        </mxCell>
-        <mxCell id="e-cliente-venta" edge="1" parent="1" source="CLS-Cliente" style="html=1;endArrow=none;startArrow=none;edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;entryX=0;entryY=0.543;entryDx=0;entryDy=0;entryPerimeter=0;" target="CLS-Venta-attrs" value="">
-          <mxGeometry relative="1" x="-0.0699" as="geometry">
-            <mxPoint x="430" y="160" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-cliente-venta-m0" connectable="0" parent="e-cliente-venta" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="0..1" vertex="1">
-          <mxGeometry relative="1" x="-0.7802" as="geometry">
-            <mxPoint x="7" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-cliente-venta-m1" connectable="0" parent="e-cliente-venta" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="*" vertex="1">
-          <mxGeometry relative="1" x="0.6697" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-venta-detalle" edge="1" parent="1" source="CLS-Venta-attrs" style="html=1;endArrow=none;rounded=0;exitX=1.005;exitY=0.754;startArrow=diamondThin;startFill=1;startSize=14;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.002;entryDx=0;entryDy=0;entryPerimeter=0;" target="CLS-DetalleVenta-meths" value="">
-          <mxGeometry relative="1" x="-0.0811" as="geometry">
-            <mxPoint x="709.9999999999999" y="182.002" as="sourcePoint" />
-            <mxPoint x="830" y="210" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-venta-detalle-m0" connectable="0" parent="e-venta-detalle" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="1" vertex="1">
-          <mxGeometry relative="1" x="-0.8243" as="geometry">
-            <mxPoint x="9" y="-1" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-venta-detalle-m1" connectable="0" parent="e-venta-detalle" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="1..*" vertex="1">
-          <mxGeometry relative="1" x="0.5676" as="geometry">
-            <mxPoint x="6" y="-2" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-cliente-lista" edge="1" parent="1" source="CLS-Cliente" style="html=1;endArrow=none;startArrow=none;edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="CLS-ListaProductos" value="">
+        <mxCell id="e0" value="0..1 ↔ 0..1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="perfil" target="cliente">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-cliente-lista-m0" connectable="0" parent="e-cliente-lista" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="1" vertex="1">
-          <mxGeometry relative="1" x="-0.82" as="geometry">
-            <mxPoint y="6" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-cliente-lista-m1" connectable="0" parent="e-cliente-lista" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="*" vertex="1">
-          <mxGeometry relative="1" x="0.82" as="geometry">
-            <mxPoint y="-12" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-venta-mov" edge="1" parent="1" source="CLS-Venta" style="html=1;endArrow=none;startArrow=none;edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="CLS-MovimientoInventario" value="">
+        <mxCell id="e1" value="1 → 0..* registra" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="perfil" target="venta">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-venta-mov-m0" connectable="0" parent="e-venta-mov" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="0..1" vertex="1">
-          <mxGeometry relative="1" x="-0.82" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-venta-mov-m1" connectable="0" parent="e-venta-mov" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="*" vertex="1">
-          <mxGeometry relative="1" x="0.82" as="geometry">
-            <mxPoint y="-12" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-detalle-producto" edge="1" parent="1" source="CLS-DetalleVenta" style="html=1;endArrow=none;startArrow=none;edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="CLS-Producto" value="">
+        <mxCell id="e2" value="1 → 0..* crea" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="perfil" target="orden">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-detalle-producto-m0" connectable="0" parent="e-detalle-producto" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="*" vertex="1">
-          <mxGeometry relative="1" x="-0.82" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-detalle-producto-m1" connectable="0" parent="e-detalle-producto" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="1" vertex="1">
-          <mxGeometry relative="1" x="0.82" as="geometry">
-            <mxPoint y="-12" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e-producto-mov" edge="1" parent="1" source="CLS-Producto" style="html=1;endArrow=none;startArrow=none;edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" target="CLS-MovimientoInventario" value="">
+        <mxCell id="e3" value="1 → 0..* recibe" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="perfil" target="recepcion">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-producto-mov-m0" connectable="0" parent="e-producto-mov" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="1" vertex="1">
-          <mxGeometry relative="1" x="-0.82" as="geometry">
-            <mxPoint x="-2" as="offset" />
-          </mxGeometry>
+        <mxCell id="e4" value="0..1 → 0..* autor" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="perfil" target="movimiento">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-producto-mov-m1" connectable="0" parent="e-producto-mov" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="*" vertex="1">
-          <mxGeometry relative="1" x="0.82" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
+        <mxCell id="e5" value="0..1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="cliente" target="venta">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-lista-producto" edge="1" parent="1" source="CLS-ListaProductos" style="html=1;endArrow=none;startArrow=none;edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;entryX=0.5;entryY=1;" target="CLS-Producto" value="contiene">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="180" y="850" />
-              <mxPoint x="980" y="850" />
-            </Array>
-          </mxGeometry>
+        <mxCell id="e6" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="cliente" target="reserva">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-lista-producto-m0" connectable="0" parent="e-lista-producto" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="*" vertex="1">
-          <mxGeometry relative="1" x="-0.82" as="geometry">
-            <mxPoint y="-12" as="offset" />
-          </mxGeometry>
+        <mxCell id="e7" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="cliente" target="beneficio">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-lista-producto-m1" connectable="0" parent="e-lista-producto" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="*" vertex="1">
-          <mxGeometry relative="1" x="0.82" as="geometry">
-            <mxPoint y="-12" as="offset" />
-          </mxGeometry>
+        <mxCell id="e8" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="cliente" target="lista">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="cliente" target="favorito">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="lista" target="linea_lista">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="producto" target="linea_lista">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="producto" target="favorito">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" value="0..1 ↔ 0..1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="beneficio" target="venta">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" value="0..1 ↔ 0..1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="reserva" target="venta">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="categoria" target="producto">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="producto" target="promocion">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" value="1 → 1..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="venta" target="linea_venta">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="producto" target="linea_venta">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" value="1 → 1..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="reserva" target="linea_res">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="producto" target="linea_res">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" value="1 → 1..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="orden" target="linea_ord">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="producto" target="linea_ord">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="orden" target="recepcion">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" value="1 → 1..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="recepcion" target="linea_rec">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="linea_ord" target="linea_rec">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e26" value="1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="producto" target="movimiento">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e27" value="0..1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="venta" target="movimiento">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e28" value="0..1 → 0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="recepcion" target="movimiento">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

@@ -32,7 +32,7 @@ Los cuatro roles internos corresponden al perfil administrativo de Humberto. El 
 
 | ID | Requisito | Comportamiento requerido | Caso de uso o ámbito |
 |---|---|---|---|
-| RF-001 | Registrar venta | El sistema debe registrar los productos, cantidades y método de pago de la venta, calcular el total con los precios del servicio y redondear los importes a dos decimales. La venta, su detalle y la salida de stock deben confirmarse en una misma transacción; ante un error de guardado, deben revertirse sin cambios parciales. | CU-001 |
+| RF-001 | Registrar venta | El sistema debe registrar los productos, cantidades y método de pago de la venta, calcular el total con los precios del servicio y redondear los importes a dos decimales. Caja permite emitir un ticket de venta al confirmar. La venta, su detalle y la salida de stock deben confirmarse en una misma transacción; ante un error de guardado, deben revertirse sin cambios parciales. | CU-001 |
 | RF-002 | Consultar existencias y alertas | El administrador consulta stock físico, apartado y disponible. La alerta usa el stock físico de productos activos y se activa cuando es menor o igual al mínimo. | CU-006 |
 | RF-003 | Identificar proveedor de la orden | El sistema debe guardar razón social, RUC y teléfono del proveedor dentro de la orden, sin exigir un catálogo independiente. | CU-008 |
 | RF-004 | Registrar compras | En Compras, el administrador registra mercadería ya recibida con proveedor, líneas, cantidades, costos y referencia. La API también permite crear órdenes pendientes. El módulo consulta sus estados y permite recibir las órdenes pendientes existentes. | CU-008 |
@@ -44,11 +44,13 @@ Los cuatro roles internos corresponden al perfil administrativo de Humberto. El 
 | RF-010 | Vincular cliente a la venta | El sistema debe permitir vincular un cliente registrado a la venta cuando el comprador se identifique y registrar la venta sin cliente asociado cuando no se identifique. | CU-002 |
 | RF-011 | Consultar clientes frecuentes | El sistema debe mostrar nombre, contacto, frecuencia e historial básico de clientes identificados. | Consulta administrativa |
 | RF-012 | Consultar resumen y reportes | El sistema debe mostrar ventas, métodos de pago y productos con movimiento por periodo. | Consulta administrativa |
-| RF-013 | Administrar accesos | El administrador registra, edita y desactiva cuentas con rol autorizado, con protección de la cuenta administrativa. El teléfono del cliente es opcional. | Acceso transversal |
-| RF-014 | Consultar cuenta y beneficios | El cliente consulta su contacto, historial de compras y puntos. Puede reclamar o cancelar un beneficio disponible. En caja, el administrador puede canjear un beneficio disponible del cliente asociado a la venta. | Portal de clientes, CU-001 |
+| RF-013 | Administrar accesos | El administrador crea y gestiona credenciales de clientes. La cuenta principal también puede crear administradores, gestionar otras cuentas administrativas y cambiar roles. La cuenta principal conserva su rol y acceso activo. | CU-007 |
+| RF-014 | Consultar cuenta y beneficios | El cliente consulta su contacto, historial de compras y puntos. Puede reclamar o cancelar un beneficio disponible. En caja, el administrador puede canjear un beneficio disponible del cliente asociado a la venta. | CU-010, CU-001 |
 | RF-015 | Mantener productos e inventario | El sistema debe permitir registrar y actualizar productos, precios y stock inicial, y realizar ajustes autorizados de existencias conservando su historial. Cada ajuste manual debe incluir un motivo con al menos un carácter distinto de espacios y conservarlo en el historial. Si el motivo está vacío o contiene únicamente espacios, el sistema debe solicitar su corrección sin modificar el stock ni registrar el ajuste. El ajuste, su motivo y la actualización del stock deben guardarse en una misma transacción. Esta condición del motivo no se aplica a las salidas generadas por ventas. | CU-006 |
 | RF-016 | Gestionar fotos y estado de productos | El administrador puede asociar, cambiar o retirar la foto opcional de un producto. Puede archivar y restaurar productos, o registrar su baja con confirmación. Las operaciones de inventario validan los apartados vigentes y conservan los movimientos anteriores. | CU-006 |
-| RF-017 | Cambiar la contraseña propia | El usuario autenticado puede cambiar su contraseña con la contraseña actual, la nueva y su confirmación. El sistema reautentica la misma identidad y actualiza la contraseña en Supabase Auth. | Mi cuenta |
+| RF-017 | Cambiar la contraseña propia | El usuario autenticado puede cambiar su contraseña con la contraseña actual, la nueva y su confirmación. Se actualiza la misma identidad en Supabase Auth. | CU-010 |
+| RF-018 | Gestionar el teléfono propio | El cliente y el administrador pueden registrar, cambiar o quitar su teléfono. El teléfono es opcional y, si se informa, contiene de 6 a 15 dígitos y hasta 25 caracteres telefónicos. | CU-010 |
+| RF-019 | Eliminar una cuenta autorizada | El titular de una cuenta no protegida puede retirarla con su contraseña actual y confirmación expresa. Un administrador puede retirar accesos según su jerarquía. La cuenta principal no puede eliminarse. | CU-007, CU-010 |
 
 ## Requisitos no funcionales
 
@@ -68,7 +70,7 @@ Para RNF-001 se consideran diez operaciones equivalentes, todas bajo el umbral. 
 
 | ID | Regla |
 |---|---|
-| BR-001 | En Yape y Plin el importe recibido debe coincidir con el total a dos decimales. Humberto confirma manualmente el abono. Los QR identificados como demostración no solicitan dinero ni confirman el pago. La API acepta una referencia opcional |
+| BR-001 | En Yape, Plin y otras billeteras digitales se requiere el importe exacto a dos decimales y confirmación manual del abono. Caja muestra un QR común en el panel digital. La API admite una referencia opcional. |
 | BR-002 | La venta usa el precio calculado por el servicio y redondea a dos decimales. Cuando coinciden promociones vigentes, se aplica el menor precio entre el regular y los promocionales |
 | BR-003 | Una venta puede registrarse sin cliente asociado. |
 | BR-004 | Una orden de compra no aumenta el stock. El incremento ocurre al confirmar la recepción. |
@@ -79,8 +81,9 @@ Para RNF-001 se consideran diez operaciones equivalentes, todas bajo el umbral. 
 | BR-009 | La recepción actualiza el costo promedio ponderado con las existencias anteriores y el costo de las unidades recibidas. Una compra directa conserva la referencia de recepción. |
 | BR-010 | El saldo suma los puntos iniciales y la parte entera del total acumulado de compras confirmadas, y resta los puntos de beneficios que siguen vigentes o ya fueron usados. Reclamar un beneficio consume 100 puntos y genera S/ 5,00 de descuento si el importe previo al beneficio alcanza S/ 30,00. El beneficio corresponde al cliente titular y puede canjearse una vez. Cancelar un beneficio disponible libera los puntos comprometidos. |
 | BR-011 | Un ajuste manual requiere motivo válido, se registra con su movimiento y no puede reducir el stock físico por debajo de las unidades apartadas. |
-
-El cálculo de descuentos debe coincidir entre la interfaz y el servicio. En los ajustes manuales de CU-006 se aplica RF-015: motivo válido, conservación del historial y guardado conjunto del ajuste, el motivo y el stock. Ante un fallo se conserva el estado anterior al intento.
+| BR-012 | Solo el administrador principal puede dar de alta a otro administrador, gestionar otras cuentas administrativas o cambiar roles. La cuenta principal mantiene su rol, su acceso y su protección. |
+| BR-013 | El retiro de una cuenta bloquea el acceso, retira sus datos de contacto y conserva sus referencias comerciales. Una reserva pendiente o confirmada que siga vigente bloquea el retiro del cliente. Si falla el retiro de la identidad en Auth, el acceso queda bloqueado y la operación se puede completar después. |
+| BR-014 | Archivar o dar de baja requiere resolver reservas vigentes y órdenes con saldo pendiente. Archivar pausa las campañas activas o programadas. Restaurar habilita el producto y deja las campañas pausadas. La baja exige confirmar la palabra ELIMINAR y el stock observado, deja el stock en cero y termina las campañas. |
 
 ## Trazabilidad
 

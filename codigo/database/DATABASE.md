@@ -13,7 +13,7 @@ En el SQL Editor del proyecto Supabase, con el rol de administración `postgres`
 
 Si las versiones 001 y 002 ya están aplicadas, continúa con 003 y 004. La versión 003 habilita el mantenimiento de productos y la lectura del historial para Express, conserva los registros existentes y agrega un identificador único para reintentos de ajustes. También incorpora las cinco categorías que usaba la pantalla original cuando faltan en el catálogo.
 
-Para habilitar las ventas de esta versión, aplica 004 después de 003. Si 001 a 003 ya están aplicadas, ejecuta únicamente 004. Agrega subtotal, descuento, efectivo recibido, vuelto e identificador de solicitud a las ventas, conserva los registros anteriores y habilita la consulta del detalle y la búsqueda de clientes registrados. Después reinicia Express y Vite.
+Para preparar una base nueva, aplica en orden las migraciones [001 a 016](migrations/). Si la base ya está configurada, aplica solo las que todavía falten. La [configuración completa](CONFIGURACION-ALCANCE-COMPLETO.md) distingue los cambios de datos, permisos y Storage.
 
 Cada migración es transaccional. Registra qué archivos aplicaste y ejecuta cada versión una vez por base. Crean objetos en el esquema propio y mantienen los datos que ya existan. Si el esquema o el rol ya existe en ese proyecto, revisa su origen antes de aplicar los archivos. El archivo local `database/comercial_nazareth.sql` se conserva como antecedente y queda excluido de Git por sus credenciales de demostración. Contiene instrucciones destructivas de inicialización. Las migraciones PostgreSQL no lo ejecutan ni importan sus datos.
 

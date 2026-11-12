@@ -2,13 +2,20 @@
 
 Se mantienen React/Vite, Express, PostgreSQL alojado, Supabase Auth y las decisiones CR-001/CR-002. Aplicar primero las migraciones anteriores 001–004 si no estuvieran aplicadas. Las 001 y 002 existentes no se reemplazan.
 
-## Migraciones nuevas
+## Migraciones
 
-1. Aplicar `005_full_scope.sql` mediante SQL Editor o psql con el rol propietario. Es aditiva: agrega idempotencia de separaciones, enlace venta/reserva, importe recibido digital y permisos acotados al rol Express. No actualiza la asociación de ventas históricas ni reescribe referencias anteriores, incluida la venta #1.
-2. Aplicar `006_product_photos_supabase.sql` en Supabase. Solo configura el bucket público `product-photos`, máximo 2 MiB, JPEG/PNG/WebP. No agrega acceso de escritura para anon/authenticated ni expone tablas nazareth al frontend. Los endpoints de carga de Express exigen administrador activo; la clave privilegiada solo se usa en backend. El catálogo puede mostrar las imágenes públicas sin revelar credenciales.
-3. Reiniciar Express y Vite. En el cliente aparecen Compras, Reservas y Mi cuenta según el perfil. No es necesario ejecutar Supabase local para presentar el proyecto.
+Aplica las [migraciones](migrations/) en orden y registra cuáles ya ejecutaste.
 
-No se aplicaron estas migraciones a la base de trabajo durante la implementación. Los ensayos PostgreSQL usaron clústeres temporales independientes.
+| Migraciones | Ámbito |
+|---|---|
+| 001 a 004 | Esquema, acceso de Express, inventario y ventas. |
+| 005 a 006 | Reservas, recojo y configuración de Storage para fotos. |
+| 007 a 008 | Identificadores de solicitud para altas de productos y promociones. |
+| 009 a 011 | Archivo y baja de productos, retiro de accesos y estados de campañas. |
+| 012 a 013 | Otras billeteras digitales y beneficios de fidelización. |
+| 014 a 016 | Teléfono de clientes y administradores y retiro autorizado de cuentas. |
+
+Reinicia Express tras aplicar las migraciones pendientes. El bucket de fotos admite JPEG, PNG y WebP de hasta 2 MiB. Las cargas pasan por Express.
 
 ## Variables locales
 
@@ -47,7 +54,7 @@ Recoger y pagar abre Registrar venta con cliente y líneas del apartado. Precio 
 
 ## Pagos y promociones
 
-Yape/Plin muestran dos QRs distintos identificados como Demostración. Sus destinos son páginas `example.com` sin petición de dinero. Se decodificaron ambos QRs para comprobar sus URLs. Escanear no confirma un abono. Humberto registra el importe exacto a dos decimales y confirma que comprobó el abono. Registrar venta solicita el importe y la comprobación manual, sin campo de referencia. Las referencias históricas siguen visibles en el detalle de las ventas y se conserva el vuelto de efectivo.
+Caja muestra un QR común al seleccionar pago digital. El operador elige Yape, Plin u otra billetera, ingresa el importe exacto a dos decimales y confirma que comprobó el abono. El QR no confirma la venta. La referencia es opcional en la API y las referencias históricas se conservan en el detalle.
 
 Promociones permite crear, editar, activar, pausar y eliminar campañas reales. Las fechas ingresadas son inclusivas en hora de Lima. El precio promocional usa la misma consulta en catálogo, cotización de venta y solicitud de separación; no es negativo. Si coinciden campañas se aplica el precio menor, sin acumular descuentos. Ese criterio explícito debe formalizarse en la actualización futura del SRS. Los puntos del cliente se leen de `customers.points`; no se agregó una fórmula de acumulación porque el SRS no la define.
 
@@ -56,7 +63,3 @@ Promociones permite crear, editar, activar, pausar y eliminar campañas reales. 
 `npm.cmd run db:backup` en backend guarda un dump personalizado de `nazareth` en `database/backups`, excluido de Git. Configurar `PG_DUMP_PATH` si pg_dump 18 no está en `C:/Program Files/PostgreSQL/18/bin/pg_dump.exe`; `BACKUP_DIRECTORY` permite elegir otro directorio local. Usa TLS y las variables del backend sin poner contraseñas en argumentos.
 
 Ejecutarlo al cierre de cada jornada o programarlo con el horario real elegido por Humberto. No se impuso un horario de cierre no especificado. Proteger las copias y conservar también las identidades de Supabase Auth para restaurar vínculos. Restaurar primero en una base/proyecto separado; no ejecutar pg_restore sobre la base de trabajo sin un procedimiento revisado. La prueba PRU-023 ejecuta pg_dump/pg_restore en dos bases temporales y compara ventas, detalle, movimientos, productos y clientes. Puede configurarse `TEST_PG_DUMP` y `TEST_PG_RESTORE` para otro entorno.
-
-## Actualización documental futura
-
-Registrar sin sustituir CR-001/CR-002: apartado confirmado y recojo transaccional; QR de demostración, importe digital y comprobación manual; fotos opcionales; contraseña propia; criterio de campañas coincidentes. La condición original BR-005 sigue vigente para la **solicitud pendiente**, que no bloquea stock ni confirma venta.

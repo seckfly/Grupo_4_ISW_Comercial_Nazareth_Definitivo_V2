@@ -18,45 +18,15 @@ El navegador inicia sesión en Supabase Auth. Express valida la identidad y el r
 
 ## Casos de uso por perfil
 
-```mermaid
-flowchart TB
-    A["Administrador"] --> C["Caja y clientes · CU-001/002"]
-    A --> I["Inventario y promociones · CU-006/004"]
-    A --> P["Compras y recepciones · CU-008/009"]
-    A --> R["Confirmar apartado y gestionar recojo · CU-005"]
-    U["Cliente"] --> K["Consultar catálogo · CU-003"]
-    U --> S["Solicitar separación · CU-005"]
-    U --> B["Consultar cuenta y reclamar beneficio"]
-    A --> M["Cambiar contraseña propia"]
-    U --> M
-    R --> C
-```
+![Casos de uso](casos-de-uso.png)
+
+El administrador realiza ventas, inventario, compras, promociones y gestión de credenciales. El cliente consulta el catálogo, solicita o cancela su reserva y usa Mi cuenta. Ambos perfiles pueden gestionar su propia cuenta según sus permisos. [Detalle de casos de uso](../docs/CU.md).
 
 ## Clases del dominio
 
-```mermaid
-classDiagram
-    Perfil "1" -- "0..1" Cliente
-    Cliente "0..1" -- "0..*" Venta
-    Cliente "1" -- "0..*" Reserva
-    Cliente "1" -- "0..*" Beneficio
-    Cliente "1" -- "0..1" PreferenciasCliente
-    Reserva "0..1" -- "0..1" Venta
-    Beneficio "0..1" -- "0..1" Venta
-    Venta "1" -- "1..*" LineaVenta
-    Reserva "1" -- "1..*" LineaReserva
-    Producto "1" -- "0..*" LineaVenta
-    Producto "1" -- "0..*" LineaReserva
-    Producto "1" -- "0..*" Promocion
-    Producto "1" -- "0..*" MovimientoInventario
-    OrdenCompra "1" -- "1..*" LineaOrden
-    Producto "1" -- "0..*" LineaOrden
-    OrdenCompra "1" -- "0..*" Recepcion
-    Recepcion "1" -- "1..*" LineaRecepcion
-    LineaOrden "1" -- "0..*" LineaRecepcion
-    Venta "0..1" -- "0..*" MovimientoInventario
-    Recepcion "0..1" -- "0..*" MovimientoInventario
-```
+![Diagrama de clases](clases.png)
+
+[Diagrama editable](clases.drawio). Las clases representan el dominio persistido. Las asociaciones se contrastaron con el [esquema comercial](../codigo/database/migrations/001_commercial_schema.sql), los vínculos de [reservas y ventas](../codigo/database/migrations/005_full_scope.sql) y la migración de [beneficios](../codigo/database/migrations/013_loyalty_benefits.sql).
 
 ## Reserva y recojo
 
@@ -71,17 +41,11 @@ flowchart TD
     V --> T["Confirmar venta, salida y cierre del apartado"]
 ```
 
-## Ajuste de inventario
+## Gestionar inventario
 
-```mermaid
-flowchart TD
-    A["Ingresar cantidad y motivo"] --> B{"Motivo válido y saldo suficiente"}
-    B -->|Sí| C["Guardar stock y movimiento"]
-    B -->|No| D["Rechazar ajuste"]
-    C --> E["Mostrar historial y stock resultante"]
-```
+![Flujograma de gestionar inventario](actividad-gestionar-inventario.png)
 
-La validación del saldo protege las unidades apartadas. La alerta se calcula con el stock físico y el mínimo del producto activo.
+[Diagrama editable](actividad-gestionar-inventario.drawio) · [Proceso CU-006](../docs/proceso-critico.md)
 
 ## Compra y recepción
 

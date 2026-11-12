@@ -4,7 +4,7 @@ Los Issues documentan cambios observados en el código y las comprobaciones que 
 
 | ID | Cambio | Evidencia |
 |---|---|---|
-| CR-001 | Motivo obligatorio en el ajuste manual | [Análisis de impacto](../matrices/impacto-cr-001.md) |
+| [CR-001](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/15) | Motivo obligatorio en el ajuste manual | [Análisis de impacto](../matrices/impacto-cr-001.md) |
 | [CR-002](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/1) | Migración a PostgreSQL y Supabase Auth | [Decisión de arquitectura](cambios/CR-002-migracion-supabase.md) |
 | [CR-003](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/2) | Despliegue de Express en Render | [Modelo de despliegue](../modelos/modelos-v2.md#despliegue) · [API en Render](https://nazareth-backend.onrender.com) |
 | [CR-004](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/3) | Apartado de stock y recojo de reservas | [Servicio de reservas](../codigo/backend/src/services/reservationService.js) |
@@ -14,3 +14,4 @@ Los Issues documentan cambios observados en el código y las comprobaciones que 
 | [CR-008](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/7) | Fotos de productos y ciclo de vida del inventario | [Servicio de inventario](../codigo/backend/src/services/inventoryService.js) |
 | [CR-009](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/8) | Teléfono opcional y contraseña de la propia cuenta | [Servicio de clientes](../codigo/backend/src/services/customerService.js) · [Cuenta del cliente](../codigo/frontend/src/pages/Account/index.jsx) |
 | [CR-010](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/9) | Reclamo y canje de beneficios de fidelización | [Servicio de fidelización](../codigo/backend/src/services/loyaltyService.js) |
+| [CR-011](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/16) | Jerarquía de administradores y eliminación de cuentas | [Servicio de cuentas](../codigo/backend/src/services/userService.js) · [PR #14](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/pull/14) |

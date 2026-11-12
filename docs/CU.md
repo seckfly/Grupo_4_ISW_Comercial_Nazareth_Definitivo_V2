@@ -1,4 +1,3 @@
-# Casos de uso de Comercial Nazareth V2
 
 Humberto Dávalos desempeña los cuatro roles internos; el cliente registrado utiliza el portal.
 
@@ -8,10 +7,12 @@ Humberto Dávalos desempeña los cuatro roles internos; el cliente registrado ut
 | CU-002 | Vincular cliente a la venta | Vendedor | RF-010 |
 | CU-003 | Consultar catálogo | Cliente registrado, Vendedor y Responsable de compras | RF-007 |
 | CU-004 | Gestionar promociones | Administrador | RF-008 |
-| CU-005 | Reservar producto (Separación en tienda) | Cliente registrado | RF-007, RF-009 |
-| CU-006 | Gestionar inventario | Responsable de almacén | RF-002, RF-015 |
+| CU-005 | Solicitar y gestionar reservas | Cliente registrado y Administrador | RF-007, RF-009 |
+| CU-006 | Gestionar inventario | Responsable de almacén | RF-002, RF-015, RF-016 |
+| CU-007 | Gestionar credenciales | Administrador | RF-013, RF-019 |
 | CU-008 | Registrar compra mayorista | Responsable de compras | RF-003, RF-004, RF-007 |
-| CU-009 | Gestionar compras (Recepción de mercadería) | Responsable de compras | RF-004, RF-005 |
+| CU-009 | Recibir mercadería | Responsable de compras | RF-004, RF-005 |
+| CU-010 | Gestionar mi cuenta | Administrador y Cliente registrado | RF-014, RF-017, RF-018, RF-019 |
 
 ![Diagrama general de casos de uso](../modelos/casos-de-uso.png)
 
@@ -26,9 +27,9 @@ Precondiciones: Humberto tiene una sesión administrativa activa. Los productos 
 1. Humberto consulta el catálogo mediante CU-003 y selecciona los productos y cantidades de la venta.
 2. El sistema comprueba que la venta tenga productos, que las cantidades sean positivas y que exista stock suficiente.
 3. Si el comprador se identifica como cliente registrado, Humberto lo vincula mediante CU-002. En caso contrario, continúa sin cliente asociado.
-4. Humberto elige efectivo, Yape o Plin. El sistema calcula el total con los precios del servicio y muestra los campos del método elegido.
-5. Humberto ingresa el monto recibido. Si elige Yape o Plin, comprueba el abono y marca la confirmación manual.
-6. El sistema valida el monto. Si el administrador seleccionó un beneficio del cliente, la API valida su disponibilidad y el mínimo de compra antes de aplicar el descuento. Para Yape y Plin, exige que coincida con el total a dos decimales y que Humberto haya confirmado la comprobación. Para efectivo, calcula el vuelto cuando corresponde.
+4. Humberto elige efectivo, Yape, Plin u otras billeteras digitales. El sistema calcula el total con los precios del servicio y muestra los campos del método elegido.
+5. Humberto ingresa el monto recibido. Si elige un medio digital, comprueba el abono y marca la confirmación manual.
+6. El sistema valida el monto. Si el administrador seleccionó un beneficio del cliente, la API valida su disponibilidad y el mínimo de compra antes de aplicar el descuento. Para pagos digitales, exige que coincida con el total a dos decimales y que Humberto haya confirmado la comprobación. Para efectivo, calcula el vuelto cuando corresponde.
 7. El sistema guarda la cabecera y el detalle de la venta, registra la salida de inventario y descuenta el stock en una misma transacción.
 8. El sistema confirma el guardado y muestra el identificador de la venta.
 
@@ -39,8 +40,7 @@ Precondiciones: Humberto tiene una sesión administrativa activa. Los productos 
 | El comprador no se identifica como cliente registrado | Continuar sin vincular una cuenta. |
 | El monto recibido en efectivo supera el total | Calcular y mostrar el vuelto. |
 | La venta corresponde al recojo de un apartado | Abrir Caja con el cliente y las líneas del apartado. Confirmar la venta y cerrar el apartado en la misma transacción. |
-| Se elige Yape o Plin | Mostrar el importe y un QR identificado como demostración. El administrador registra el importe exacto y confirma manualmente la comprobación. |
-| Se selecciona Yape o Plin | Mostrar el QR de demostración y solicitar el importe recibido y la comprobación manual del abono. |
+| Se elige pago digital | Mostrar el panel con un QR común. Elegir la billetera, registrar el importe exacto y confirmar manualmente el abono. |
 | La venta está vacía o contiene cantidades no válidas | Solicitar la corrección antes de continuar. |
 | Un producto no tiene stock suficiente | Identificar el producto y rechazar el intento actual. Humberto puede iniciar una nueva selección. |
 | El monto recibido no es válido o falta comprobar el abono digital | Solicitar la corrección antes de guardar. |
@@ -103,7 +103,6 @@ Precondiciones: hay productos registrados. Para guardar favoritos y listas, el c
 |---|---|
 | La búsqueda no tiene coincidencias | El sistema indica que no se encontraron productos. |
 | El actor es el Vendedor o el Responsable de compras | Consulta precio y disponibilidad. Los favoritos y las listas pertenecen al portal del cliente registrado. |
-| El actor no es un cliente registrado | Puede consultar el catálogo, pero no guardar favoritos ni listas. |
 | CU-001 invoca la consulta | Humberto elige los productos y cantidades de la venta desde los resultados. |
 
 Postcondición de éxito: el actor ve los resultados con precio y disponibilidad. Si el cliente registrado guardó favoritos o listas, quedan conservados.
@@ -136,7 +135,7 @@ Precondiciones: sesión administrativa activa y producto existente.
 
 Postcondición de éxito: la campaña conserva el tipo, el valor, la vigencia y el estado registrados. El precio promocional no puede ser negativo; el cálculo aplicado en la venta debe coincidir entre la interfaz y el servicio.
 
-## CU-005: Reservar producto (Separación en tienda)
+## CU-005: Solicitar y gestionar reservas
 
 Actor: Cliente registrado.
 
@@ -191,8 +190,8 @@ Precondiciones: Humberto tiene una sesión administrativa activa con acceso auto
 |---|---|
 | Humberto solo consulta existencias o historial | Mostrar la información sin modificar el stock. |
 | Humberto mantiene un producto | Registrar o editar datos, precio y foto opcional. El stock inicial se registra en el alta. |
-| Humberto archiva o restaura un producto | Actualizar su disponibilidad comercial sin borrar el historial. |
-| Humberto solicita la baja de un producto | Confirmar la existencia esperada y comprobar apartados. Cuando hay stock, guardar el movimiento de salida junto con la baja. |
+| Humberto archiva o restaura un producto | El archivo exige resolver reservas vigentes y órdenes pendientes y pausa las campañas activas o programadas. Restaurar habilita el producto. |
+| Humberto solicita la baja de un producto | Escribir ELIMINAR y confirmar el stock observado. El sistema comprueba que no haya reservas vigentes u órdenes pendientes, pone el saldo en cero, conserva el historial y finaliza las campañas. |
 | El ajuste afecta unidades apartadas | Rechazar el intento y conservar el stock y el historial. |
 | El stock de un producto activo es igual al mínimo configurado | Mostrar la alerta para que Humberto evalúe la reposición. |
 | Humberto ya compró mercadería para reponer stock | Abrir el módulo Compras y registrar el ingreso directo con CU-008. |
@@ -207,6 +206,15 @@ Postcondición de éxito: la consulta refleja las existencias; las modificacione
 La exigencia del motivo corresponde a los ajustes manuales. Las salidas por ventas siguen CU-001 y las entradas por recepción siguen CU-009.
 
 El [proceso crítico](proceso-critico.md) presenta el flujo de CU-006 y sus controles.
+
+## CU-007: Gestionar credenciales
+
+1. El administrador abre Configuración y consulta los perfiles.
+2. Registra o edita una cuenta, incluida la información de contacto opcional. También puede suspender o reactivar accesos autorizados.
+3. La cuenta principal puede crear otros administradores, editar sus credenciales y cambiar roles. El sistema protege el rol y acceso de la cuenta principal.
+4. Para retirar un acceso autorizado, el administrador confirma la operación. El sistema verifica reservas vigentes del cliente, bloquea el acceso y conserva los registros comerciales vinculados.
+
+**Excepciones.** Un rol insuficiente o un perfil protegido impiden el retiro. Si el proveedor de identidad falla tras bloquear el acceso, queda pendiente completar el retiro.
 
 ## CU-008: Registrar compra mayorista
 
@@ -229,7 +237,7 @@ Precondiciones: sesión administrativa y mercadería recibida. El administrador 
 | La referencia es inválida o la recepción falla | Mostrar el error y conservar las existencias previas al intento. |
 | Se crea una orden pendiente mediante la API | Guardar proveedor, detalle y total estimado. La orden queda disponible para recepción en CU-009. |
 
-## CU-009: Gestionar compras (Recepción de mercadería)
+## CU-009: Recibir mercadería
 
 Actor: Responsable de compras, rol desempeñado por Humberto Dávalos.
 
@@ -257,8 +265,9 @@ Precondiciones: sesión administrativa activa, orden pendiente con saldo por rec
 
 Postcondición de éxito: queda guardada una recepción sin duplicados y el stock aumenta por lo efectivamente recibido. La orden permanece pendiente si hay saldo o queda recibida cuando se completa. Una orden con entradas registradas no se anula; las devoluciones y la reversión de recepciones quedan fuera de este alcance.
 
-## Operaciones transversales
+## CU-010: Gestionar mi cuenta
 
-- **Mi cuenta.** Administrador y cliente pueden cambiar su propia contraseña. Se verifica la contraseña actual y se actualiza la misma identidad. El cliente consulta su contacto, incluido el teléfono cuando está registrado.
-- **Fidelización.** El cliente consulta su saldo, reclama un beneficio disponible y puede cancelarlo antes del canje. El administrador selecciona el beneficio del titular en Caja. El uso se confirma con la venta.
-- **Modelos de V2.** Los recorridos de venta, reserva, inventario y compra se representan en [modelos-v2.md](../modelos/modelos-v2.md).
+1. El cliente abre Mi cuenta o el administrador entra en Configuración y Seguridad.
+2. El titular puede guardar, cambiar o quitar el teléfono. Para cambiar la contraseña, verifica la actual e ingresa la nueva con su confirmación.
+3. El titular no protegido puede retirar su acceso. Debe verificar su contraseña y escribir ELIMINAR. Las reservas vigentes bloquean el retiro de un cliente.
+4. El cliente también consulta su contacto, historial y puntos. Puede reclamar o cancelar un beneficio disponible. El canje se realiza en Caja con CU-001 y queda vinculado a la venta.
