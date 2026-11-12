@@ -17,6 +17,14 @@ Sistema de gestión de ventas, inventario, compras y portal de clientes. La carp
 | [Registro de cambios](docs/cambios-v2.md) | Solicitudes de cambio CR-001 a CR-011. |
 | [Informe de verificación](reportes/verificacion-v2.md) | Resultados locales y comprobaciones en el entorno publicado. |
 
+## Publicación web
+
+La aplicación está disponible en [Comercial Nazareth (Vercel)](https://comercial-nazareth-codigo.vercel.app/). La interfaz React/Vite se publica en Vercel y la API Node.js/Express se aloja en Render. Supabase proporciona PostgreSQL, autenticación y almacenamiento de fotografías de productos.
+
+El navegador inicia sesión mediante Supabase Auth y envía su token a la API. Express comprueba el acceso y realiza las operaciones sobre la base de datos. El frontend usa `VITE_API_URL` para localizar la API y Render utiliza `CLIENT_ORIGIN` para permitir las solicitudes desde el sitio web.
+
+La [guía técnica](codigo/GUIA-TECNICA.md#despliegue-web) explica la configuración de los servicios. El [informe de verificación](reportes/verificacion-v2.md) separa las pruebas locales de las comprobaciones pendientes en el entorno publicado.
+
 ## Ejecución
 
 La [guía técnica](codigo/GUIA-TECNICA.md) describe la instalación, las migraciones, el arranque y las pruebas.
