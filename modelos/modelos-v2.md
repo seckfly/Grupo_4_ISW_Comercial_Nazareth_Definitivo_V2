@@ -16,11 +16,11 @@ flowchart LR
 
 El navegador inicia sesión en Supabase Auth. Express valida la identidad y el rol de cada operación protegida y usa PostgreSQL para las operaciones comerciales. El servicio de fotos usa Storage.
 
-## Casos de uso por perfil
+## Casos de uso por rol
 
 ![Casos de uso](casos-de-uso.png)
 
-El administrador realiza ventas, inventario, compras, promociones y gestión de credenciales. El cliente consulta el catálogo, solicita o cancela su reserva y usa Mi cuenta. Ambos perfiles pueden gestionar su propia cuenta según sus permisos. [Detalle de casos de uso](../docs/CU.md).
+Humberto Dávalos desempeña los roles de vendedor, administrador, responsable de almacén y responsable de compras con una sesión administrativa. El cliente registrado usa su propio perfil. [Diagrama editable](casos-de-uso.drawio) · [Detalle de casos de uso](../docs/CU.md).
 
 ## Clases del dominio
 
@@ -41,7 +41,7 @@ flowchart TD
     V --> T["Confirmar venta, salida y cierre del apartado"]
 ```
 
-## Gestionar inventario
+## CU-006 · Gestionar inventario
 
 ![Flujograma de gestionar inventario](actividad-gestionar-inventario.png)
 

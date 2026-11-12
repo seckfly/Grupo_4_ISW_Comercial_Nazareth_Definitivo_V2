@@ -1,138 +1,311 @@
 <?xml version='1.0' encoding='utf-8'?>
-<mxfile host="app.diagrams.net">
-  <diagram name="CU-006 · Gestionar inventario">
-    <mxGraphModel grid="1" page="1" pageWidth="1654" pageHeight="1169">
+<mxfile host="app.diagrams.net" type="device" compressed="false">
+  <diagram id="cu006-bpmn" name="CU-006 · Gestionar inventario">
+    <mxGraphModel grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2780" pageHeight="1470" background="#FFFFFF" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="start" value="Abrir Inventario como administrador" style="ellipse;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#d9f3e7;" vertex="1" parent="1">
-          <mxGeometry x="404" y="101" width="357" height="50" as="geometry" />
+        <mxCell id="pool" value="CU-006 · Gestionar inventario" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;swimlane;horizontal=0;startSize=44;container=1;collapsible=0;recursiveResize=0;strokeColor=#69849e;strokeWidth=1.6;fontStyle=1;fillColor=#cfe2f5;swimlaneFillColor=#FFFFFF;fontSize=20;" parent="1" vertex="1">
+          <mxGeometry as="geometry" x="30" y="75" width="2720" height="1360" />
         </mxCell>
-        <mxCell id="view" value="Consultar stock físico, apartado y disponible&#10;Alertar si el producto activo llega al mínimo" style="rounded=1;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#eef5fb;" vertex="1" parent="1">
-          <mxGeometry x="418" y="205" width="329" height="50" as="geometry" />
+        <mxCell id="operador" value="Responsable de almacén" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;swimlane;horizontal=0;startSize=44;container=1;collapsible=0;recursiveResize=0;strokeColor=#69849e;strokeWidth=1.6;fontStyle=1;fillColor=#e3effb;swimlaneFillColor=#f8fbff;" parent="pool" vertex="1">
+          <mxGeometry as="geometry" x="44" y="0" width="2676" height="466" />
         </mxCell>
-        <mxCell id="choose" value="Elegir operación" style="rhombus;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#fff4d6;" vertex="1" parent="1">
-          <mxGeometry x="456" y="309" width="253" height="50" as="geometry" />
+        <mxCell id="sistema" value="Sistema de inventario" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;swimlane;horizontal=0;startSize=44;container=1;collapsible=0;recursiveResize=0;strokeColor=#69849e;strokeWidth=1.6;fontStyle=1;fillColor=#edf2f6;swimlaneFillColor=#FFFFFF;" parent="pool" vertex="1">
+          <mxGeometry as="geometry" x="44" y="466" width="2676" height="894" />
         </mxCell>
-        <mxCell id="hist" value="Consultar historial del producto" style="rounded=1;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#eef5fb;" vertex="1" parent="1">
-          <mxGeometry x="30" y="545" width="242" height="50" as="geometry" />
+        <mxCell id="title" value="Caso de uso 6 · Gestionar inventario" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;text;strokeColor=none;fillColor=none;verticalAlign=middle;align=left;fontSize=30;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry as="geometry" x="30" y="14" width="1500" height="44" />
         </mxCell>
-        <mxCell id="edit" value="Registrar o editar producto y foto opcional&#10;El alta puede registrar una entrada inicial" style="rounded=1;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#eef5fb;" vertex="1" parent="1">
-          <mxGeometry x="157" y="698" width="315" height="50" as="geometry" />
+        <mxCell id="inicio" value="Sesión autorizada" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;ellipse;fillColor=#e9f7ee;strokeColor=#397350;strokeWidth=1.7;verticalLabelPosition=bottom;verticalAlign=top;fontSize=14;whiteSpace=nowrap;" parent="operador" vertex="1">
+          <mxGeometry as="geometry" x="80" y="51" width="34" height="34" />
         </mxCell>
-        <mxCell id="adj" value="Ingresar variación no nula y motivo válido" style="rounded=1;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#eef5fb;" vertex="1" parent="1">
-          <mxGeometry x="425" y="447" width="315" height="50" as="geometry" />
+        <mxCell id="abrir" value="Abrir Inventario" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="operador" vertex="1">
+          <mxGeometry as="geometry" x="163.0" y="30" width="170" height="76" />
         </mxCell>
-        <mxCell id="valid" value="¿Solicitud nueva y saldo&#10;mayor o igual al apartado?" style="rhombus;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#fff4d6;" vertex="1" parent="1">
-          <mxGeometry x="372" y="927" width="422" height="94" as="geometry" />
+        <mxCell id="listar" value="Mostrar stock físico, apartado y disponible.&lt;br&gt;Alertar si un producto activo llega al mínimo o queda por debajo." style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="130.0" y="89" width="236" height="116" />
         </mxCell>
-        <mxCell id="save" value="Guardar saldo, motivo y movimiento&#10;en una sola transacción" style="rounded=1;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#eef5fb;" vertex="1" parent="1">
-          <mxGeometry x="603" y="1124" width="279" height="50" as="geometry" />
+        <mxCell id="elegir" value="Elegir operación" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="operador" vertex="1">
+          <mxGeometry as="geometry" x="390.0" y="35" width="176" height="76" />
         </mxCell>
-        <mxCell id="retry" value="Reintento idéntico: devolver el movimiento&#10;existente. Otro error: rechazar o revertir." style="rounded=1;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#eef5fb;" vertex="1" parent="1">
-          <mxGeometry x="247" y="1124" width="324" height="50" as="geometry" />
+        <mxCell id="operacion" value="×" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rhombus;fillColor=#fff6df;strokeColor=#967134;strokeWidth=1.8;fontSize=29;fontStyle=1;" parent="operador" vertex="1">
+          <mxGeometry as="geometry" x="614" y="46" width="54" height="54" />
         </mxCell>
-        <mxCell id="restore" value="Restaurar archivado y activar producto&#10;Las campañas siguen pausadas" style="rounded=1;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#eef5fb;" vertex="1" parent="1">
-          <mxGeometry x="695" y="851" width="292" height="50" as="geometry" />
+        <mxCell id="operacion-question" value="¿Qué operación?" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;text;strokeColor=none;fillColor=none;fontSize=15;fontStyle=1;align=center;verticalAlign=middle;connectable=0;" parent="operador" vertex="1">
+          <mxGeometry as="geometry" x="541" y="14" width="200" height="29" />
         </mxCell>
-        <mxCell id="guard" value="¿Reservas vigentes u órdenes&#10;con saldo pendiente?" style="rhombus;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#fff4d6;" vertex="1" parent="1">
-          <mxGeometry x="838" y="424" width="464" height="94" as="geometry" />
+        <mxCell id="inicio--abrir" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="inicio" target="abrir">
+          <mxGeometry as="geometry" relative="1" x="0" />
         </mxCell>
-        <mxCell id="reject" value="Mostrar el motivo del rechazo" style="rounded=1;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#eef5fb;" vertex="1" parent="1">
-          <mxGeometry x="979" y="1124" width="232" height="50" as="geometry" />
+        <mxCell id="abrir--listar" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="abrir" target="listar">
+          <mxGeometry as="geometry" relative="1" x="0" />
         </mxCell>
-        <mxCell id="action" value="¿Archivar o dar de baja?" style="rhombus;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#fff4d6;" vertex="1" parent="1">
-          <mxGeometry x="1155" y="622" width="352" height="50" as="geometry" />
+        <mxCell id="listar--elegir" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=1;exitY=0.5;entryX=0.5;entryY=1;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="listar" target="elegir">
+          <mxGeometry as="geometry" relative="1" x="0">
+            <Array as="points">
+              <mxPoint x="552" y="688" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="archive" value="Archivar, desactivar y pausar campañas&#10;activas o programadas" style="rounded=1;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#eef5fb;" vertex="1" parent="1">
-          <mxGeometry x="1441" y="1048" width="300" height="50" as="geometry" />
+        <mxCell id="elegir--operacion" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="elegir" target="operacion">
+          <mxGeometry as="geometry" relative="1" x="0" />
         </mxCell>
-        <mxCell id="remove" value="Confirmar ELIMINAR y stock observado" style="rounded=1;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#eef5fb;" vertex="1" parent="1">
-          <mxGeometry x="1185" y="774" width="293" height="50" as="geometry" />
+        <mxCell id="pedir-hist" value="Consultar historial" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="operador" vertex="1">
+          <mxGeometry as="geometry" x="669.0" y="368" width="194" height="76" />
         </mxCell>
-        <mxCell id="matches" value="¿Coincide el stock observado?" style="rhombus;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#fff4d6;" vertex="1" parent="1">
-          <mxGeometry x="1117" y="949" width="429" height="50" as="geometry" />
+        <mxCell id="operacion--pedir-hist" value="Historial" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="operacion" target="pedir-hist">
+          <mxGeometry as="geometry" relative="1" x="0.42">
+            <mxPoint as="offset" x="0" y="-10" />
+            <Array as="points">
+              <mxPoint x="739" y="393" />
+              <mxPoint x="840" y="393" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="retire" value="Dar de baja y terminar campañas&#10;Si había stock, registrar el ajuste a cero" style="rounded=1;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#eef5fb;" vertex="1" parent="1">
-          <mxGeometry x="1242" y="1124" width="297" height="50" as="geometry" />
+        <mxCell id="mantener" value="Ingresar datos y foto opcional" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="operador" vertex="1">
+          <mxGeometry as="geometry" x="905.0" y="368" width="212" height="76" />
         </mxCell>
-        <mxCell id="end" value="Mostrar resultado e historial" style="ellipse;whiteSpace=wrap;html=0;fontSize=12;strokeColor=#325675;fillColor=#d9f3e7;" vertex="1" parent="1">
-          <mxGeometry x="741" y="1229" width="287" height="50" as="geometry" />
+        <mxCell id="operacion--mantener" value="Alta o edición" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.6;exitY=0.9;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="operacion" target="mantener">
+          <mxGeometry as="geometry" relative="1" x="0.05">
+            <mxPoint as="offset" x="0" y="-10" />
+            <Array as="points">
+              <mxPoint x="758" y="357" />
+              <mxPoint x="1085" y="357" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="start" target="view">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="indicar-ajuste" value="Ingresar variación y motivo" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="operador" vertex="1">
+          <mxGeometry as="geometry" x="1176.0" y="368" width="220" height="76" />
         </mxCell>
-        <mxCell id="e1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="view" target="choose">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="operacion--indicar-ajuste" value="Ajuste manual" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.7;exitY=0.8;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="operacion" target="indicar-ajuste">
+          <mxGeometry as="geometry" relative="1" x="0.05">
+            <mxPoint as="offset" x="0" y="-10" />
+            <Array as="points">
+              <mxPoint x="777" y="321" />
+              <mxPoint x="1360" y="321" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e2" value="Historial" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="choose" target="hist">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="cambiar-estado" value="Elegir archivar o restaurar" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="operador" vertex="1">
+          <mxGeometry as="geometry" x="1652.0" y="368" width="228" height="76" />
         </mxCell>
-        <mxCell id="e3" value="Alta o edición" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="choose" target="edit">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="operacion--cambiar-estado" value="Archivo o restauración" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.8;exitY=0.7;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="operacion" target="cambiar-estado">
+          <mxGeometry as="geometry" relative="1" x="0.05">
+            <mxPoint as="offset" x="0" y="-10" />
+            <Array as="points">
+              <mxPoint x="796" y="285" />
+              <mxPoint x="1840" y="285" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e4" value="Ajuste" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="choose" target="adj">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="confirmar-baja" value="Escribir &lt;b&gt;ELIMINAR&lt;/b&gt; y confirmar el stock" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="operador" vertex="1">
+          <mxGeometry as="geometry" x="1937.0" y="368" width="228" height="76" />
         </mxCell>
-        <mxCell id="e5" value="Restaurar" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="choose" target="restore">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="operacion--confirmar-baja" value="Baja definitiva" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.9;exitY=0.6;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="operacion" target="confirmar-baja">
+          <mxGeometry as="geometry" relative="1" x="0.05">
+            <mxPoint as="offset" x="0" y="-10" />
+            <Array as="points">
+              <mxPoint x="815" y="249" />
+              <mxPoint x="2125" y="249" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e6" value="Archivo o baja" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="choose" target="guard">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="reponer" value="Registrar compra en CU-008" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="operador" vertex="1">
+          <mxGeometry as="geometry" x="2401.0" y="368" width="220" height="76" />
         </mxCell>
-        <mxCell id="e7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="adj" target="valid">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="operacion--reponer" value="Reposición" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=1.0;exitY=0.5;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="operacion" target="reponer">
+          <mxGeometry as="geometry" relative="1" x="0.05">
+            <mxPoint as="offset" x="0" y="-10" />
+            <Array as="points">
+              <mxPoint x="834" y="213" />
+              <mxPoint x="2585" y="213" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="e8" value="Sí" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="valid" target="save">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="historial" value="Mostrar movimientos y motivos" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="669.0" y="89" width="194" height="76" />
         </mxCell>
-        <mxCell id="e9" value="No / reintento" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="valid" target="retry">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="fin-historial" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;ellipse;fillColor=#fff0f0;strokeColor=#a54242;strokeWidth=3.7;verticalLabelPosition=bottom;verticalAlign=top;fontSize=14;whiteSpace=nowrap;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="749" y="219" width="34" height="34" />
         </mxCell>
-        <mxCell id="e10" value="Sí" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="guard" target="reject">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="pedir-hist--historial" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="pedir-hist" target="historial">
+          <mxGeometry as="geometry" relative="1" x="0" />
         </mxCell>
-        <mxCell id="e11" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="guard" target="action">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="historial--fin-historial" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="historial" target="fin-historial">
+          <mxGeometry as="geometry" relative="1" x="0" />
         </mxCell>
-        <mxCell id="e12" value="Archivar" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="action" target="archive">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="guardar-producto" value="Guardar producto.&lt;br&gt;En el alta, registrar el stock inicial si es mayor que cero." style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="903.0" y="89" width="216" height="106" />
         </mxCell>
-        <mxCell id="e13" value="Dar de baja" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="action" target="remove">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="resultado-producto" value="Mostrar resultado" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="913.0" y="262" width="196" height="76" />
         </mxCell>
-        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="remove" target="matches">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="fin-producto" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;ellipse;fillColor=#fff0f0;strokeColor=#a54242;strokeWidth=3.7;verticalLabelPosition=bottom;verticalAlign=top;fontSize=14;whiteSpace=nowrap;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="994" y="389" width="34" height="34" />
         </mxCell>
-        <mxCell id="e15" value="Sí" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="matches" target="retire">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="mantener--guardar-producto" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="mantener" target="guardar-producto">
+          <mxGeometry as="geometry" relative="1" x="0" />
         </mxCell>
-        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="matches" target="reject">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="guardar-producto--resultado-producto" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="guardar-producto" target="resultado-producto">
+          <mxGeometry as="geometry" relative="1" x="0" />
         </mxCell>
-        <mxCell id="e17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="hist" target="end">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="resultado-producto--fin-producto" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="resultado-producto" target="fin-producto">
+          <mxGeometry as="geometry" relative="1" x="0" />
         </mxCell>
-        <mxCell id="e18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="edit" target="end">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="validar-ajuste" value="Validar variación, motivo y solicitud.&lt;br&gt;Comprobar estado y stock apartado." style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#fff6e4;strokeColor=#a58143;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1176.0" y="89" width="220" height="106" />
         </mxCell>
-        <mxCell id="e19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="save" target="end">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="ajuste-valido" value="×" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rhombus;fillColor=#fff6df;strokeColor=#967134;strokeWidth=1.8;fontSize=29;fontStyle=1;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1259" y="264" width="54" height="54" />
         </mxCell>
-        <mxCell id="e20" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="retry" target="end">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="ajuste-valido-question" value="Resultado de la validación" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;text;strokeColor=none;fillColor=none;fontSize=15;fontStyle=1;align=left;verticalAlign=middle;connectable=0;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1304" y="232" width="200" height="29" />
         </mxCell>
-        <mxCell id="e21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="restore" target="end">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="persistir-ajuste" value="Guardar stock y movimiento con motivo en una transacción" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#fff6e4;strokeColor=#a58143;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1176.0" y="385" width="220" height="95" />
         </mxCell>
-        <mxCell id="e22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="reject" target="end">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="ajuste-guardado" value="×" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rhombus;fillColor=#fff6df;strokeColor=#967134;strokeWidth=1.8;fontSize=29;fontStyle=1;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1259" y="551" width="54" height="54" />
         </mxCell>
-        <mxCell id="e23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="archive" target="end">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="ajuste-guardado-question" value="¿Guardado correcto?" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;text;strokeColor=none;fillColor=none;fontSize=15;fontStyle=1;align=left;verticalAlign=middle;connectable=0;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1304" y="519" width="200" height="29" />
         </mxCell>
-        <mxCell id="e24" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;strokeColor=#4d6376;endArrow=block;" edge="1" parent="1" source="retire" target="end">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="error-ajuste" value="Mostrar error y conservar el stock y el historial" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#fff3ee;strokeColor=#a76858;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1442.5" y="385" width="191" height="91" />
+        </mxCell>
+        <mxCell id="ok-ajuste" value="Mostrar saldo y movimiento" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#eaf5ee;strokeColor=#528364;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1176.0" y="699" width="220" height="76" />
+        </mxCell>
+        <mxCell id="fin-ajuste-ok" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;ellipse;fillColor=#fff0f0;strokeColor=#a54242;strokeWidth=3.7;verticalLabelPosition=bottom;verticalAlign=top;fontSize=14;whiteSpace=nowrap;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1269" y="819" width="34" height="34" />
+        </mxCell>
+        <mxCell id="fin-ajuste-error" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;ellipse;fillColor=#fff0f0;strokeColor=#a54242;strokeWidth=3.7;verticalLabelPosition=bottom;verticalAlign=top;fontSize=14;whiteSpace=nowrap;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1521" y="541" width="34" height="34" />
+        </mxCell>
+        <mxCell id="indicar-ajuste--validar-ajuste" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="indicar-ajuste" target="validar-ajuste">
+          <mxGeometry as="geometry" relative="1" x="0" />
+        </mxCell>
+        <mxCell id="validar-ajuste--ajuste-valido" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="validar-ajuste" target="ajuste-valido">
+          <mxGeometry as="geometry" relative="1" x="0" />
+        </mxCell>
+        <mxCell id="ajuste-valido--persistir-ajuste" value="Ajuste nuevo" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="ajuste-valido" target="persistir-ajuste">
+          <mxGeometry as="geometry" relative="1" x="0">
+            <mxPoint as="offset" x="60" y="0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ajuste-valido--error-ajuste" value="Rechazado" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=1;exitY=0.5;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="ajuste-valido" target="error-ajuste">
+          <mxGeometry as="geometry" relative="1" x="-0.33">
+            <mxPoint as="offset" x="0" y="-11" />
+            <Array as="points">
+              <mxPoint x="1612" y="832" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ajuste-valido--ok-ajuste" value="Reintento idéntico" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0;exitY=0.5;entryX=0;entryY=0.5;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="ajuste-valido" target="ok-ajuste">
+          <mxGeometry as="geometry" relative="1" x="-0.84">
+            <mxPoint as="offset" x="-15" y="-10" />
+            <Array as="points">
+              <mxPoint x="1205" y="832" />
+              <mxPoint x="1205" y="1278" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="persistir-ajuste--ajuste-guardado" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="persistir-ajuste" target="ajuste-guardado">
+          <mxGeometry as="geometry" relative="1" x="0" />
+        </mxCell>
+        <mxCell id="ajuste-guardado--ok-ajuste" value="Sí" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="ajuste-guardado" target="ok-ajuste">
+          <mxGeometry as="geometry" relative="1" x="0">
+            <mxPoint as="offset" x="21" y="0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ajuste-guardado--error-ajuste" value="No · revertir" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="ajuste-guardado" target="error-ajuste">
+          <mxGeometry as="geometry" relative="1" x="-0.77">
+            <mxPoint as="offset" x="0" y="15" />
+            <Array as="points">
+              <mxPoint x="1495" y="1119" />
+              <mxPoint x="1495" y="971.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ok-ajuste--fin-ajuste-ok" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="ok-ajuste" target="fin-ajuste-ok">
+          <mxGeometry as="geometry" relative="1" x="0" />
+        </mxCell>
+        <mxCell id="error-ajuste--fin-ajuste-error" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="error-ajuste" target="fin-ajuste-error">
+          <mxGeometry as="geometry" relative="1" x="0" />
+        </mxCell>
+        <mxCell id="estado" value="Archivar si no hay reservas ni órdenes pendientes.&lt;br&gt;Pausar campañas al archivar.&lt;br&gt;Restaurar: habilitar el producto." style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1652.0" y="89" width="228" height="142" />
+        </mxCell>
+        <mxCell id="resultado-estado" value="Mostrar estado o motivo del bloqueo" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1663.0" y="270" width="206" height="76" />
+        </mxCell>
+        <mxCell id="fin-estado" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;ellipse;fillColor=#fff0f0;strokeColor=#a54242;strokeWidth=3.7;verticalLabelPosition=bottom;verticalAlign=top;fontSize=14;whiteSpace=nowrap;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1749" y="403" width="34" height="34" />
+        </mxCell>
+        <mxCell id="cambiar-estado--estado" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="cambiar-estado" target="estado">
+          <mxGeometry as="geometry" relative="1" x="0" />
+        </mxCell>
+        <mxCell id="estado--resultado-estado" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="estado" target="resultado-estado">
+          <mxGeometry as="geometry" relative="1" x="0" />
+        </mxCell>
+        <mxCell id="resultado-estado--fin-estado" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="resultado-estado" target="fin-estado">
+          <mxGeometry as="geometry" relative="1" x="0" />
+        </mxCell>
+        <mxCell id="validar-baja" value="Verificar confirmación, stock, reservas y órdenes pendientes" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1937.0" y="89" width="228" height="97" />
+        </mxCell>
+        <mxCell id="baja-valida" value="×" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rhombus;fillColor=#fff6df;strokeColor=#967134;strokeWidth=1.8;fontSize=29;fontStyle=1;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="2024" y="262" width="54" height="54" />
+        </mxCell>
+        <mxCell id="baja-valida-question" value="¿Se puede dar de baja?" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;text;strokeColor=none;fillColor=none;fontSize=15;fontStyle=1;align=left;verticalAlign=middle;connectable=0;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="2069" y="230" width="200" height="29" />
+        </mxCell>
+        <mxCell id="retirar" value="Dar de baja y dejar stock en cero.&lt;br&gt;Registrar el movimiento si había stock, cerrar campañas y conservar historial." style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="1937.0" y="395" width="228" height="142" />
+        </mxCell>
+        <mxCell id="error-baja" value="Mostrar motivo del bloqueo" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#fff3ee;strokeColor=#a76858;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="2201.0" y="253" width="190" height="72" />
+        </mxCell>
+        <mxCell id="fin-error-baja" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;ellipse;fillColor=#fff0f0;strokeColor=#a54242;strokeWidth=3.7;verticalLabelPosition=bottom;verticalAlign=top;fontSize=14;whiteSpace=nowrap;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="2279" y="379" width="34" height="34" />
+        </mxCell>
+        <mxCell id="fin-baja" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;ellipse;fillColor=#fff0f0;strokeColor=#a54242;strokeWidth=3.7;verticalLabelPosition=bottom;verticalAlign=top;fontSize=14;whiteSpace=nowrap;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="2034" y="602" width="34" height="34" />
+        </mxCell>
+        <mxCell id="confirmar-baja--validar-baja" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="confirmar-baja" target="validar-baja">
+          <mxGeometry as="geometry" relative="1" x="0" />
+        </mxCell>
+        <mxCell id="validar-baja--baja-valida" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="validar-baja" target="baja-valida">
+          <mxGeometry as="geometry" relative="1" x="0" />
+        </mxCell>
+        <mxCell id="baja-valida--retirar" value="Sí" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="baja-valida" target="retirar">
+          <mxGeometry as="geometry" relative="1" x="0">
+            <mxPoint as="offset" x="21" y="0" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="baja-valida--error-baja" value="No" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="baja-valida" target="error-baja">
+          <mxGeometry as="geometry" relative="1" x="0">
+            <mxPoint as="offset" x="0" y="-11" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="error-baja--fin-error-baja" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="error-baja" target="fin-error-baja">
+          <mxGeometry as="geometry" relative="1" x="0" />
+        </mxCell>
+        <mxCell id="retirar--fin-baja" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="retirar" target="fin-baja">
+          <mxGeometry as="geometry" relative="1" x="0" />
+        </mxCell>
+        <mxCell id="compra" value="Ingresar mercadería y actualizar stock" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;rounded=1;arcSize=14;spacing=8;strokeWidth=1.6;fillColor=#edf5fd;strokeColor=#6282a1;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="2401.0" y="89" width="220" height="76" />
+        </mxCell>
+        <mxCell id="fin-compra" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;ellipse;fillColor=#fff0f0;strokeColor=#a54242;strokeWidth=3.7;verticalLabelPosition=bottom;verticalAlign=top;fontSize=14;whiteSpace=nowrap;" parent="sistema" vertex="1">
+          <mxGeometry as="geometry" x="2494" y="219" width="34" height="34" />
+        </mxCell>
+        <mxCell id="reponer--compra" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="reponer" target="compra">
+          <mxGeometry as="geometry" relative="1" x="0" />
+        </mxCell>
+        <mxCell id="compra--fin-compra" value="" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;html=1;whiteSpace=wrap;strokeWidth=1.7;labelBackgroundColor=#FFFFFF;fontSize=15;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;endFill=1;endSize=8;strokeColor=#415b74;" parent="1" edge="1" source="compra" target="fin-compra">
+          <mxGeometry as="geometry" relative="1" x="0" />
         </mxCell>
       </root>
     </mxGraphModel>

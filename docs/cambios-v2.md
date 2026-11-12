@@ -4,7 +4,7 @@ Los Issues documentan cambios observados en el código y las comprobaciones que 
 
 | ID | Cambio | Evidencia |
 |---|---|---|
-| [CR-001](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/15) | Motivo obligatorio en el ajuste manual | [Análisis de impacto](../matrices/impacto-cr-001.md) |
+| [CR-001](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/15) | Motivo obligatorio en el ajuste manual | [Análisis de impacto](../matrices/impacto.md) |
 | [CR-002](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/1) | Migración a PostgreSQL y Supabase Auth | [Decisión de arquitectura](cambios/CR-002-migracion-supabase.md) |
 | [CR-003](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/2) | Despliegue de Express en Render | [Modelo de despliegue](../modelos/modelos-v2.md#despliegue) · [API en Render](https://nazareth-backend.onrender.com) |
 | [CR-004](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/3) | Apartado de stock y recojo de reservas | [Servicio de reservas](../codigo/backend/src/services/reservationService.js) |
