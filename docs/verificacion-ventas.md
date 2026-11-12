@@ -12,7 +12,7 @@ Se conservan los identificadores RF-001, RF-010, BR-001, BR-002 y BR-003 del [SR
 | Ventas mostraba una lista y resúmenes de muestra. | Consulta por periodo a PostgreSQL, filtros de pago y búsqueda, resumen real y detalle persistido. |
 | El botón de cliente era inactivo. | Búsqueda por nombre, teléfono o correo y selección opcional. Una nueva venta comienza sin cliente asociado. |
 | El servicio omitía el descuento y la validación del efectivo. | El servidor calcula subtotales, descuento fijo y total en centavos, valida el efectivo y guarda recibido y vuelto. |
-| El formulario imponía seis dígitos para Yape y Plin. | Referencia no vacía con contenido, conforme al CU. El registro mantiene el método y la referencia indicada por el vendedor. |
+| El formulario imponía seis dígitos para pagos digitales. | La API admite una referencia opcional. Caja exige el importe exacto y confirmación manual. |
 | Variación de existencias usaba `step=0.01`, lo que cambiaba el saldo por centésimas con las flechas. | Control con botones y teclas que cambian exactamente una unidad. La escritura manual conserva signo y hasta dos decimales. |
 | El historial mostraba siempre `unid.`. | Muestra la unidad del producto. |
 | Descuento de Promociones usaba mínimo 1 y máximo 100 para ambos tipos. | Montos fijos y porcentajes positivos con centésimas, máximo de 100 para porcentaje y límite de almacenamiento para el monto fijo. |
@@ -41,13 +41,11 @@ Aplicar [004_sales.sql](../codigo/database/migrations/004_sales.sql) después de
 | PRU-001, fallo | El trigger exclusivo de prueba comprueba stock provisional 7 después de la escritura y provoca el fallo al registrar la salida. El rollback conserva stock 10 e historial anterior y elimina los registros parciales de venta y detalle. |
 | PRU-003 | Total 20,10 y vuelto 29,90 con efectivo 50,00. También se verifica descuento 1,25 y efectivo con centavos. |
 | PRU-004 | Dos ventas consecutivas, una vinculada al cliente y otra con cliente nulo. |
-| PRU-020 | Ventas separadas con Yape y Plin, con método y referencia conservados y reducción correcta de stock. |
+| PRU-020 | Los pagos digitales conservan el medio y el importe recibido. Las pruebas validan importe exacto y confirmación manual. |
 | Concurrencia real | Dos PID de PostgreSQL distintos. El ajuste espera el bloqueo de la venta. Desde stock 10, venta de 3 y ajuste de -2 terminan en stock 5 y conservan ambos movimientos. También se verifica el rechazo cuando ambas operaciones excederían el saldo. |
 
 La suite de frontend prueba en DOM los botones, las teclas arriba/abajo, la entrada manual negativa, centavos en formularios, exceso de precisión y stock, unidad en historial, ID de confirmación y nueva consulta al montar Ventas. Incluye el campo de descuento de Promociones. La compilación conserva los estilos y componentes existentes.
 
-## Hallazgo de Promociones y pendientes
+## Promociones
 
-La pantalla de campañas sigue usando catálogo y persistencia locales. Su conexión completa a Express y PostgreSQL, la selección de campañas en la venta y cualquier regla de acumulación deben resolverse en esa etapa. Los validadores de monto fijo y porcentaje y el cálculo de precio promocional ya comparten precisión entre frontend y backend.
-
-Queda aplicar 004 y repetir el recorrido en la aplicación conectada a Supabase alojado. La recarga se comprobó mediante reinicio real de la API y montaje nuevo del componente. La comprobación visual en navegador queda pendiente porque el host de acceso al navegador no estuvo disponible.
+El servicio usa el precio calculado para las campañas vigentes. Cuando coinciden campañas, aplica el menor precio disponible. [Trazabilidad](../matrices/trazabilidad.md).

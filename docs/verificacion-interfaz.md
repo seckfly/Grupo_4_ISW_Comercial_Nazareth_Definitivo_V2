@@ -1,5 +1,7 @@
 # Ajustes de presentación de Comercial Nazareth
 
+Registro histórico. Para conocer el alcance y las pruebas de la versión vigente, consulta el [cierre de requisitos](cierre-requisitos.md).
+
 ## Segunda pasada sobre 4cd51f8
 
 - Se retiraron el bloque narrativo y las cifras de demostración del acceso. La marca y el formulario conservan sus componentes y fuentes, con distribución compacta en ventanas estrechas.

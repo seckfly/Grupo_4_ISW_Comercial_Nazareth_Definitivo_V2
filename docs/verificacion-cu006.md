@@ -13,7 +13,7 @@ La verificación de inventario abarca RF-002, RF-015 y BR-006.
 
 Inventario consulta productos, categorías, costos, precios, saldos y mínimos de PostgreSQL. Conserva las vistas de lista y tarjetas y el formulario lateral. La edición, el ajuste y el historial reutilizan sus paneles y los estilos del proyecto. El código visible de cada producto corresponde a su ID existente en la base.
 
-La alerta usa `is_active AND current_stock <= min_stock_threshold`. Incluye la igualdad al mínimo y excluye los productos inactivos. El filtro Solo alertas permite consultar ese conjunto. La igualdad al mínimo conserva la consulta de inventario. La extensión a órdenes de compra de CU-008 queda para el módulo de compras.
+La alerta usa `is_active AND current_stock <= min_stock_threshold`. Incluye la igualdad al mínimo y excluye los productos inactivos. El filtro Solo alertas permite consultar ese conjunto. La reposición se registra desde Compras.
 
 El alta guarda producto y movimiento de stock inicial en una transacción cuando hay existencias iniciales. La edición conserva el stock. Los cambios de existencias pasan por un ajuste con variación y motivo. El servicio valida números con hasta dos decimales, un motivo con contenido y un saldo no negativo, bloquea el producto con `FOR UPDATE` y guarda saldo, movimiento y motivo en una transacción.
 
@@ -53,6 +53,8 @@ Con la configuración real de Supabase se ejecutó una instancia temporal local 
 
 Las pruebas del frontend se ejecutan con `npm.cmd --prefix frontend test`. Incluyen el indicador de stock por mínimo configurado, igualdad e inactividad. La compilación se comprueba con `npm.cmd --prefix frontend run build`.
 
-## Pendientes
+## Estado del producto
 
-Aplicar 003 y ejecutar el recorrido administrativo completo en Supabase alojado. La comprobación de datos de prueba aislados no modifica el catálogo alojado. La revisión visual de escritorio y móvil queda pendiente porque el host de acceso al navegador no estuvo disponible durante la implementación.
+El archivo y la baja bloquean productos con reservas vigentes o con órdenes que tengan saldo pendiente. Archivar pausa las campañas activas o programadas. Restaurar habilita el producto. La baja exige confirmación y coincidencia del stock observado, registra la variación a cero cuando corresponde y termina las campañas.
+
+[Flujograma de CU-006](proceso-critico.md) · [Evidencia vigente](cierre-requisitos.md)

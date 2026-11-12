@@ -1,5 +1,7 @@
 # Fuentes de datos del negocio
 
+Registro histórico. Para conocer el alcance y las pruebas de la versión vigente, consulta el [cierre de requisitos](cierre-requisitos.md).
+
 ## Muestras retiradas de las rutas de producción
 
 | Origen anterior | Datos presentados como reales | Fuente actual |
