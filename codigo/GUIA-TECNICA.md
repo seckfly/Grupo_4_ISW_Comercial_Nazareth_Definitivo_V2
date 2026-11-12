@@ -54,7 +54,7 @@ Los archivos `frontend/.env.example` y `backend/.env.example` muestran los nombr
 
 La interfaz publicada se encuentra en [comercial-nazareth-codigo.vercel.app](https://comercial-nazareth-codigo.vercel.app/). La dirección concreta de Render debe consultarse en su panel; no se fija aquí una URL que no se haya contrastado.
 
-Con la API desplegada, la ruta `/api/health` debe responder `{"status":"ok","timezone":"America/Lima"}`. Después se comprueban el inicio y cierre de sesión, los permisos por rol, las operaciones comerciales y la carga de fotografías. Esta lista describe el procedimiento de comprobación, no una certificación de ejecución. Consulta el [informe de verificación de V2](../reportes/verificacion-v2.md) para conocer los resultados demostrados y los controles sin evidencia.
+Con la API desplegada, la ruta `/api/health` debe responder `{"status":"ok","timezone":"America/Lima"}`. Después se comprueban el inicio y cierre de sesión, los permisos por rol, las operaciones comerciales y la carga de fotografías. El [informe de verificación de V2](../reportes/verificacion-v2.md) registra los resultados disponibles de estas comprobaciones y las condiciones de su ejecución.
 
 ## Comprobaciones
 

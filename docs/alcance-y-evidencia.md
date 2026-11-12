@@ -12,4 +12,4 @@ La versión cubre ventas, inventario, compras, promociones, reservas, beneficios
 | Accesos y retiro | RF-006, RF-013, RF-019 | [Sesión](../codigo/backend/src/middleware/auth.js) · [Cuentas](../codigo/backend/src/services/userService.js) | PRU-009, PRU-014, PRU-033 y PRU-034 |
 | Contacto, contraseña y beneficios | RF-014, RF-017, RF-018 | [Cuenta](../codigo/frontend/src/pages/Account/index.jsx) · [Fidelización](../codigo/backend/src/services/loyaltyService.js) | PRU-015, PRU-029 a PRU-031 |
 
-El [informe de verificación](../reportes/verificacion-v2.md) conserva los resultados de las pruebas locales y las limitaciones de los controles del entorno publicado. El cierre administrativo de la entrega no cambia esos resultados.
+La implementación se relaciona con los escenarios del [catálogo de pruebas](../pruebas/pruebas.md). Los resultados de la revisión técnica constan en el [informe de verificación](../reportes/verificacion-v2.md).

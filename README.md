@@ -23,11 +23,11 @@ La aplicación está disponible en [Comercial Nazareth (Vercel)](https://comerci
 
 El navegador inicia sesión mediante Supabase Auth y envía su token a la API. Express comprueba el acceso y realiza las operaciones sobre la base de datos. El frontend usa `VITE_API_URL` para localizar la API y Render utiliza `CLIENT_ORIGIN` para permitir las solicitudes desde el sitio web.
 
-La [guía técnica](codigo/GUIA-TECNICA.md#despliegue-web) explica la configuración de los servicios. El [informe de verificación](reportes/verificacion-v2.md) distingue las pruebas ejecutadas de los controles sin evidencia de ejecución.
+La [guía técnica](codigo/GUIA-TECNICA.md#despliegue-web) explica la configuración de los servicios. El [informe de verificación](reportes/verificacion-v2.md) recoge las pruebas realizadas y el alcance de la revisión.
 
-## Cierre de la entrega
+## Estado de la entrega
 
-La entrega académica V2 se considera cerrada a nivel de implementación y documentación. El [tablero Kanban](https://trello.com/b/9LEaT3KG/comercial-nazareth-kanban-v2) reúne las tareas de desarrollo y el cierre administrativo del seguimiento. Este cierre no equivale a la aprobación de todas las pruebas: las comprobaciones sin evidencia de ejecución permanecen identificadas en el [informe de verificación](reportes/verificacion-v2.md).
+La implementación y la documentación de Comercial Nazareth V2 quedaron integradas en esta entrega. El [tablero Kanban](https://trello.com/b/9LEaT3KG/comercial-nazareth-kanban-v2) reúne las 22 tarjetas del trabajo realizado y el cierre de su seguimiento. Los resultados técnicos se describen en el [informe de verificación](reportes/verificacion-v2.md).
 
 ## Ejecución
 
