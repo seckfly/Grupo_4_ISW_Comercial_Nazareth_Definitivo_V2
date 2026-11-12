@@ -2,9 +2,9 @@
 
 Sistema de gestión comercial y portal de clientes con React/Vite, Express, PostgreSQL alojado en Supabase y Supabase Auth.
 
-La [especificación aprobada](docs/SRS.md) define el alcance y los identificadores. [CR-002](docs/cambios/CR-002-migracion-supabase.md) registra el cambio de tecnología en esta implementación.
+La [especificación aprobada](../docs/SRS.md) define el alcance y los identificadores. [CR-002](../docs/cambios/CR-002-migracion-supabase.md) registra el cambio de tecnología en esta implementación.
 
-La [correspondencia completa de requisitos y evidencia](docs/cierre-requisitos.md) distingue implementación, pruebas aisladas y verificaciones alojadas pendientes. Para Compras, Reservas, fotos y contraseña propia, aplicar la [configuración del alcance completo](database/CONFIGURACION-ALCANCE-COMPLETO.md), incluidas las migraciones nuevas 005 y 006. No se aplicaron a la base de trabajo durante las pruebas.
+La [correspondencia completa de requisitos y evidencia](../docs/cierre-requisitos.md) distingue implementación, pruebas aisladas y verificaciones alojadas pendientes. Para Compras, Reservas, fotos y contraseña propia, aplicar la [configuración del alcance completo](database/CONFIGURACION-ALCANCE-COMPLETO.md), incluidas las migraciones nuevas 005 y 006. No se aplicaron a la base de trabajo durante las pruebas.
 
 ## Instalación
 

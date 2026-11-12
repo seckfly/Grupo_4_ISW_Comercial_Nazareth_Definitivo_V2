@@ -6,8 +6,8 @@ La verificación de inventario abarca RF-002, RF-015 y BR-006.
 
 - [SRS](SRS.md).
 - [Proceso crítico](proceso-critico.md).
-- [Trazabilidad](../../matrices/trazabilidad.md).
-- [Pruebas de aceptación](../../pruebas/pruebas.md).
+- [Trazabilidad](../matrices/trazabilidad.md).
+- [Pruebas de aceptación](../pruebas/pruebas.md).
 
 ## Implementación
 
@@ -21,7 +21,7 @@ Cada ajuste lleva un UUID de solicitud. Repetir una solicitud con los mismos dat
 
 ## Migración necesaria
 
-Aplicar [003_inventory_access.sql](../database/migrations/003_inventory_access.sql) en el SQL Editor de Supabase con el rol `postgres`. Las versiones 001 y 002 se conservan. La versión 003 agrega permisos, un identificador de solicitud y su índice único. Inicializa las categorías de la pantalla original que aún no existan.
+Aplicar [003_inventory_access.sql](../codigo/database/migrations/003_inventory_access.sql) en el SQL Editor de Supabase con el rol `postgres`. Las versiones 001 y 002 se conservan. La versión 003 agrega permisos, un identificador de solicitud y su índice único. Inicializa las categorías de la pantalla original que aún no existan.
 
 ## Rutas protegidas
 
@@ -37,7 +37,7 @@ Todas las rutas de inventario requieren sesión activa y perfil `admin`. El cat�
 
 ## Verificación reproducible
 
-Ejecutar `npm.cmd --prefix backend test`. Las pruebas de [inventory.test.js](../backend/test/inventory.test.js) levantan la API con identidades de prueba y PostgreSQL embebido en memoria, aplican 001, 002 y 003 y ejecutan las consultas como `nazareth_app`. Los datos y el fallo de guardado se crean exclusivamente en esa base aislada.
+Ejecutar `npm.cmd --prefix backend test`. Las pruebas de [inventory.test.js](../codigo/backend/test/inventory.test.js) levantan la API con identidades de prueba y PostgreSQL embebido en memoria, aplican 001, 002 y 003 y ejecutan las consultas como `nazareth_app`. Los datos y el fallo de guardado se crean exclusivamente en esa base aislada.
 
 | Prueba | Resultado obtenido en el entorno aislado |
 |---|---|
