@@ -4,7 +4,7 @@
 
 El sistema organiza las ventas, las existencias y la reposición de Comercial Nazareth, negocio minorista de abarrotes ubicado en Ascope, La Libertad. Humberto Dávalos es el propietario y único trabajador. Registra sus operaciones en cuadernos y estima el stock mediante revisión visual; necesita conocer las cantidades disponibles para decidir qué comprar y cuánto reponer.
 
-El [registro de cambios](cambios-v2.md) documenta las decisiones del sistema. Los resultados y pendientes de verificación se registran en [pruebas](../pruebas/pruebas.md).
+El [registro de cambios](cambios-v2.md) documenta las decisiones del sistema. El [catálogo de pruebas](../pruebas/pruebas.md) establece los escenarios y el [informe de verificación](../reportes/verificacion-v2.md) registra sus resultados y límites de ejecución.
 
 ## Alcance
 

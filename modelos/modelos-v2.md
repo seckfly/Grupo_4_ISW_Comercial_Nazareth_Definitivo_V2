@@ -18,7 +18,7 @@ El navegador inicia sesión en Supabase Auth. Express valida la identidad y el r
 
 La aplicación web se publica en [Vercel](https://comercial-nazareth-codigo.vercel.app/) y la API Express se aloja en Render. La dirección de la API se configura en el frontend mediante `VITE_API_URL`; el backend limita los orígenes admitidos con `CLIENT_ORIGIN`. PostgreSQL conserva los registros comerciales, Supabase Auth administra la identidad y Storage almacena las fotos de productos.
 
-El diagrama identifica los servicios y sus conexiones, pero no acredita por sí solo que se hayan probado todas las operaciones en producción. La [guía técnica](../codigo/GUIA-TECNICA.md#despliegue-web) explica la configuración y el [informe de verificación](../reportes/verificacion-v2.md) indica qué comprobaciones siguen pendientes.
+El diagrama identifica los servicios y sus conexiones, pero no acredita por sí solo que se hayan probado todas las operaciones en producción. La [guía técnica](../codigo/GUIA-TECNICA.md#despliegue-web) explica la configuración y el [informe de verificación](../reportes/verificacion-v2.md) distingue las pruebas ejecutadas de las que no cuentan con evidencia de ejecución.
 
 ## Casos de uso por rol
 

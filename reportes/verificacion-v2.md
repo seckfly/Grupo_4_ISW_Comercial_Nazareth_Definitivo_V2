@@ -22,8 +22,12 @@ En la copia de pruebas se inició PostgreSQL sin socket Unix, porque el entorno 
 - **Resumen y reportes.** Los totales usan ventas completadas y periodos de Lima. La comparación enfrenta hoy y ayer hasta la misma hora. La proyección usa los siete días previos y se muestra cuando hay ventas hoy y un total positivo hasta esa hora en cada uno de esos días. [Servicio de resumen](../codigo/backend/src/services/dashboardService.js)
 - **Cuentas.** Express autoriza según el perfil activo. El retiro conserva las referencias de ventas y reservas, y la cuenta principal queda protegida. [Servicio de cuentas](../codigo/backend/src/services/userService.js)
 
-## Entorno publicado
+## Entorno publicado y cierre administrativo
 
-Quedan por registrar el recorrido en Vercel y Render (PRU-032), la revisión en celular, tablet y escritorio (PRU-026) y la comprobación con Supabase Auth y Storage alojados. Los resultados locales se limitan al entorno de prueba. El informe tampoco acredita una restauración con herramientas externas ni una programación del respaldo.
+El frontend se encuentra publicado en [Vercel](https://comercial-nazareth-codigo.vercel.app/) y la API se aloja en Render. Durante el desarrollo se hicieron comprobaciones funcionales de acceso y operaciones comerciales en la aplicación publicada; estas revisiones exploratorias no sustituyen una ejecución íntegra, reproducible y documentada de PRU-032.
+
+El informe no contiene una ejecución integral acreditada de PRU-032 (recorrido Vercel/Render), PRU-026 (celular, tablet y escritorio), ni una comprobación integral de Supabase Auth y Storage alojados. PRU-023 fue omitida por falta de las herramientas PostgreSQL requeridas para restaurar. Tampoco se acreditó una programación del respaldo. Esas limitaciones pertenecen a la evidencia de pruebas y no implican que se haya detectado un fallo en las funciones correspondientes.
+
+El 12 de noviembre de 2026 se cerró administrativamente el seguimiento de esas cuatro verificaciones en [Trello](https://trello.com/b/9LEaT3KG/comercial-nazareth-kanban-v2) para dar por concluida la entrega académica. Cerrar una tarjeta de seguimiento no constituye ejecución ni aprobación de una prueba. Los resultados indicados en la tabla de pruebas locales se mantienen sin cambios.
 
 Las notas de inventario, ventas, interfaz y fuentes de datos de revisiones anteriores se pueden consultar en el [historial de documentación](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/tree/8f7953aa7f5fba69ea586772c72e6e4dc7aa1eb9/docs).
