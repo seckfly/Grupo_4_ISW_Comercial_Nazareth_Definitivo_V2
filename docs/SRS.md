@@ -1,16 +1,16 @@
-# Especificación de requisitos de software de Comercial Nazareth
+# Especificación de requisitos de software · Comercial Nazareth V2
 
 ## Propósito y contexto
 
 El sistema organiza las ventas, las existencias y la reposición de Comercial Nazareth, negocio minorista de abarrotes ubicado en Ascope, La Libertad. Humberto Dávalos es el propietario y único trabajador. Registra sus operaciones en cuadernos y estima el stock mediante revisión visual; necesita conocer las cantidades disponibles para decidir qué comprar y cuánto reponer.
 
-Esta especificación reúne quince requisitos funcionales, seis no funcionales y ocho reglas del negocio. RF-015 incluye la regla de CR-001 para ajustes manuales de inventario.
+Esta revisión describe la implementación de [Comercial_Nazareth_Codigo en `58611e9`](https://github.com/seckfly/Comercial_Nazareth_Codigo/tree/58611e91ce6a14d4eefcddbfc54dc789e818f0b4). El [registro de cambios](cambios-v2.md) identifica las diferencias respecto de Definitivo V1. Los resultados y pendientes de verificación se registran en [pruebas](../pruebas/pruebas.md).
 
 ## Alcance
 
-Se incluyen ventas, consulta de productos y existencias, mantenimiento de productos e inventario, promociones, solicitudes de separación, consultas del portal de clientes, administración de accesos, resúmenes de ventas, órdenes de compra y recepción de mercadería.
+Se incluyen ventas, consulta de productos y existencias, mantenimiento de productos e inventario, promociones, solicitudes de separación, apartados y recojo, consultas del portal y beneficios de clientes, administración de accesos, resúmenes de ventas, órdenes de compra y recepción de mercadería.
 
-La solución contempla una interfaz React/Vite, un servicio Express y una base MySQL. La venta admite efectivo, Yape y Plin; para Yape y Plin, Humberto comprueba el abono, ingresa el importe recibido y confirma manualmente el pago.
+La interfaz usa React/Vite y la API usa Express. Los datos se guardan en PostgreSQL alojado en Supabase. Supabase Auth autentica las cuentas y Express comprueba el perfil y autoriza las operaciones. Las fotos opcionales usan Supabase Storage. La entrega web contempla la interfaz en Vercel y la API en Render. El [modelo de despliegue](../modelos/modelos-v2.md#despliegue) recoge esas dependencias.
 
 Quedan fuera del alcance la contabilidad integral, la facturación electrónica, los pagos a proveedores, la apertura y el cierre formal de caja, las notificaciones automáticas y la detección de stock mediante cámaras. El proveedor se comunica con Humberto fuera de la aplicación y no tiene credenciales de acceso.
 
@@ -33,22 +33,22 @@ Los cuatro roles internos corresponden al perfil administrativo de Humberto. El 
 | ID | Requisito | Comportamiento requerido | Caso de uso o ámbito |
 |---|---|---|---|
 | RF-001 | Registrar venta | El sistema debe registrar los productos, cantidades y método de pago de la venta, calcular el total con los precios del servicio y redondear los importes a dos decimales. La venta, su detalle y la salida de stock deben confirmarse en una misma transacción; ante un error de guardado, deben revertirse sin cambios parciales. | CU-001 |
-| RF-002 | Consultar existencias y alertas | El sistema debe mostrar las existencias y señalar los productos activos cuyo stock sea menor o igual al mínimo configurado. | CU-006 |
+| RF-002 | Consultar existencias y alertas | El administrador consulta stock físico, apartado y disponible. La alerta usa el stock físico de productos activos y se activa cuando es menor o igual al mínimo. | CU-006 |
 | RF-003 | Identificar proveedor de la orden | El sistema debe guardar razón social, RUC y teléfono del proveedor dentro de la orden, sin exigir un catálogo independiente. | CU-008 |
-| RF-004 | Registrar orden de compra | El sistema debe conservar proveedor, productos, cantidades, costos y estado pendiente, recibida o anulada; calcular el total estimado. | CU-008 |
-| RF-005 | Registrar recepción | El sistema debe registrar cantidades recibidas de una orden pendiente, aumentar el stock y crear movimientos de entrada en una transacción. | CU-009 |
-| RF-006 | Acceder según perfil | El sistema debe permitir inicio y cierre de sesión para el perfil administrativo y el cliente registrado. | Acceso transversal |
+| RF-004 | Registrar compras | En Compras, el administrador registra mercadería ya recibida con proveedor, líneas, cantidades, costos y referencia. La API también permite crear órdenes pendientes. El módulo consulta sus estados y permite recibir las órdenes pendientes existentes. | CU-008 |
+| RF-005 | Registrar recepción | El administrador recibe toda o parte de una orden pendiente. La operación actualiza cantidades, stock, movimientos de entrada y costo unitario ponderado. El ingreso directo registra la compra y su recepción en una sola transacción. | CU-008, CU-009 |
+| RF-006 | Acceder según perfil | El administrador y el cliente registrado inician sesión con Supabase Auth y pueden cerrarla. Express valida la identidad y resuelve el perfil activo antes de autorizar la operación. | Acceso transversal |
 | RF-007 | Consultar catálogo | El sistema debe permitir buscar productos por nombre y categoría, mostrar su precio y disponibilidad, y guardar favoritos y listas en el portal del cliente registrado. | CU-003 |
 | RF-008 | Gestionar promociones | El sistema debe crear, editar, pausar, activar y eliminar campañas por producto, con descuento, vigencia y estado. | CU-004 |
-| RF-009 | Solicitar separación | El sistema debe crear una solicitud con productos, importe estimado y código, conservando el estado de la solicitud. | CU-005 |
+| RF-009 | Gestionar solicitudes y apartados | El cliente solicita hasta tres productos distintos y recibe un código de recojo y un importe estimado. El administrador puede confirmar, editar o rechazar una solicitud vigente. La confirmación aparta unidades disponibles. El recojo enlaza la venta y cierra el apartado en la misma transacción. | CU-005, CU-001 |
 | RF-010 | Vincular cliente a la venta | El sistema debe permitir vincular un cliente registrado a la venta cuando el comprador se identifique y registrar la venta sin cliente asociado cuando no se identifique. | CU-002 |
 | RF-011 | Consultar clientes frecuentes | El sistema debe mostrar nombre, contacto, frecuencia e historial básico de clientes identificados. | Consulta administrativa |
 | RF-012 | Consultar resumen y reportes | El sistema debe mostrar ventas, métodos de pago y productos con movimiento por periodo. | Consulta administrativa |
-| RF-013 | Administrar accesos | El sistema debe registrar, editar y desactivar cuentas con rol autorizado y proteger la cuenta administrativa. | Acceso transversal |
-| RF-014 | Consultar cuenta y beneficios | El sistema debe mostrar al cliente registrado sus datos, historial de compras y puntos asociados a su cuenta. | Portal de clientes |
+| RF-013 | Administrar accesos | El administrador registra, edita y desactiva cuentas con rol autorizado, con protección de la cuenta administrativa. El teléfono del cliente es opcional. | Acceso transversal |
+| RF-014 | Consultar cuenta y beneficios | El cliente consulta su contacto, historial de compras y puntos. Puede reclamar o cancelar un beneficio disponible. En caja, el administrador puede canjear un beneficio disponible del cliente asociado a la venta. | Portal de clientes, CU-001 |
 | RF-015 | Mantener productos e inventario | El sistema debe permitir registrar y actualizar productos, precios y stock inicial, y realizar ajustes autorizados de existencias conservando su historial. Cada ajuste manual debe incluir un motivo con al menos un carácter distinto de espacios y conservarlo en el historial. Si el motivo está vacío o contiene únicamente espacios, el sistema debe solicitar su corrección sin modificar el stock ni registrar el ajuste. El ajuste, su motivo y la actualización del stock deben guardarse en una misma transacción. Esta condición del motivo no se aplica a las salidas generadas por ventas. | CU-006 |
-
-La solicitud de separación de CU-005 contempla hasta tres productos distintos y un vencimiento de 24 horas, conforme a la especificación del proyecto. La solicitud no confirma una venta ni bloquea existencias.
+| RF-016 | Gestionar fotos y estado de productos | El administrador puede asociar, cambiar o retirar la foto opcional de un producto. Puede archivar y restaurar productos, o registrar su baja con confirmación. Las operaciones de inventario validan los apartados vigentes y conservan los movimientos anteriores. | CU-006 |
+| RF-017 | Cambiar la contraseña propia | El usuario autenticado puede cambiar su contraseña con la contraseña actual, la nueva y su confirmación. El sistema reautentica la misma identidad y actualiza la contraseña en Supabase Auth. | Mi cuenta |
 
 ## Requisitos no funcionales
 
@@ -59,7 +59,8 @@ La solicitud de separación de CU-005 contempla hasta tres productos distintos y
 | RNF-003 | Tiempo de consulta | Productos, stock y resumen responden en tres segundos o menos, con un usuario concurrente y el catálogo de demostración en entorno local. |
 | RNF-004 | Integridad de venta | Venta, detalle y movimiento se confirman juntos; ante un error no quedan modificaciones parciales. |
 | RNF-005 | Consistencia monetaria | Totales y subtotales usan dos decimales, con diferencia admitida de S/ 0,00 respecto del cálculo redondeado. |
-| RNF-006 | Respaldo recuperable | Conservar una copia de la base de datos al cierre de cada jornada y comprobar su restauración con las ventas incluidas. |
+| RNF-006 | Respaldo recuperable | El respaldo de PostgreSQL debe poder restaurarse conservando las ventas. La ejecución al cierre requiere configurar el horario en el entorno de uso. |
+| RNF-007 | Interfaz adaptable | El catálogo, el panel administrativo y el registro de venta deben poder usarse en los tamaños de pantalla validados. Los controles y los importes deben quedar accesibles sin desplazamiento horizontal de la página. La matriz registra el resultado por dispositivo. |
 
 Para RNF-001 se consideran diez operaciones equivalentes, todas bajo el umbral. Para RNF-003 se miden diez consultas por operación en el entorno indicado. RNF-002 se contrasta con las opciones de navegación y el rechazo de operaciones no autorizadas; RNF-004, con ventas válidas, stock insuficiente y fallos de guardado; RNF-005, con cantidades y precios conocidos; RNF-006, mediante restauración y comparación de los registros conservados.
 
@@ -67,19 +68,20 @@ Para RNF-001 se consideran diez operaciones equivalentes, todas bajo el umbral. 
 
 | ID | Regla |
 |---|---|
-| BR-001 | Yape y Plin se registran como método de pago. Humberto ingresa el importe exacto a dos decimales y confirma que comprobó el abono. El QR de demostración no solicita dinero ni confirma un pago. |
-| BR-002 | La venta usa el precio consultado por el servicio y redondea a dos decimales. El cálculo de descuentos debe coincidir entre interfaz y backend. |
+| BR-001 | En Yape y Plin el importe recibido debe coincidir con el total a dos decimales. Humberto confirma manualmente el abono. Los QR identificados como demostración no solicitan dinero ni confirman el pago. La API acepta una referencia opcional |
+| BR-002 | La venta usa el precio calculado por el servicio y redondea a dos decimales. Cuando coinciden promociones vigentes, se aplica el menor precio entre el regular y los promocionales |
 | BR-003 | Una venta puede registrarse sin cliente asociado. |
 | BR-004 | Una orden de compra no aumenta el stock. El incremento ocurre al confirmar la recepción. |
-| BR-005 | Una solicitud de separación no confirma una venta ni garantiza el bloqueo de existencias. |
-| BR-006 | La alerta muestra stock menor o igual al mínimo. CU-008 puede extender CU-006 cuando el stock está por debajo del mínimo y Humberto decide reponer. Si el stock equivale al mínimo, se muestra la alerta, pero esa condición por sí sola no activa CU-008. |
+| BR-005 | La solicitud pendiente dura 24 horas y no aparta unidades. La confirmación administrativa aparta unidades vendibles. La cancelación y el vencimiento liberan disponibilidad. El recojo confirma una venta vinculada y descuenta stock físico |
+| BR-006 | La alerta se calcula con el stock físico de un producto activo menor o igual al mínimo. El administrador registra la reposición desde Compras. |
 | BR-007 | Los datos del proveedor se guardan en la orden. El proveedor no tiene credenciales ni un caso de uso independiente. |
 | BR-008 | Una recepción parcial mantiene pendiente la orden y acumula cantidades recibidas. Se rechazan referencias duplicadas y cantidades superiores al saldo por recibir. |
+| BR-009 | La recepción actualiza el costo promedio ponderado con las existencias anteriores y el costo de las unidades recibidas. Una compra directa conserva la referencia de recepción. |
+| BR-010 | El saldo suma los puntos iniciales y la parte entera del total acumulado de compras confirmadas, y resta los puntos de beneficios que siguen vigentes o ya fueron usados. Reclamar un beneficio consume 100 puntos y genera S/ 5,00 de descuento si el importe previo al beneficio alcanza S/ 30,00. El beneficio corresponde al cliente titular y puede canjearse una vez. Cancelar un beneficio disponible libera los puntos comprometidos. |
+| BR-011 | Un ajuste manual requiere motivo válido, se registra con su movimiento y no puede reducir el stock físico por debajo de las unidades apartadas. |
 
 El cálculo de descuentos debe coincidir entre la interfaz y el servicio. En los ajustes manuales de CU-006 se aplica RF-015: motivo válido, conservación del historial y guardado conjunto del ajuste, el motivo y el stock. Ante un fallo se conserva el estado anterior al intento.
 
 ## Trazabilidad
 
-La [matriz](../matrices/trazabilidad.md) relaciona los quince RF, los seis RNF y las ocho reglas con los [casos de uso](CU.md), el modelo disponible y los [23 casos de prueba](../pruebas/pruebas.md). Diez RF se vinculan con casos de uso; los otros cinco se identifican por su ámbito en el SRS. Las pruebas describen escenarios y resultados esperados.
-
-El [diagrama de casos de uso](../modelos/casos-de-uso.png) representa los ocho CU. El [modelo de clases](../modelos/clases.png) contiene seis clases vinculadas con cinco RF. El [proceso crítico](proceso-critico.md) desarrolla CU-006.
+La [matriz](../matrices/trazabilidad.md) vincula los requisitos y reglas con los [casos de uso](CU.md), los [modelos V2](../modelos/modelos-v2.md) y el [catálogo de pruebas](../pruebas/pruebas.md).
