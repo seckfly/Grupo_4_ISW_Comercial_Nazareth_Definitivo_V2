@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { decimalUnits, decimalText, positiveId, inputError as invalid } from '../../../shared/numbers.mjs'
 import { lockStock, heldSql, transaction } from './stockService.js'
 import { photoUrl } from './photoService.js'
+import { priceSql } from './priceService.js'
 
 export const inventoryId = positiveId
 
@@ -46,7 +47,7 @@ export function adjustmentInput(input) {
 
 const productFields = `p.id, p.category_id AS "categoryId", c.name AS category, p.name, p.unit,p.image_url AS "imageUrl",
   ${heldSql()}::float8 AS held,(CASE WHEN p.archived_at IS NULL THEN p.current_stock-${heldSql()} ELSE 0 END)::float8 AS available,
-  p.cost_price::float8 AS cost, p.sale_price::float8 AS price, p.current_stock::float8 AS stock,
+  p.cost_price::float8 AS cost, p.sale_price::float8 AS price, ${priceSql('p')}::float8 AS "currentPrice", p.current_stock::float8 AS stock,
   p.min_stock_threshold::float8 AS minimum, p.is_active AS "isActive", p.archived_at AS "archivedAt", p.retired_at AS "retiredAt",
   (p.is_active AND p.current_stock <= p.min_stock_threshold) AS "lowStock"`
 
