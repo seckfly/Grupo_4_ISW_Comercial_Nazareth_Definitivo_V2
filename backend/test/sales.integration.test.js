@@ -624,6 +624,7 @@ test('Resumen y Reportes: vacío, venta real, Lima, caja neta, demanda, activida
   let report = await dashboard(pool, 'week')
   assert.equal(report.today.total, 0)
   assert.equal(report.today.saleCount, 0)
+  assert.deepEqual(report.yesterday, { total: 0, saleCount: 0 })
   assert.deepEqual(report.demand, [])
   assert.deepEqual(report.lowStock, [])
   assert.equal(report.projection, null)
@@ -632,6 +633,7 @@ test('Resumen y Reportes: vacío, venta real, Lima, caja neta, demanda, activida
   assert.equal(result.status, 201, JSON.stringify(result.body))
   report = await dashboard(pool, 'week')
   assert.equal(report.today.total, 20.1)
+  assert.deepEqual(report.yesterday, { total: 0, saleCount: 0 })
   assert.equal(report.today.paymentTotals.efectivo, 20.1)
   assert.equal(report.today.total, (await listSales(pool, 'today')).summary.total)
   assert.equal(report.demand[0].sold, 3)
@@ -652,6 +654,7 @@ test('Resumen y Reportes: vacío, venta real, Lima, caja neta, demanda, activida
   report = await dashboard(pool,'week')
   assert.equal(report.today.total,0)
   assert.equal(report.today.saleCount,0)
+  assert.deepEqual(report.yesterday, { total: 20.1, saleCount: 1 })
   assert.equal(report.trend.at(-1).v,0)
   assert.equal(report.trend.at(-2).v,20.1)
 })
@@ -680,8 +683,33 @@ test('Resumen: proyección y comparación requieren siete días de historial com
   assert.equal(result.status,201,JSON.stringify(result.body))
   const report = await dashboard(pool,'week')
   assert.equal(report.projection,20.1)
+  assert.equal(report.yesterday.total,100)
+  assert.equal(report.yesterday.saleCount,1)
   assert.equal(report.comparison,-79.9)
   assert.equal(report.strongestHour,'00')
+})
+
+test('Resumen compara el acumulado de hoy con el mismo horario de ayer y conserva el total completo de ayer', async () => {
+  await postgres.admin.query(`WITH local_clock AS (
+      SELECT (now() AT TIME ZONE 'America/Lima')::date AS local_day,
+        (now() AT TIME ZONE 'America/Lima')::time AS local_time
+    ), schedule AS (
+      SELECT local_day, local_time,
+        CASE WHEN local_time < time '23:00'
+          THEN local_time + interval '1 hour' ELSE time '23:59:59.999999' END AS later_time
+      FROM local_clock
+    )
+    INSERT INTO nazareth.sales (user_id,total_amount,payment_method,created_at)
+    SELECT 1, fixture.amount, 'efectivo',
+      ((schedule.local_day - 1) + CASE WHEN fixture.kind = 'same_time'
+        THEN schedule.local_time ELSE schedule.later_time END) AT TIME ZONE 'America/Lima'
+    FROM schedule CROSS JOIN (VALUES (20, 'same_time'), (80, 'later')) AS fixture(amount, kind)`)
+  await postgres.admin.query("INSERT INTO nazareth.sales (user_id,total_amount,payment_method,created_at) VALUES (1,30,'efectivo',now())")
+  const report = await dashboard(pool, 'week')
+  assert.equal(report.today.total, 30)
+  assert.equal(report.yesterday.total, 100)
+  assert.equal(report.yesterday.saleCount, 2)
+  assert.equal(report.comparison, 50)
 })
 
 test('PRU-001: venta, detalle, salida y stock confirman juntos; persisten al reiniciar la API', async () => {

@@ -8,7 +8,7 @@ import { api } from '../../services/api'
 import { currency, countLabel, quantityLabel } from '../../utils/format'
 import { formatSaleCreatedAt } from '../../utils/sale'
 import { useLiveDateTime } from '../../hooks/useLiveDateTime'
-import { paymentNames } from '../../../../shared/paymentMethods.mjs'
+import { matchesPaymentFilter, paymentDisplayName, paymentFilterGroups } from '../../utils/paymentDisplay.js'
 
 const periodLabels = { today: 'Hoy', yesterday: 'Ayer', week: 'Últimos 7 días', month: 'Este mes' }
 
@@ -38,7 +38,7 @@ export default function Sales({ openSale, revision = 0 }) {
 
   const term = query.trim().toLocaleLowerCase('es')
   const rows = (data?.sales || []).filter((sale) =>
-    (payment === 'Todos' || sale.paymentMethod === payment) &&
+    (payment === 'Todos' || matchesPaymentFilter(sale.paymentMethod, payment)) &&
     (!term || [String(sale.id), sale.customerName || '', ...sale.items.map((item) => item.name)].join(' ').toLocaleLowerCase('es').includes(term)),
   )
   const summary = data?.summary
@@ -60,7 +60,7 @@ export default function Sales({ openSale, revision = 0 }) {
           {value === 'today' ? label + ', ' + today : value === 'yesterday' ? label + ', ' + yesterday : label}
         </option>)}
       </select>
-      <select value={payment} onChange={(event) => setPayment(event.target.value)} aria-label="Método de pago"><option>Todos</option>{Object.entries(paymentNames).map(([value, name]) => <option value={value} key={value}>{name}</option>)}</select>
+      <select value={payment} onChange={(event) => setPayment(event.target.value)} aria-label="Método de pago"><option>Todos</option>{paymentFilterGroups.map(({ value, label }) => <option value={value} key={value}>{label}</option>)}</select>
     </div>
     <Card className="data-card">
       {loading ? <Skeleton rows={5}/> : error ? <div className="sales-feedback"><p className="form-error" role="alert">{error}</p><button className="secondary" onClick={() => setRetry((value) => value + 1)}>Reintentar</button></div> :
@@ -71,7 +71,7 @@ export default function Sales({ openSale, revision = 0 }) {
               <td><span className="sale-number">#{sale.id}</span></td>
               <td><time className="sale-timestamp" dateTime={sale.createdAt}><span>{date}</span><small>{time}</small></time></td>
               <td><strong>{sale.items.map((item) => item.name + ' × ' + item.quantity).join(', ')}</strong>{sale.customerName && <small className="inventory-detail">{sale.customerName}</small>}</td>
-              <td><span className="payment">{paymentNames[sale.paymentMethod]}</span></td><td><strong>{currency(sale.total)}</strong></td>
+              <td><span className="payment">{paymentDisplayName(sale.paymentMethod)}</span></td><td><strong>{currency(sale.total)}</strong></td>
               <td><button className="icon-btn" onClick={() => setSelected(sale)} aria-label={'Ver venta ' + sale.id}><ChevronRight/></button></td>
             </tr>
           })}
@@ -79,7 +79,7 @@ export default function Sales({ openSale, revision = 0 }) {
     </Card>
     {selected && <InventoryDrawer title={'Venta #' + selected.id} kicker={formatSaleCreatedAt(selected.createdAt).date} close={() => setSelected(null)}>
       <div className="inventory-history sale-details">
-        <p>{selected.customerName || 'Venta sin cliente'} · {paymentNames[selected.paymentMethod]}</p>
+        <p>{selected.customerName || 'Venta sin cliente'} · {paymentDisplayName(selected.paymentMethod)}</p>
         {selected.items.map((item, index) => <article className="inventory-movement" key={index}><strong>{item.name}</strong><div><span>{quantityLabel(item.quantity, item.unit)} × {currency(item.unitPrice)}</span><b>{currency(item.subtotal)}</b></div></article>)}
         <div className="price-summary"><div><span>Subtotal</span><strong>{currency(selected.subtotal)}</strong></div><div><span>Descuento</span><strong>{currency(selected.discount - (selected.loyaltyDiscount ?? 0))}</strong></div>{selected.loyaltyDiscount > 0 && <div><span>Beneficio de fidelización</span><strong>− {currency(selected.loyaltyDiscount)}</strong></div>}<div className="grand-total"><span>Total</span><strong>{currency(selected.total)}</strong></div></div>
         {selected.cashReceived !== null && <p>Recibido: {currency(selected.cashReceived)} · Vuelto: {currency(selected.change)}</p>}
