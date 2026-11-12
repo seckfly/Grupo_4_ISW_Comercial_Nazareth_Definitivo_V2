@@ -42,6 +42,19 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function refreshProfile() {
+    if (!token) throw new Error('Inicia sesión para continuar')
+    const updated = await api.profile(token)
+    setVerification({ identity, token, user: updated })
+    return updated
+  }
+
+  async function forgetDeletedSession() {
+    await supabase?.auth.signOut({ scope: 'local' }).catch(() => {})
+    setSession(null)
+    setVerification(null)
+  }
+
   async function logout() {
     const { error } = await supabase.auth.signOut({ scope: 'local' }).catch(() => ({ error: true }))
     if (error) throw new Error('No se pudo cerrar la sesión. Intenta de nuevo.')
@@ -50,7 +63,7 @@ export function AuthProvider({ children }) {
 
   const user = session && verification?.identity === identity ? verification.user : null
   const checking = session === undefined || Boolean(token && verification?.token !== token)
-  return <AuthContext.Provider value={{ user, checking, authError: verification?.error, login, logout }}>
+  return <AuthContext.Provider value={{ user, checking, authError: verification?.error, login, logout, refreshProfile, forgetDeletedSession }}>
     {children}
   </AuthContext.Provider>
 }

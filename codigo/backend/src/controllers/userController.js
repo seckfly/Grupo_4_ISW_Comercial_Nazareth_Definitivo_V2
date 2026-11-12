@@ -1,7 +1,9 @@
 import { pool } from '../config/db.js'
 import { supabaseAdmin } from '../config/supabase.js'
 import { User } from '../models/User.js'
-import { canChangeAccess, validateUserPayload, removeClientAccess } from '../services/userService.js'
+import { canChangeAccess, canManageUser, validateUserPayload, removeAccountAccess } from '../services/userService.js'
+import { createClient } from '@supabase/supabase-js'
+import { env } from '../config/runtime.js'
 
 function publicProfile({ auth_user_id, ...profile }) {
   return profile
@@ -35,6 +37,7 @@ export async function createUser(req, res, next) {
   const { name, email, password, role = 'client', phone } = req.body
   const [error] = validateUserPayload({ name, email, password, role, phone })
   if (error) return res.status(400).json({ message: error })
+  if (role === 'admin' && !req.user.isProtected) return res.status(403).json({ message: 'Solo la cuenta principal puede crear administradores' })
 
   let connection
   let authUserId
@@ -48,7 +51,7 @@ export async function createUser(req, res, next) {
     })
     checkAuthError(authError)
     authUserId = data.user.id
-    const id = await User.create(connection, { authUserId, name: name.trim(), role })
+    const id = await User.create(connection, { authUserId, name: name.trim(), role, phone: phone?.trim() || null })
     if (role === 'client') await User.ensureCustomer(connection, id, name.trim(), phone === undefined ? undefined : phone.trim() || null)
     const profile = await User.findById(connection, id)
     commitStarted = true
@@ -82,11 +85,17 @@ export async function updateUser(req, res, next) {
     const target = await User.findById(connection, id)
     if (!target) throw operationError(404, 'Usuario no encontrado')
     if (target.removalPending) throw operationError(409, 'Este acceso está pendiente de eliminación')
+    if (!canManageUser(req.user, target, role)) throw operationError(403, 'Solo la cuenta principal puede administrar otros administradores o cambiar roles')
     const updates = { name: name?.trim() ?? target.name, role: role ?? target.role, isActive: isActive ?? target.isActive }
     if (!canChangeAccess(target, updates)) throw operationError(409, 'La cuenta administrativa protegida debe conservar su acceso')
 
     await User.update(connection, id, updates)
-    if (updates.role === 'client') await User.ensureCustomer(connection, id, updates.name, phone === undefined ? undefined : phone.trim() || null)
+    if (updates.role === 'client') {
+      const initialPhone = phone === undefined && target.role === 'admin' ? target.phone : phone === undefined ? undefined : phone.trim() || null
+      await User.ensureCustomer(connection, id, updates.name, initialPhone)
+    } else if (phone !== undefined || target.role === 'client') {
+      await User.setPhone(connection, id, 'admin', phone === undefined ? target.phone : phone.trim() || null)
+    }
     const normalizedEmail = email?.trim().toLowerCase() ?? target.email
     if (normalizedEmail !== target.email || password) {
       const changes = {}
@@ -109,8 +118,41 @@ export async function updateUser(req, res, next) {
 export async function deleteUser(req, res, next) {
   try {
     const auth = adminAuth()
-    const result = await removeClientAccess(pool, req.user.id, req.params.id, req.body?.confirmation,
+    const result = await removeAccountAccess(pool, req.user, req.params.id, req.body?.confirmation,
       id => auth.deleteUser(id))
     res.status(result.removed ? 200 : 202).json(result)
+  } catch (error) { next(error) }
+}
+
+export async function updateOwnPhone(req, res, next) {
+  const phone = req.body?.phone
+  const [error] = validateUserPayload({ phone }, true)
+  if (typeof phone !== 'string' || error) return res.status(400).json({ message: error || 'El teléfono no es válido' })
+  try {
+    await User.setPhone(pool, req.user.id, req.user.role, phone.trim() || null)
+    res.set('Cache-Control', 'no-store').json({ phone: phone.trim() || null })
+  } catch (error) { next(error) }
+}
+
+export async function deleteOwnAccount(req, res, next) {
+  const password = req.body?.password
+  if (typeof password !== 'string' || !password || password.length > 1024) {
+    return res.status(400).json({ message: 'Confirma tu contraseña actual' })
+  }
+  if (req.body?.confirmation !== 'ELIMINAR') return res.status(400).json({ message: 'Escribe ELIMINAR para confirmar' })
+  if (req.user.isProtected) return res.status(403).json({ message: 'Esta cuenta administrativa está protegida' })
+  try {
+    // Verificación real en el servidor: una sesión abierta no basta para eliminar la identidad.
+    const verifier = createClient(env.supabaseUrl, env.publishableKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    })
+    const { data, error } = await verifier.auth.signInWithPassword({ email: req.user.email, password })
+    const { rows: [profile] } = await pool.query('SELECT auth_user_id FROM nazareth.profiles WHERE id = $1', [req.user.id])
+    if (error || !profile?.auth_user_id || data?.user?.id !== profile.auth_user_id) {
+      return res.status(403).json({ message: 'Contraseña incorrecta. No se eliminó tu cuenta.' })
+    }
+    const result = await removeAccountAccess(pool, req.user, req.user.id, 'ELIMINAR',
+      id => adminAuth().deleteUser(id), true)
+    return res.status(result.removed ? 200 : 202).json(result)
   } catch (error) { next(error) }
 }

@@ -29,7 +29,8 @@ export function createAuthMiddleware({ getUser, findProfile }) {
       }
       if (!profile.session_active) return res.status(401).json({ message: 'La sesión se cerró' })
 
-      req.user = { id: profile.id, name: profile.name, email: identity.email, role: profile.role }
+      req.user = { id: profile.id, name: profile.name, email: identity.email, role: profile.role,
+        phone: profile.phone ?? null, isProtected: Boolean(profile.is_protected) }
       return next()
     } catch (error) {
       return next(error)

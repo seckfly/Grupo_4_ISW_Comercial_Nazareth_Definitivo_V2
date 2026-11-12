@@ -24,12 +24,12 @@ vi.mock('../services/api', () => ({ api: {
   sales: vi.fn(), productHistory: vi.fn(), updateProduct: vi.fn(), createProduct: vi.fn(),
   adjustInventory: vi.fn(), deleteProduct: vi.fn(), archiveProduct: vi.fn(),
   promotions: vi.fn(), createPromotion: vi.fn(), customers: vi.fn(),
-  dashboard: vi.fn(), customerAccount: vi.fn(), claimBenefit: vi.fn(), cancelBenefit: vi.fn(), users: vi.fn(), createUser: vi.fn(), updateUser: vi.fn(), deleteUser: vi.fn(),
+  dashboard: vi.fn(), updateOwnPhone: vi.fn(), deleteOwnAccount: vi.fn(), customerAccount: vi.fn(), claimBenefit: vi.fn(), cancelBenefit: vi.fn(), users: vi.fn(), createUser: vi.fn(), updateUser: vi.fn(), deleteUser: vi.fn(),
   orders: vi.fn(), receiveOrder: vi.fn(), registerDirectPurchase: vi.fn(),
   preferences:vi.fn(),savePreferences:vi.fn(),requestReservation:vi.fn(),reservations:vi.fn(),changeReservation:vi.fn(),uploadPhoto:vi.fn(),
 } }))
 const authState=vi.hoisted(()=>({user:{role:'admin',name:'Prueba'}}))
-vi.mock('../context/AuthContext', () => ({ useAuth: () => authState }))
+vi.mock('../context/AuthContext', () => ({ useAuth: () => ({ ...authState, refreshProfile: vi.fn().mockResolvedValue(authState.user), forgetDeletedSession: vi.fn() }) }))
 const inventoryState = vi.hoisted(() => ({ alertCount: 0, data: { products: [] }, loading: false, error: '', setRevision: vi.fn() }))
 inventoryState.requestScope = createInflightReads()
 inventoryState.dataRevision = 0
@@ -539,7 +539,7 @@ it('Configuración cambia entre credenciales y seguridad, y muestra al cliente r
   act(() => sectionButton('Seguridad').click())
   expect(sectionButton('Seguridad').getAttribute('aria-pressed')).toBe('true')
   expect(element.textContent).toContain('Cambiar mi contraseña')
-  const passwordForm = element.querySelector('.account-form')
+  const passwordForm = element.querySelector('input[name="current"]').form
   const currentPassword = passwordForm.elements.current
   const newPassword = passwordForm.elements.password
   const confirmation = passwordForm.elements.confirmation
@@ -939,4 +939,59 @@ it('Mi cuenta confirma el reclamo y permite recuperar los puntos del beneficio d
   expect(api.cancelBenefit).toHaveBeenCalledWith('benefit-1')
   expect(element.querySelector('.account-points strong').textContent).toBe('124')
   expect(element.querySelector('.account-benefits').textContent).toContain('Cancelado')
+})
+
+it('los usuarios gestionan su propio teléfono desde Mi cuenta', async () => {
+  authState.user.role = 'client'
+  authState.user.phone = null
+  api.customerAccount.mockResolvedValue({ phone: null, points: 0 })
+  api.updateOwnPhone.mockResolvedValue({ phone: '987 654 321' })
+  const element = render(<Account/>)
+  await settled(() => expect(element.querySelector('.account-contact').textContent).toContain('Sin teléfono registrado'))
+  const form = [...element.querySelectorAll('form')].find(form => form.querySelector('input[type="tel"]'))
+  expect(form).toBeTruthy()
+  type(form.querySelector('input[type="tel"]'), '987 654 321')
+  await act(async () => form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })))
+  expect(api.updateOwnPhone).toHaveBeenCalledWith('987 654 321')
+  delete authState.user.phone
+})
+
+it('el administrador protegido no ve el control para eliminar su propia cuenta', async () => {
+  authState.user.role = 'admin'
+  authState.user.isProtected = true
+  api.users.mockResolvedValue([])
+  const element = render(<Settings/>)
+  await settled(() => expect(element.querySelector('.credential-form')).toBeTruthy())
+  act(() => [...element.querySelectorAll('.settings-nav button')].find(button => button.textContent === 'Seguridad').click())
+  expect(element.textContent).not.toContain('Eliminar mi cuenta')
+  delete authState.user.isProtected
+})
+
+it('un cliente no protegido puede solicitar la eliminación propia con confirmación', async () => {
+  authState.user.role = 'client'
+  authState.user.isProtected = false
+  api.customerAccount.mockResolvedValue({ points: 0, phone: null })
+  api.deleteOwnAccount.mockResolvedValue({ id: 5, removed: true })
+  const element = render(<Account/>)
+  const open = [...element.querySelectorAll('button')].find(button => button.textContent.trim() === 'Eliminar mi cuenta')
+  expect(open).toBeTruthy()
+  act(() => open.click())
+  const dialog = element.querySelector('[role="dialog"]')
+  expect(dialog).toBeTruthy()
+  type(dialog.querySelector('input[type="password"]'), 'Contraseña.123')
+  type(dialog.querySelector('input[name="confirmation"]'), 'ELIMINAR')
+  await act(async () => dialog.querySelector('button[type="submit"]').click())
+  expect(api.deleteOwnAccount).toHaveBeenCalledWith('Contraseña.123', 'ELIMINAR')
+  delete authState.user.isProtected
+})
+
+it('Mi cuenta no muestra un teléfono antiguo cuando el usuario lo ha eliminado', async () => {
+  authState.user.role = 'client'
+  authState.user.phone = null
+  api.customerAccount.mockResolvedValue({ points: 0, phone: '999 888 777' })
+  const element = render(<Account/>)
+  await settled(() => expect(element.querySelector('.account-points')).toBeTruthy())
+  expect(element.querySelector('.account-contact').textContent).toContain('Sin teléfono registrado')
+  expect(element.querySelector('.account-contact').textContent).not.toContain('999 888 777')
+  delete authState.user.phone
 })

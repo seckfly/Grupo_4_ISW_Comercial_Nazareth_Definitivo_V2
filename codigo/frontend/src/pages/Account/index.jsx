@@ -1,4 +1,6 @@
 import PasswordForm from '../../components/ui/PasswordForm'
+import PhoneForm from '../../components/ui/PhoneForm'
+import AccountRemoval from '../../components/ui/AccountRemoval'
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
@@ -53,12 +55,14 @@ export default function Account() {
       </div>
       {user.role === 'client' && <div>
         <dt>Teléfono</dt>
-        <dd>{customer?.phone?.trim() || 'Sin teléfono registrado'}</dd>
+        <dd>{user.phone === undefined ? (customer?.phone?.trim() || 'Sin teléfono registrado') : (user.phone?.trim() || 'Sin teléfono registrado')}</dd>
       </div>}
     </dl>
   </Card></div>
   {customer?.reward && <LoyaltyBenefits account={customer} busy={busy} error={benefitError}
     onClaim={() => changeBenefit()} onCancel={changeBenefit}/>}
-  <PasswordForm/></div>
+  <PhoneForm/>
+  <PasswordForm/>
+  <AccountRemoval/></div>
 }
 
