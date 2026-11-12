@@ -21,7 +21,7 @@ export function Analytics({ report = false, onNavigate }) {
   if (loading) return <div className="page"><PageHeader title={report ? 'Reportes' : 'Resumen'} description="Consultando operaciones registradas"/><Skeleton/></div>
   if (error) return <div className="page"><PageHeader title={report ? 'Reportes' : 'Resumen'}/><p className="form-error" role="alert">{error}</p><button className="secondary" onClick={retry}>Reintentar</button></div>
   return <div className={report ? 'page reports-page' : 'page admin-overview'}>
-    <PageHeader kicker="Lectura del negocio" title={report ? 'Reportes' : 'Resumen'} description="Ventas y existencias registradas · Hora de Lima"/>
+    <PageHeader kicker="Lectura del negocio" title={report ? 'Reportes' : 'Resumen'} description="Ventas y existencias registradas"/>
     {!report && <section className="command-hero"><div className="command-copy"><h2>El negocio, <em>en este momento.</em></h2>
       <p>{inventory.loading ? 'Consultando existencias…' : inventory.error ? 'No se pudieron consultar las existencias.' : alerts.length ? countLabel(alerts.length, 'producto requiere atención por stock.', 'productos requieren atención por stock.') : 'No hay productos en alerta de stock.'}</p>
       {alerts.length > 0 && !inventory.error && <div className="hero-actions"><button onClick={() => onNavigate?.('Inventario')}>Revisar inventario</button></div>}
