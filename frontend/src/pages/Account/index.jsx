@@ -51,6 +51,10 @@ export default function Account() {
         <dt>Correo electrónico</dt>
         <dd>{user.email || 'Sin correo registrado'}</dd>
       </div>
+      {user.role === 'client' && <div>
+        <dt>Teléfono</dt>
+        <dd>{customer?.phone?.trim() || 'Sin teléfono registrado'}</dd>
+      </div>}
     </dl>
   </Card></div>
   {customer?.reward && <LoyaltyBenefits account={customer} busy={busy} error={benefitError}
