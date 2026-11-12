@@ -15,6 +15,11 @@ export function reservationLines(input) {
 }
 const priceChanged = () => inputError('Los precios cambiaron. Revisa el total actualizado y vuelve a enviar tu solicitud.', 409)
 
+async function clearSavedShoppingList(db, customerId) {
+  await db.query(`DELETE FROM nazareth.product_list_items
+    WHERE list_id IN (SELECT id FROM nazareth.product_lists WHERE customer_id = $1)`, [customerId])
+}
+
 async function writeItems(db,id,items,expectedPrices) {
   let total=0
   for(const [index,item] of items.entries()) {
@@ -51,8 +56,14 @@ export async function requestReservation(pool,userId,input,generateCode=()=> 'NZ
     const { rows: [profile] } = await db.query('SELECT is_active FROM nazareth.profiles WHERE id = $1', [userId])
     if (!profile?.is_active) throw inputError('La cuenta no tiene acceso activo', 403)
     const customer=await customerForUser(db,userId)
+    // Usa el mismo bloqueo que savePreferences para no borrar cambios simultáneos del cliente.
+    await db.query('SELECT pg_advisory_xact_lock(71243, $1)', [customer.id])
     const {rows:[previous]}=await db.query('SELECT * FROM nazareth.reservations WHERE request_id=$1',[input.requestId])
-    if(previous) {if(previous.request_fingerprint!==hash)throw inputError('La solicitud ya se utilizó con otros datos',409);return previous}
+    if(previous) {
+      if(previous.request_fingerprint!==hash)throw inputError('La solicitud ya se utilizó con otros datos',409)
+      await clearSavedShoppingList(db, customer.id)
+      return previous
+    }
     let saved
     for(let attempt=0;attempt<8&&!saved;attempt++) {
       const {rows}=await db.query(`INSERT INTO nazareth.reservations(customer_id,pickup_code,estimated_total,request_id,request_fingerprint) VALUES($1,$2,0,$3,$4) ON CONFLICT(pickup_code) DO NOTHING RETURNING *`,[customer.id,generateCode(),input.requestId,hash])
@@ -61,6 +72,8 @@ export async function requestReservation(pool,userId,input,generateCode=()=> 'NZ
     if(!saved)throw inputError('No se pudo generar un código único. Reintenta la solicitud.',503)
     const total = await writeItems(db, saved.id, items, expectedPrices)
     if (expectedTotal !== null && expectedTotal !== total) throw priceChanged()
+    // La solicitud y el vaciado de Mi lista se confirman juntos; si falla la reserva, la lista se conserva.
+    await clearSavedShoppingList(db, customer.id)
     return (await db.query('SELECT * FROM nazareth.reservations WHERE id=$1',[saved.id])).rows[0]
   }, true)
 }

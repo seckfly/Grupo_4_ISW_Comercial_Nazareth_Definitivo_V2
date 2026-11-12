@@ -29,7 +29,7 @@ function ReservationCard({ row, admin, busy, onChange, onEdit, onPickup }) {
     <dl className="reservation-record-meta">
       {admin && <div><dt>Cliente</dt><dd>{row.customerName}</dd></div>}
       <div><dt>{active ? 'Vigencia hasta' : 'Vigencia original'}</dt>
-        <dd><time dateTime={row.pickup_deadline}>{deadlineFormat.format(new Date(row.pickup_deadline))}</time> <span>(Lima)</span></dd>
+        <dd><time dateTime={row.pickup_deadline}>{deadlineFormat.format(new Date(row.pickup_deadline))}</time></dd>
       </div>
     </dl>
     <table className="reservation-products" aria-label={'Productos de la reserva ' + row.pickup_code}>

@@ -106,6 +106,27 @@ async function salePayload(id, changes = {}) {
   return { ...payload, quoteId: quote.body.quoteId }
 }
 
+test('Una reserva confirmada vacía Mi lista persistida sin borrar favoritos y conserva la solicitud al reintentar', async () => {
+  const item = await product({ name: 'Producto para reserva QA' })
+  await savePreferences(pool, 2, { favorites: [item.id], list: [item.id] })
+  const payload = { requestId: randomUUID(), items: [{ productId: item.id, quantity: '1' }] }
+
+  const first = await request('/api/reservations', { method: 'POST', role: 'client-fixture', body: payload })
+  assert.equal(first.status, 200, JSON.stringify(first.body))
+  assert.deepEqual((await request('/api/preferences', { role: 'client-fixture' })).body,
+    { favorites: [item.id], list: [] })
+
+  const retry = await request('/api/reservations', { method: 'POST', role: 'client-fixture', body: payload })
+  assert.equal(retry.status, 200, JSON.stringify(retry.body))
+  assert.equal(retry.body.id, first.body.id)
+  assert.deepEqual((await request('/api/preferences', { role: 'client-fixture' })).body,
+    { favorites: [item.id], list: [] })
+
+  const history = await request('/api/reservations', { role: 'client-fixture' })
+  assert.equal(history.body.length, 1)
+  assert.equal(history.body[0].id, first.body.id)
+})
+
 test('Reintentar un alta concurrente devuelve el mismo producto y registra una sola entrada', async () => {
   const body = { name: 'Producto QA', categoryId: 1, unit: 'Unidad', cost: 4, price: '6.70',
     initialStock: 10, minimum: 5, requestId: randomUUID() }
