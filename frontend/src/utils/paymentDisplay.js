@@ -17,3 +17,9 @@ export function matchesPaymentFilter(paymentMethod, filter) {
   if (filter === 'Todos') return true
   return paymentFilterGroups.find(group => group.value === filter)?.methods.includes(paymentMethod) ?? false
 }
+
+export function paymentDisplayName(paymentMethod) {
+  return digitalPaymentGroups.find(group => group.methods.includes(paymentMethod))?.label
+    ?? paymentNames[paymentMethod]
+    ?? paymentMethod
+}
