@@ -52,7 +52,7 @@ Los archivos `frontend/.env.example` y `backend/.env.example` muestran los nombr
 
 ### Comprobación del sitio publicado
 
-La interfaz publicada se encuentra en [comercial-nazareth-codigo.vercel.app](https://comercial-nazareth-codigo.vercel.app/). La dirección concreta de Render debe consultarse en su panel; no se fija aquí una URL que no se haya contrastado.
+La interfaz publicada se encuentra en [comercial-nazareth-codigo.vercel.app](https://comercial-nazareth-codigo.vercel.app/). El registro de CR-003 identifica [nazareth-backend.onrender.com](https://nazareth-backend.onrender.com) como dirección de la API alojada en Render.
 
 Con la API desplegada, la ruta `/api/health` debe responder `{"status":"ok","timezone":"America/Lima"}`. Después se comprueban el inicio y cierre de sesión, los permisos por rol, las operaciones comerciales y la carga de fotografías. El [informe de verificación de V2](../reportes/verificacion-v2.md) registra los resultados disponibles de estas comprobaciones y las condiciones de su ejecución.
 

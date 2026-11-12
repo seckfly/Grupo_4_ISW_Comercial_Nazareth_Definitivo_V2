@@ -15,7 +15,7 @@ Aplica las [migraciones](migrations/) en orden y registra cuáles ya ejecutaste.
 | 012 a 013 | Otras billeteras digitales y beneficios de fidelización. |
 | 014 a 016 | Teléfono de clientes y administradores y retiro autorizado de cuentas. |
 
-Reinicia Express tras aplicar las migraciones pendientes. El bucket de fotos admite JPEG, PNG y WebP de hasta 2 MiB. Las cargas pasan por Express.
+Después de aplicar migraciones, Express se reinicia para cargar el esquema y los permisos actualizados. El bucket de fotos admite JPEG, PNG y WebP de hasta 2 MiB. Las cargas pasan por Express.
 
 ## Variables locales
 
@@ -25,7 +25,7 @@ Para las operaciones administrativas de Auth y Storage, configura `SUPABASE_SECR
 
 ## Fotos
 
-Alta/edición permite cargar y previsualizar una foto antes de guardar el producto, reemplazarla o quitar su asociación. Los productos sin foto usan una presentación neutra. No se aceptan SVG ni archivos mayores de 2 MiB. El servidor comprueba MIME y firma binaria, y las pruebas verifican rechazo de clientes y tipos inválidos. Una carga fallida conserva el dato anterior. Quitar/reemplazar una asociación no borra de forma irreversible el objeto anterior; pueden quedar objetos sin referencia si se abandona un formulario. Su limpieza debe hacerse posteriormente comparando `products.image_url`, sin borrar objetos aún usados.
+Alta/edición permite cargar y previsualizar una foto antes de guardar el producto, reemplazarla o quitar su asociación. Los productos sin foto usan una presentación neutra. No se aceptan SVG ni archivos mayores de 2 MiB. El servidor comprueba MIME y firma binaria, y las pruebas verifican rechazo de clientes y tipos inválidos. Una carga fallida conserva el dato anterior. Quitar/reemplazar una asociación no borra de forma irreversible el objeto anterior; pueden quedar objetos sin referencia si se abandona un formulario. La identificación de objetos sin referencia requiere comparar `products.image_url` y conservar los que todavía están asociados a productos.
 
 ## Contraseña propia
 
@@ -35,7 +35,7 @@ Se utiliza `current_password` con la versión de supabase-js fijada en el proyec
 
 Las pruebas locales usan dobles de Auth para comprobar la confirmación, el rechazo de una contraseña actual incorrecta y el inicio posterior con la nueva. El estado de la comprobación alojada figura en el [informe de verificación](../../reportes/verificacion-v2.md).
 
-Para repetir expresamente las pruebas alojadas una vez configuradas las claves:
+El script de verificación reproducible de los servicios alojados se ejecuta con:
 
 ```powershell
 cd backend

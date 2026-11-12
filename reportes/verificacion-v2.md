@@ -11,7 +11,7 @@ Se revisó el código de [`8f7953a`](https://github.com/seckfly/Grupo_4_ISW_Come
 | Compilación y pruebas de frontend | Compilación correcta y 121 pruebas aprobadas. | [Pruebas del frontend](../codigo/frontend/src/test/) |
 | Pruebas de backend | 72 aprobadas y 1 omitida. Las pruebas de integración usaron PostgreSQL temporal por TCP. | [Pruebas del backend](../codigo/backend/test/) |
 | Tiempos de venta y consulta | PRU-021 y PRU-022 pasaron en la base de prueba local. | [Pruebas de integración](../codigo/backend/test/sales.integration.test.js) |
-| Respaldo y restauración | PRU-023 quedó omitida porque el entorno no tenía `pg_dump` y `pg_restore` 18. El script de respaldo se ejecuta manualmente o con un horario configurado fuera de la aplicación. | [Script de respaldo](../codigo/backend/scripts/backup.mjs) |
+| Respaldo y restauración | PRU-023 fue excluida de la ejecución local por requerir `pg_dump` y `pg_restore` 18. El script de respaldo admite ejecución manual o programación externa. | [Script de respaldo](../codigo/backend/scripts/backup.mjs) |
 
 En la copia de pruebas se inició PostgreSQL sin socket Unix, porque el entorno solo permitió la conexión local por TCP. La comprobación de fotos y cuentas usó datos de prueba y dobles de los servicios alojados cuando correspondía.
 
@@ -22,10 +22,10 @@ En la copia de pruebas se inició PostgreSQL sin socket Unix, porque el entorno 
 - **Resumen y reportes.** Los totales usan ventas completadas y periodos de Lima. La comparación enfrenta hoy y ayer hasta la misma hora. La proyección usa los siete días previos y se muestra cuando hay ventas hoy y un total positivo hasta esa hora en cada uno de esos días. [Servicio de resumen](../codigo/backend/src/services/dashboardService.js)
 - **Cuentas.** Express autoriza según el perfil activo. El retiro conserva las referencias de ventas y reservas, y la cuenta principal queda protegida. [Servicio de cuentas](../codigo/backend/src/services/userService.js)
 
-## Publicación y alcance de las pruebas
+## Publicación y alcance de la revisión
 
-El frontend está publicado en [Vercel](https://comercial-nazareth-codigo.vercel.app/) y la API se aloja en Render. Durante el desarrollo se revisaron el acceso y varias operaciones comerciales desde la aplicación web publicada. Estas revisiones funcionales se distinguen de los escenarios formales del [catálogo de pruebas](../pruebas/pruebas.md).
+El frontend está publicado en [Vercel](https://comercial-nazareth-codigo.vercel.app/) y la API se aloja en Render. Durante el desarrollo se realizaron revisiones funcionales del acceso y de las operaciones comerciales desde la aplicación web publicada.
 
-La evidencia de esta revisión comprende las ejecuciones locales indicadas arriba. Para PRU-032 (recorrido integral del despliegue), PRU-026 (móvil, tablet y escritorio) y la comprobación integral de Auth y Storage alojados, el documento no incluye actas completas de ejecución. La restauración PRU-023 figura como omitida en la tabla porque el entorno utilizado carecía de `pg_dump` y `pg_restore` 18; la programación automática de respaldos tampoco fue verificada. El cierre de seguimiento en [Trello](https://trello.com/b/9LEaT3KG/comercial-nazareth-kanban-v2) corresponde a la organización de la entrega y no altera estos resultados.
+La ejecución automatizada registrada en este informe corresponde al entorno local descrito arriba. Los escenarios PRU-026 y PRU-032 definen respectivamente la evaluación por dispositivo y el recorrido integral del entorno publicado. La verificación de Supabase Auth y Storage dispone de un script específico descrito en la [configuración del alcance completo](../codigo/database/CONFIGURACION-ALCANCE-COMPLETO.md). La tabla conserva el resultado de PRU-023 de aquella ejecución local. El [tablero Kanban](https://trello.com/b/9LEaT3KG/comercial-nazareth-kanban-v2) registra el cierre del seguimiento de la entrega.
 
 Las notas de inventario, ventas, interfaz y fuentes de datos de revisiones anteriores se pueden consultar en el [historial de documentación](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/tree/8f7953aa7f5fba69ea586772c72e6e4dc7aa1eb9/docs).

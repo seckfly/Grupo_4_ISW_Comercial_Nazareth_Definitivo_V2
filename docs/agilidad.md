@@ -10,13 +10,15 @@ En Comercial Nazareth, la regla de registrar un motivo en los ajustes manuales p
 
 ## 2. Prácticas aplicadas
 
-El trabajo mostrado en el tablero se organizó en seis tarjetas, ordenadas por dependencia y prioridad. Cada una tiene criterios de aceptación y enlaces al repositorio. Los criterios se marcan después de contrastarlos con los archivos o registros correspondientes.
+La primera adaptación ágil se organizó en seis tarjetas, ordenadas por dependencia y prioridad. Cada una tiene criterios de aceptación y enlaces al repositorio. Los criterios se marcan después de contrastarlos con los archivos o registros correspondientes.
 
 Se limita el trabajo a dos tarjetas en En curso y dos en En revisión. Al revisar se comprueban el alcance, los identificadores, los enlaces y los resultados esperados. Una corrección devuelve la tarjeta a En curso cuando hay capacidad. El cierre exige comprobar los criterios y conservar su evidencia.
 
 ## 3. Kanban en Trello
 
 [Tablero Comercial Nazareth — Kanban V2](https://trello.com/b/9LEaT3KG/comercial-nazareth-kanban-v2).
+
+Al cierre de Definitivo V2, el tablero registra 22 tarjetas en Terminado. Las actividades de implementación, documentación y cierre de seguimiento están integradas. Las columnas En curso y En revisión están vacías. El registro de pruebas y su alcance se conserva en el [informe de verificación](../reportes/verificacion-v2.md).
 
 | Estado | Límite | Regla de trabajo |
 |---|---|---|
