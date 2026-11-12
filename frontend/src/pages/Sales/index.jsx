@@ -9,6 +9,7 @@ import { currency, countLabel, quantityLabel } from '../../utils/format'
 import { formatSaleCreatedAt } from '../../utils/sale'
 import { useLiveDateTime } from '../../hooks/useLiveDateTime'
 import { paymentNames } from '../../../../shared/paymentMethods.mjs'
+import { matchesPaymentFilter, paymentFilterGroups } from '../../utils/paymentDisplay.js'
 
 const periodLabels = { today: 'Hoy', yesterday: 'Ayer', week: 'Últimos 7 días', month: 'Este mes' }
 
@@ -38,7 +39,7 @@ export default function Sales({ openSale, revision = 0 }) {
 
   const term = query.trim().toLocaleLowerCase('es')
   const rows = (data?.sales || []).filter((sale) =>
-    (payment === 'Todos' || sale.paymentMethod === payment) &&
+    (payment === 'Todos' || matchesPaymentFilter(sale.paymentMethod, payment)) &&
     (!term || [String(sale.id), sale.customerName || '', ...sale.items.map((item) => item.name)].join(' ').toLocaleLowerCase('es').includes(term)),
   )
   const summary = data?.summary
@@ -60,7 +61,7 @@ export default function Sales({ openSale, revision = 0 }) {
           {value === 'today' ? label + ', ' + today : value === 'yesterday' ? label + ', ' + yesterday : label}
         </option>)}
       </select>
-      <select value={payment} onChange={(event) => setPayment(event.target.value)} aria-label="Método de pago"><option>Todos</option>{Object.entries(paymentNames).map(([value, name]) => <option value={value} key={value}>{name}</option>)}</select>
+      <select value={payment} onChange={(event) => setPayment(event.target.value)} aria-label="Método de pago"><option>Todos</option>{paymentFilterGroups.map(({ value, label }) => <option value={value} key={value}>{label}</option>)}</select>
     </div>
     <Card className="data-card">
       {loading ? <Skeleton rows={5}/> : error ? <div className="sales-feedback"><p className="form-error" role="alert">{error}</p><button className="secondary" onClick={() => setRetry((value) => value + 1)}>Reintentar</button></div> :
