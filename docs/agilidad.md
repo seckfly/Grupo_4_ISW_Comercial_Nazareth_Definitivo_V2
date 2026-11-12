@@ -58,7 +58,7 @@ La [tarjeta de PRU-019](https://trello.com/c/AfN5TOU6) registra el siguiente rec
 | En curso → En revisión | Se revisa que PRU-019 indique las condiciones iniciales, el fallo y el resultado esperado. |
 | En revisión → Terminado | Se comprueba que el texto cumple los criterios de aceptación de la tarjeta. |
 
-Antes de trasladar la tarjeta a Terminado se contrastó el texto guardado con sus tres criterios de aceptación. La [prueba](../../pruebas/pruebas.md) describe el escenario y la [matriz](../../matrices/trazabilidad.md) lo vincula con RF-015.
+Antes de trasladar la tarjeta a Terminado se contrastó el texto guardado con sus tres criterios de aceptación. La [prueba](../pruebas/pruebas.md) describe el escenario y la [matriz](../matrices/trazabilidad.md) lo vincula con RF-015.
 
 La configuración del tablero también tiene su registro en la [tarjeta de prioridades y criterios](https://trello.com/c/RfHgERQk), con sus tres comprobaciones completas. Las tarjetas conservan sus movimientos y listas de aceptación como evidencia del trabajo.
 

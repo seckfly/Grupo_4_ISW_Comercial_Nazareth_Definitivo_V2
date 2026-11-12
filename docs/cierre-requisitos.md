@@ -90,7 +90,7 @@ Resultado final: 49 pruebas de frontend y 53 de backend aprobadas; compilación 
 
 ## Configuración y pendientes concretos
 
-1. Aplicar migración 005 y configuración Storage 006 como explica [CONFIGURACION-ALCANCE-COMPLETO](../database/CONFIGURACION-ALCANCE-COMPLETO.md).
+1. Aplicar migración 005 y configuración Storage 006 como explica [CONFIGURACION-ALCANCE-COMPLETO](../codigo/database/CONFIGURACION-ALCANCE-COMPLETO.md).
 2. Corregir SUPABASE_SECRET_KEY solo en backend/.env (misma URL/proyecto que las claves publicables). La clave configurada fue rechazada con HTTP 401. No compartir claves en chat ni incorporarlas al frontend.
 3. Repetir node scripts/verify-hosted-features.mjs después de configurar. Faltan el cambio real de contraseña y la subida/lectura real de Storage con cuentas temporales.
 4. Repetir PRU-009/014 con Auth real y recorrer la UI de compras, promociones, separación móvil y recojo. Brave: cua.getState devolvió browsers vacío y browser access host unavailable; cua.getApp({windowId:262420}) se detuvo por no poder determinar la URL para aplicar la política. No se detectó la pestaña 127.0.0.1:5173. No se usó otra vía para eludirlo.

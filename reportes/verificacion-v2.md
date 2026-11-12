@@ -13,4 +13,4 @@ El [catálogo de pruebas](../pruebas/pruebas.md) registra el resultado esperado 
 | Despliegue | Registro del backend en Render y PR de preparación. | Confirmar la revisión servida y ejecutar PRU-032. |
 | Respaldo | El informe de origen describe una restauración en una base temporal. | Configurar la ejecución al cierre en el entorno de uso. |
 
-La [evidencia técnica](../codigo/docs/cierre-requisitos.md) corresponde a la ejecución registrada en el informe técnico. Este informe deja constancia de la revisión documental y de las verificaciones de la demo pendientes de ejecución.
+La [evidencia técnica](../docs/cierre-requisitos.md) corresponde a la ejecución registrada en el informe técnico. Este informe deja constancia de la revisión documental y de las verificaciones de la demo pendientes de ejecución.

@@ -2,7 +2,7 @@
 
 ## Referencia
 
-Se conservan los identificadores RF-001, RF-010, BR-001, BR-002 y BR-003 del [SRS definitivo](SRS.md). Los escenarios se contrastan con [CU-001 y CU-002](CU.md) y [PRU-001, PRU-003, PRU-004 y PRU-020](../../pruebas/pruebas.md).
+Se conservan los identificadores RF-001, RF-010, BR-001, BR-002 y BR-003 del [SRS definitivo](SRS.md). Los escenarios se contrastan con [CU-001 y CU-002](CU.md) y [PRU-001, PRU-003, PRU-004 y PRU-020](../pruebas/pruebas.md).
 
 ## Errores encontrados y correcciones
 
@@ -29,11 +29,11 @@ Las ventas anteriores a la migración pueden leerse aunque carezcan de los nuevo
 
 ## Migración
 
-Aplicar [004_sales.sql](../database/migrations/004_sales.sql) después de 003, con el rol `postgres` en el SQL Editor de Supabase. Las versiones anteriores se conservan. Las columnas nuevas admiten los datos históricos existentes y los permisos de lectura permiten listar ventas y vincular clientes.
+Aplicar [004_sales.sql](../codigo/database/migrations/004_sales.sql) después de 003, con el rol `postgres` en el SQL Editor de Supabase. Las versiones anteriores se conservan. Las columnas nuevas admiten los datos históricos existentes y los permisos de lectura permiten listar ventas y vincular clientes.
 
 ## Pruebas ejecutadas
 
-`npm.cmd --prefix backend test` incluye [sales.integration.test.js](../backend/test/sales.integration.test.js). Esta suite crea un clúster PostgreSQL nativo temporal en localhost, aplica 001 a 004 y ejecuta los servicios con el rol `nazareth_app`. El clúster, sus credenciales aleatorias y los datos se eliminan al finalizar. Supabase alojado no participa en estas pruebas.
+`npm.cmd --prefix backend test` incluye [sales.integration.test.js](../codigo/backend/test/sales.integration.test.js). Esta suite crea un clúster PostgreSQL nativo temporal en localhost, aplica 001 a 004 y ejecuta los servicios con el rol `nazareth_app`. El clúster, sus credenciales aleatorias y los datos se eliminan al finalizar. Supabase alojado no participa en estas pruebas.
 
 | Prueba | Evidencia |
 |---|---|

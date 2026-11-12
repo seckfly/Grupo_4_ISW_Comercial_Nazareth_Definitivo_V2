@@ -1,6 +1,6 @@
 ﻿# Alcance completo y evidencia de implementación
 
-Referencia aprobada: [SRS](SRS.md), [CU](CU.md), [matriz](../../matrices/trazabilidad.md) y [pruebas](../../pruebas/pruebas.md).
+Referencia aprobada: [SRS](SRS.md), [CU](CU.md), [matriz](../matrices/trazabilidad.md) y [pruebas](../pruebas/pruebas.md).
 
 La auditoría inicial registra el estado previo a las verificaciones descritas en el [cierre de requisitos](cierre-requisitos.md).
 
