@@ -1,0 +1,1 @@
+import { pool } from '../config/db.js';import { Product } from '../models/Product.js';export async function listProducts(_req,res,next){try{res.json(await Product.list(pool))}catch(error){next(error)}}

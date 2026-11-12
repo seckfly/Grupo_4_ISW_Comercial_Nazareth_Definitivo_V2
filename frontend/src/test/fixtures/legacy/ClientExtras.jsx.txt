@@ -1,0 +1,12 @@
+import { useState } from 'react'
+import { ArrowRight,Check,ChevronRight,Coffee,Gift,PackageCheck,ShoppingBasket,Truck } from 'lucide-react'
+import { currency } from '../../utils/format'
+import ClientConcierge from './ClientConcierge'
+
+const basket=[{name:'Arroz Costeño 1 kg',qty:2,price:4.8},{name:'Leche Gloria evaporada',qty:3,price:4.5},{name:'Azúcar rubia 1 kg',qty:1,price:4.2}]
+
+export default function ClientExtras(){
+  const [added,setAdded]=useState(false)
+  return <><ClientConcierge/><section className="client-routine"><article className="routine-copy"><p className="eyebrow">Según tus últimas 8 visitas</p><h3>Tu compra habitual,<br/><em>lista en un toque.</em></h3><p>Armamos una canasta con lo que llevas con mayor frecuencia. Puedes revisarla y pedirla en tienda.</p><div className="routine-total"><span>6 productos</span><strong>{currency(27.3)}</strong></div><button className={added?'added':''} onClick={()=>setAdded(true)}>{added?<><Check/>Canasta preparada</>:<>Preparar mi canasta <span><ArrowRight/></span></>}</button></article><article className="basket-preview"><header><div><ShoppingBasket/><span>Canasta frecuente</span></div><small>Actualizada hoy</small></header>{basket.map(item=><div className="basket-line" key={item.name}><span>{item.name[0]}</span><div><strong>{item.name}</strong><small>{item.qty} × {currency(item.price)}</small></div><b>{currency(item.qty*item.price)}</b></div>)}<button>Editar productos <ChevronRight/></button></article></section><section className="benefits-section"><div className="client-section-head"><div><p className="eyebrow">Más por ser cliente frecuente</p><h3>Beneficios de agosto</h3></div><span>2 de 4 aprovechados</span></div><div className="benefit-grid"><article className="benefit-feature"><span><Gift/></span><div><small>BENEFICIO DISPONIBLE</small><h4>S/ 5 de descuento</h4><p>Úsalo en una compra desde S/ 35 antes del 31 de agosto.</p></div><button>Activar <ArrowRight/></button></article><article><span><Truck/></span><div><strong>Pedido separado</strong><small>Escríbenos y recoge sin esperar.</small></div><em>Disponible</em></article><article><span><Coffee/></span><div><strong>Atención preferente</strong><small>Tu pedido listo al llegar.</small></div><em>Siempre activo</em></article><article><span><PackageCheck/></span><div><strong>Productos reservados</strong><small>Guarda hasta 3 productos por 24 h.</small></div><em>2 cupos</em></article></div></section></>
+}
+

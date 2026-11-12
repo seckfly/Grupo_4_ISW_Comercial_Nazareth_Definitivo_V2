@@ -18,7 +18,9 @@ Sistema de gestión de ventas, inventario, compras y portal de clientes. La docu
 
 ## Ejecución
 
-La [guía técnica de la revisión de código](https://github.com/seckfly/Comercial_Nazareth_Codigo/blob/58611e91ce6a14d4eefcddbfc54dc789e818f0b4/README.md) describe instalación, migraciones, arranque y pruebas. La interfaz usa React/Vite y la API usa Express. PostgreSQL y los servicios de identidad y fotos están en Supabase.
+La [guía técnica de la revisión de código](GUIA-TECNICA.md) describe instalación, migraciones, arranque y pruebas. La interfaz usa React/Vite y la API usa Express. PostgreSQL y los servicios de identidad y fotos están en Supabase.
+
+Los despliegues de Vercel y Render se gestionan desde [Comercial_Nazareth_Codigo](https://github.com/seckfly/Comercial_Nazareth_Codigo).
 
 ## Integrantes
 
