@@ -867,3 +867,41 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+
+/* Activity panel: keep the overlay inside narrow screens and above page content. */
+@media (max-width: 900px) {
+  .premium-app .mobile-head {
+    position: relative;
+    z-index: 60;
+    isolation: isolate;
+  }
+
+  .premium-app .mobile-head .notice-panel {
+    position: fixed;
+    top: calc(64px + env(safe-area-inset-top, 0px));
+    left: max(12px, env(safe-area-inset-left, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    width: auto;
+    max-width: 420px;
+    margin-left: auto;
+    max-height: calc(100dvh - 64px - var(--mobile-nav-height) - env(safe-area-inset-top, 0px) - 16px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    box-sizing: border-box;
+    z-index: 61;
+    border: 1px solid rgba(255, 255, 255, .92);
+  }
+}
+
+/* Give the main cash figure a little more visual weight without changing the layout. */
+.admin-overview .command-cash > strong {
+  font-size: 42px;
+}
+
+@media (max-width: 720px) {
+  .admin-overview .command-cash > strong {
+    font-size: clamp(32px, 8.5vw, 42px);
+    margin: 6px 0 14px;
+  }
+}
