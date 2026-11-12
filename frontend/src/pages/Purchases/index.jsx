@@ -1,0 +1,175 @@
+import { useEffect, useState } from 'react'
+import { Plus, X } from 'lucide-react'
+import { decimalUnits, lineAmount } from '../../../../shared/numbers.mjs'
+import DecimalInput from '../../components/ui/DecimalInput'
+import AmountInput from '../../components/ui/AmountInput'
+import PageHeader from '../../components/ui/PageHeader'
+import ProductPicker from '../../components/ui/ProductPicker'
+import { Card } from '../../components/ui/Card'
+import { InventoryDrawer, ProductDrawer } from '../Inventory/InventoryDrawers'
+import { api } from '../../services/api'
+import { currency,quantityLabel } from '../../utils/format'
+import { useInventory } from '../../context/InventoryContext'
+const purchaseLine = () => ({
+  key: crypto.randomUUID(),
+  productId: '',
+  query: '',
+  quantity: '1',
+  cost: '',
+})
+const emptySupplier = { name: '', ruc: '', phone: '', reference: '' }
+
+const purchaseStatuses = { pending: 'Pendiente', received: 'Recibida', cancelled: 'Anulada' }
+const purchaseTotals = { pending: 'Total estimado', received: 'Total de la compra', cancelled: 'Total de la orden' }
+
+function PurchaseCard({ order, busy, onReceive, onCancel }) {
+  const pending = order.status === 'pending'
+  const received = order.status === 'received'
+  return <Card className="purchase-record">
+    <header className="purchase-record-heading">
+      <h3>{received ? 'Compra' : 'Orden'} #{order.id} · {order.supplier_name}</h3>
+      <span className="purchase-record-status" data-status={order.status}>{purchaseStatuses[order.status]}</span>
+    </header>
+    <dl className="purchase-record-contact">
+      <div><dt>RUC</dt><dd>{order.supplier_ruc}</dd></div>
+      <div><dt>Teléfono</dt><dd>{order.supplier_phone}</dd></div>
+    </dl>
+    <div className="table-wrap">
+      <table aria-label={'Productos de la compra u orden ' + order.id}>
+        <thead><tr><th scope="col">Producto</th><th scope="col">{pending ? 'Pedido' : 'Cantidad'}</th>
+          {pending && <th scope="col">Recibido</th>}<th scope="col">Costo unitario</th><th scope="col">Subtotal</th></tr></thead>
+        <tbody>{order.items.map(item => <tr key={item.id}>
+          <th scope="row">{item.name}</th>
+          <td>{quantityLabel(received ? item.received_quantity : item.quantity, item.unit)}</td>
+          {pending && <td>{quantityLabel(item.received_quantity, item.unit)}</td>}
+          <td>{currency(item.unit_cost)}</td>
+          <td>{currency(lineAmount(decimalUnits(item.quantity), decimalUnits(item.unit_cost)) / 100)}</td>
+        </tr>)}</tbody>
+      </table>
+    </div>
+    <div className="purchase-record-total"><span>{purchaseTotals[order.status]}</span><strong>{currency(order.estimated_total)}</strong></div>
+    {pending && <div className="toolbar">
+      <button className="primary" disabled={busy} onClick={onReceive}>Registrar recepción</button>
+      <button className="secondary" disabled={busy || order.items.some(item => Number(item.received_quantity) > 0)} onClick={onCancel}>Anular orden</button>
+    </div>}
+  </Card>
+}
+
+export default function Purchases() {
+  const [rows,setRows]=useState(null),[products,setProducts]=useState([]),[error,setError]=useState(''),[showPurchase,setShowPurchase]=useState(false),[selected,setSelected]=useState(null),[busy,setBusy]=useState(false),[revision,setRevision]=useState(0)
+  const [received,setReceived]=useState({})
+  const [notice, setNotice] = useState('')
+  const [supplier, setSupplier] = useState(emptySupplier)
+  const [newProductLine, setNewProductLine] = useState(null)
+  const [items,setItems]=useState(() => [purchaseLine()])
+  const {data: inventory, setRevision:refreshStock}=useInventory()
+  useEffect(()=>{let active=true;setRows(null);setError('');Promise.all([api.orders(),api.products()]).then(([orders,products])=>{if(active){setRows(orders);setProducts(products)}}).catch(error=>{if(active)setError(error.message)});return()=>{active=false}},[revision])
+  async function perform(work, success) {
+    if (busy) return
+    setBusy(true)
+    setError('')
+    setNotice('')
+    try {
+      await work()
+      if (success) setNotice(success)
+      setShowPurchase(false)
+      setSelected(null)
+      setRevision(value => value + 1)
+      refreshStock(value => value + 1)
+    } catch (error) {
+      setError(error.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+  function openPurchase() {
+    setItems([purchaseLine()])
+    setError('')
+    setSupplier(emptySupplier)
+    setShowPurchase(true)
+  }
+  function savePurchase(event) {
+    event.preventDefault()
+    if (items.some(item => !item.productId)) {
+      setError('Selecciona un producto en cada línea de la compra.')
+      return
+    }
+    const purchase = {
+      supplierName: supplier.name, supplierRuc: supplier.ruc, supplierPhone: supplier.phone,
+      items: items.map(({ productId, quantity, cost }) => ({ productId, quantity, cost })),
+    }
+    perform(() => api.registerDirectPurchase({ ...purchase, reference: supplier.reference }), 'Compra registrada e ingresada al inventario.')
+  }
+  function updateLine(lineKey, changes) {
+    setItems(current => current.map(item => item.key === lineKey ? { ...item, ...changes } : item))
+  }
+  function supplierField(event) {
+    const { name, value } = event.target
+    setSupplier(current => ({ ...current, [name]: value }))
+  }
+  function productSaved(product) {
+    setProducts(current => [...current.filter(item => item.id !== product.id), product]
+      .sort((a, b) => a.name.localeCompare(b.name, 'es')))
+    setItems(current => current.map(item => item.key === newProductLine
+      ? { ...item, productId: product.id, query: product.name, cost: item.cost || String(product.cost) }
+      : item))
+    setNewProductLine(null)
+    refreshStock(value => value + 1)
+  }
+  return <div className="page purchases-page"><PageHeader title="Compras" kicker="Reposición" description="Registra las compras en mayorista e ingresa la mercadería al inventario." action={<button className="primary" onClick={openPurchase} aria-label="Registrar compra"><Plus/>Registrar compra</button>}/>
+    {notice && <p className="form-success" role="status">{notice}</p>}
+    {!showPurchase&&!selected&&error&&<p className="form-error" role="alert">{error}</p>}
+    {rows === null ? !error && <p>Cargando compras…</p> : !rows.length ? <Card><p>Aún no hay compras registradas.</p></Card>
+      : rows.map(order => <PurchaseCard key={order.id} order={order} busy={busy}
+        onReceive={() => { setReceived({}); setSelected(order) }}
+        onCancel={() => perform(() => api.cancelOrder(order.id))}/>)}
+    {showPurchase && newProductLine === null && <InventoryDrawer title="Registrar compra" kicker="Comercio y productos" close={() => setShowPurchase(false)} busy={busy}><form onSubmit={savePurchase}>
+      <label>Razón social del comercio<input name="name" value={supplier.name} onChange={supplierField} required/></label>
+      <div className="form-row">
+        <label>RUC<input name="ruc" value={supplier.ruc} onChange={supplierField} required/></label>
+        <label>Teléfono<input name="phone" value={supplier.phone} onChange={supplierField} required/></label>
+      </div>
+      {items.map((item, index) => <div key={item.key} className="purchase-line"
+        role="group" aria-labelledby={'purchase-line-' + item.key}>
+        <div className="purchase-line-heading">
+          <h3 id={'purchase-line-' + item.key}>Producto {index + 1}</h3>
+          {items.length > 1 && <button type="button" className="secondary purchase-remove-product" disabled={busy}
+            aria-label={'Quitar producto ' + (index + 1) + ' de la compra'}
+            onClick={() => setItems(current => current.length > 1 ? current.filter(line => line.key !== item.key) : current)}>
+            <X aria-hidden="true"/>Quitar
+          </button>}
+        </div>
+        <ProductPicker productId={item.productId} query={item.query} products={products} disabled={busy}
+          onSearch={query => updateLine(item.key, { query, productId: '' })}
+          onChoose={product => updateLine(item.key, { query: product.name, productId: product.id })}/>
+        <button type="button" className="text-btn purchase-create-product" disabled={busy}
+          onClick={() => setNewProductLine(item.key)}><Plus/>Crear producto nuevo</button>
+        <div className="form-row">
+          <div className="quantity-field">Cantidad<DecimalInput label={'Cantidad de la línea ' + (index + 1)}
+            minUnits={1} value={item.quantity} onChange={quantity => updateLine(item.key, { quantity })} disabled={busy}/></div>
+          <label>Costo unitario<AmountInput min=".01" step=".01" required value={item.cost}
+            onChange={event => updateLine(item.key, { cost: event.target.value })}/></label>
+        </div>
+      </div>)}
+      <button className="secondary" type="button" disabled={busy} onClick={() => {
+        const line = purchaseLine()
+        setItems(current => [...current, line])
+      }}>Agregar otro producto</button>
+      <label>N.º de comprobante o referencia de recepción<input name="reference" value={supplier.reference} onChange={supplierField} required/></label>
+      {error&&<p className="form-error" role="alert">{error}</p>}
+      <button className="primary" disabled={busy||!items.length}>Guardar compra e ingresar al inventario</button>
+    </form></InventoryDrawer>}
+    {showPurchase && newProductLine !== null && <ProductDrawer
+      categories={inventory.categories}
+      fromPurchase
+      close={() => setNewProductLine(null)}
+      saved={productSaved}
+    />}
+    {selected&&<InventoryDrawer title={'Recepción de orden #'+selected.id} close={()=>setSelected(null)} busy={busy}><form onSubmit={event=>{event.preventDefault();const data=new FormData(event.currentTarget);const lines=selected.items.map(item=>({itemId:item.id,quantity:data.get('item-'+item.id)})).filter(item=>Number(item.quantity)>0);perform(()=>api.receiveOrder(selected.id,{reference:data.get('reference'),items:lines}))}}>
+      <label>Referencia única de recepción<input name="reference" required/></label>
+      {selected.items.map(item=><div className="quantity-field" key={item.id}>{item.name} · Saldo {quantityLabel(Number(item.quantity)-Number(item.received_quantity),item.unit)}<DecimalInput name={'item-'+item.id} label={'Cantidad recibida de '+item.name} maxUnits={decimalUnits(item.quantity)-decimalUnits(item.received_quantity)} required={false} value={received[item.id]??'0'} onChange={value=>setReceived(current=>({...current,[item.id]:value}))} disabled={busy}/></div>)}
+      {error&&<p className="form-error" role="alert">{error}</p>}<button className="primary" disabled={busy}>Confirmar recepción</button>
+    </form></InventoryDrawer>}
+  </div>
+}
+
