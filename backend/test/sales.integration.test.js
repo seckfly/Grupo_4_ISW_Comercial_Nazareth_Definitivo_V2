@@ -693,24 +693,22 @@ test('Resumen compara el acumulado de hoy con el mismo horario de ayer y conserv
   await postgres.admin.query(`WITH local_clock AS (
       SELECT (now() AT TIME ZONE 'America/Lima')::date AS local_day,
         (now() AT TIME ZONE 'America/Lima')::time AS local_time
+    ), schedule AS (
+      SELECT local_day, local_time,
+        CASE WHEN local_time < time '23:00'
+          THEN local_time + interval '1 hour' ELSE time '23:59:59.999999' END AS later_time
+      FROM local_clock
     )
     INSERT INTO nazareth.sales (user_id,total_amount,payment_method,created_at)
     SELECT 1, fixture.amount, 'efectivo',
-      ((local_day - 1) + CASE WHEN local_time < time '23:00'
-        THEN local_time + interval '1 hour' ELSE time '23:59:59.999999' END) AT TIME ZONE 'America/Lima'
-    FROM local_clock CROSS JOIN (VALUES (20, 'same_time'), (80, 'later')) AS fixture(amount, kind)`)
-  await postgres.admin.query(`WITH local_clock AS (
-      SELECT (now() AT TIME ZONE 'America/Lima')::date AS local_day,
-        (now() AT TIME ZONE 'America/Lima')::time AS local_time
-    )
-    INSERT INTO nazareth.sales (user_id,total_amount,payment_method,created_at)
-    SELECT 1, 20, 'efectivo', (local_day - 1 + local_time) AT TIME ZONE 'America/Lima'
-    FROM local_clock`)
+      ((schedule.local_day - 1) + CASE WHEN fixture.kind = 'same_time'
+        THEN schedule.local_time ELSE schedule.later_time END) AT TIME ZONE 'America/Lima'
+    FROM schedule CROSS JOIN (VALUES (20, 'same_time'), (80, 'later')) AS fixture(amount, kind)`)
   await postgres.admin.query("INSERT INTO nazareth.sales (user_id,total_amount,payment_method,created_at) VALUES (1,30,'efectivo',now())")
   const report = await dashboard(pool, 'week')
   assert.equal(report.today.total, 30)
-  assert.equal(report.yesterday.total, 120)
-  assert.equal(report.yesterday.saleCount, 3)
+  assert.equal(report.yesterday.total, 100)
+  assert.equal(report.yesterday.saleCount, 2)
   assert.equal(report.comparison, 50)
 })
 
