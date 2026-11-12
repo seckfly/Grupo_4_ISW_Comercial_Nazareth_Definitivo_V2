@@ -17,6 +17,7 @@ import Settings from '../pages/Settings'
 import Account from '../pages/Account'
 import Reservations from '../pages/Reservations'
 import { api } from '../services/api'
+import { createInflightReads } from '../services/inflightReads'
 
 vi.mock('../services/api', () => ({ api: {
   products: vi.fn(), quoteSale: vi.fn(), createSale: vi.fn(), saleCustomers: vi.fn(), saleBenefits: vi.fn().mockResolvedValue([]),
@@ -30,6 +31,8 @@ vi.mock('../services/api', () => ({ api: {
 const authState=vi.hoisted(()=>({user:{role:'admin',name:'Prueba'}}))
 vi.mock('../context/AuthContext', () => ({ useAuth: () => authState }))
 const inventoryState = vi.hoisted(() => ({ alertCount: 0, data: { products: [] }, loading: false, error: '', setRevision: vi.fn() }))
+inventoryState.requestScope = createInflightReads()
+inventoryState.dataRevision = 0
 vi.mock('../context/InventoryContext', () => ({ useInventory: () => inventoryState }))
 vi.mock('../components/charts/SalesTrend', () => ({ default: () => <div>Gráfico de ventas</div> }))
 vi.mock('../components/charts/ProductBars', () => ({ default: () => <div>Gráfico de productos</div> }))

@@ -3,8 +3,7 @@ import { PackageSearch, ReceiptText, TrendingUp, WalletCards } from 'lucide-reac
 import PageHeader from '../../components/ui/PageHeader'
 import { Card, StockPill } from '../../components/ui/Card'
 import { Skeleton } from '../../components/ui/States'
-import SalesTrend from '../../components/charts/SalesTrend'
-import ProductBars from '../../components/charts/ProductBars'
+import DeferredModule, { deferredModule } from '../../components/ui/DeferredModule'
 import { currency, quantityLabel, countLabel } from '../../utils/format'
 import { formatSaleCreatedAt } from '../../utils/sale'
 import { useDashboard } from '../../hooks/useDashboard'
@@ -12,6 +11,8 @@ import { useInventory } from '../../context/InventoryContext'
 import { digitalPaymentMethods, paymentNames } from '../../../../shared/paymentMethods.mjs'
 
 const insufficient = 'Aún no hay datos suficientes'
+const SalesTrend = deferredModule(() => import('../../components/charts/SalesTrend'))
+const ProductBars = deferredModule(() => import('../../components/charts/ProductBars'))
 export function Analytics({ report = false, onNavigate }) {
   const [period, setPeriod] = useState('week')
   const { data, loading, error, retry } = useDashboard(period)
@@ -34,8 +35,8 @@ export function Analytics({ report = false, onNavigate }) {
       {report && data.paymentTotals && <dl className="digital-payment-totals">
         {digitalPaymentMethods.map(method => <div key={method}><dt>{paymentNames[method]}</dt><dd>{currency(data.paymentTotals[method])}</dd></div>)}
       </dl>}</article></div>
-    <div className="overview-grid"><Card className="premium-chart"><div className="card-head"><h3>Ritmo por día</h3></div><SalesTrend data={data.trend}/>{!data.summary.saleCount && <p>No hay ventas registradas en este periodo.</p>}</Card>
-    <Card><div className="card-head"><h3>Demanda por producto</h3></div>{data.demand.length ? <ProductBars data={data.demand.map(item => ({ ...item, name: item.name + ' · ' + item.unit }))}/> : <p>No hay detalle de ventas en este periodo.</p>}</Card></div>
+    <div className="overview-grid"><Card className="premium-chart"><div className="card-head"><h3>Ritmo por día</h3></div><DeferredModule definition={SalesTrend} label="Ritmo por día" componentProps={{data:data.trend}}/>{!data.summary.saleCount && <p>No hay ventas registradas en este periodo.</p>}</Card>
+    <Card><div className="card-head"><h3>Demanda por producto</h3></div>{data.demand.length ? <DeferredModule definition={ProductBars} label="Demanda por producto" componentProps={{data:data.demand.map(item => ({ ...item, name: item.name + ' · ' + item.unit }))}}/> : <p>No hay detalle de ventas en este periodo.</p>}</Card></div>
     {!report && <div className="intel-grid"><Card className="stock-board"><div className="card-head"><h3>Productos con stock bajo</h3><PackageSearch/></div>
       {inventory.loading ? <p>Consultando existencias…</p> : inventory.error ? <p className="form-error" role="alert">{inventory.error}</p> : alerts.length ? alerts.map(product => <div className="history-row" key={product.id}><div><strong>{product.name}</strong><small>Mínimo: {quantityLabel(product.minimum,product.unit)}</small></div><StockPill stock={product.stock} minimum={product.minimum} unit={product.unit}/></div>) : <p>No hay productos en alerta de stock.</p>}
     </Card><Card className="demand-board"><h3>Lo que mueve la tienda</h3>{data.demand.length ? data.demand.map(item => <div className="demand-row" key={item.productId + item.unit}><div><strong>{item.name}</strong><small>{quantityLabel(item.sold,item.unit)}</small></div><b>{currency(item.revenue)}</b></div>) : <p>No hay ventas registradas en este periodo.</p>}</Card></div>}
