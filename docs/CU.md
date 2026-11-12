@@ -1,4 +1,4 @@
-# Casos de uso de Comercial Nazareth
+# Casos de uso de Comercial Nazareth V2
 
 Humberto Dávalos desempeña los cuatro roles internos; el cliente registrado utiliza el portal.
 
@@ -10,7 +10,7 @@ Humberto Dávalos desempeña los cuatro roles internos; el cliente registrado ut
 | CU-004 | Gestionar promociones | Administrador | RF-008 |
 | CU-005 | Reservar producto (Separación en tienda) | Cliente registrado | RF-007, RF-009 |
 | CU-006 | Gestionar inventario | Responsable de almacén | RF-002, RF-015 |
-| CU-008 | Registrar orden de compra | Responsable de compras | RF-003, RF-004, RF-007 |
+| CU-008 | Registrar compra mayorista | Responsable de compras | RF-003, RF-004, RF-007 |
 | CU-009 | Gestionar compras (Recepción de mercadería) | Responsable de compras | RF-004, RF-005 |
 
 ![Diagrama general de casos de uso](../modelos/casos-de-uso.png)
@@ -28,7 +28,7 @@ Precondiciones: Humberto tiene una sesión administrativa activa. Los productos 
 3. Si el comprador se identifica como cliente registrado, Humberto lo vincula mediante CU-002. En caso contrario, continúa sin cliente asociado.
 4. Humberto elige efectivo, Yape o Plin. El sistema calcula el total con los precios del servicio y muestra los campos del método elegido.
 5. Humberto ingresa el monto recibido. Si elige Yape o Plin, comprueba el abono y marca la confirmación manual.
-6. El sistema valida el monto. Para Yape y Plin, exige que coincida con el total a dos decimales y que Humberto haya confirmado la comprobación. Para efectivo, calcula el vuelto cuando corresponde.
+6. El sistema valida el monto. Si el administrador seleccionó un beneficio del cliente, la API valida su disponibilidad y el mínimo de compra antes de aplicar el descuento. Para Yape y Plin, exige que coincida con el total a dos decimales y que Humberto haya confirmado la comprobación. Para efectivo, calcula el vuelto cuando corresponde.
 7. El sistema guarda la cabecera y el detalle de la venta, registra la salida de inventario y descuenta el stock en una misma transacción.
 8. El sistema confirma el guardado y muestra el identificador de la venta.
 
@@ -38,6 +38,8 @@ Precondiciones: Humberto tiene una sesión administrativa activa. Los productos 
 |---|---|
 | El comprador no se identifica como cliente registrado | Continuar sin vincular una cuenta. |
 | El monto recibido en efectivo supera el total | Calcular y mostrar el vuelto. |
+| La venta corresponde al recojo de un apartado | Abrir Caja con el cliente y las líneas del apartado. Confirmar la venta y cerrar el apartado en la misma transacción. |
+| Se elige Yape o Plin | Mostrar el importe y un QR identificado como demostración. El administrador registra el importe exacto y confirma manualmente la comprobación. |
 | Se selecciona Yape o Plin | Mostrar el QR de demostración y solicitar el importe recibido y la comprobación manual del abono. |
 | La venta está vacía o contiene cantidades no válidas | Solicitar la corrección antes de continuar. |
 | Un producto no tiene stock suficiente | Identificar el producto y rechazar el intento actual. Humberto puede iniciar una nueva selección. |
@@ -161,7 +163,7 @@ Precondiciones: sesión del cliente en el portal y productos disponibles para co
 | Un producto está agotado al confirmar la disponibilidad | Informar el cambio y ajustar la solicitud. |
 | El código generado coincide con otro registrado | Generar un código diferente. |
 
-Postcondición de éxito: queda registrada una solicitud con sus productos, importe estimado, código y estado. La especificación contempla hasta tres productos distintos y una vigencia de 24 horas. La solicitud no confirma una venta ni bloquea existencias.
+Postcondición de éxito: queda registrada una solicitud con sus productos, importe estimado, código y estado. La especificación contempla hasta tres productos distintos y una vigencia de 24 horas. La solicitud pendiente no aparta unidades. El administrador vuelve a comprobar disponibilidad al confirmar. Un apartado confirmado reduce el stock disponible para otras ventas hasta su cancelación, vencimiento o recojo. Editar devuelve la solicitud a pendiente. El recojo se completa con CU-001.
 
 ## CU-006: Gestionar inventario
 
@@ -169,7 +171,7 @@ Actor: Responsable de almacén, rol desempeñado por Humberto Dávalos.
 
 Requisitos relacionados: RF-002 y RF-015.
 
-Relación: CU-008 puede extender CU-006 cuando el stock está por debajo del mínimo y Humberto decide reponer.
+Relación: Humberto usa las alertas de inventario para decidir qué registrar en Compras.
 
 Precondiciones: Humberto tiene una sesión administrativa activa con acceso autorizado para el mantenimiento de productos y los ajustes de existencias. El stock inicial corresponde al conteo de productos.
 
@@ -188,9 +190,12 @@ Precondiciones: Humberto tiene una sesión administrativa activa con acceso auto
 | Situación | Respuesta |
 |---|---|
 | Humberto solo consulta existencias o historial | Mostrar la información sin modificar el stock. |
-| Humberto mantiene un producto | Registrar el producto con precio y stock inicial, o actualizar el precio de uno existente. |
-| El stock de un producto activo es igual al mínimo configurado | Mostrar la alerta; esa igualdad por sí sola no activa CU-008. |
-| El stock está por debajo del mínimo y Humberto decide reponer | Ejecutar CU-008 en el rol de Responsable de compras. Registrar la orden no modifica el stock. |
+| Humberto mantiene un producto | Registrar o editar datos, precio y foto opcional. El stock inicial se registra en el alta. |
+| Humberto archiva o restaura un producto | Actualizar su disponibilidad comercial sin borrar el historial. |
+| Humberto solicita la baja de un producto | Confirmar la existencia esperada y comprobar apartados. Cuando hay stock, guardar el movimiento de salida junto con la baja. |
+| El ajuste afecta unidades apartadas | Rechazar el intento y conservar el stock y el historial. |
+| El stock de un producto activo es igual al mínimo configurado | Mostrar la alerta para que Humberto evalúe la reposición. |
+| Humberto ya compró mercadería para reponer stock | Abrir el módulo Compras y registrar el ingreso directo con CU-008. |
 | Un producto inactivo tiene stock menor o igual al mínimo | No incluirlo en la alerta. |
 | El usuario no tiene acceso autorizado | Rechazar la operación sin guardar cambios. |
 | El motivo está vacío o contiene únicamente espacios | Solicitar corregirlo; el stock permanece sin cambios y no se registra el ajuste. |
@@ -203,37 +208,26 @@ La exigencia del motivo corresponde a los ajustes manuales. Las salidas por vent
 
 El [proceso crítico](proceso-critico.md) presenta el flujo de CU-006 y sus controles.
 
-## CU-008: Registrar orden de compra
+## CU-008: Registrar compra mayorista
 
-Actor: Responsable de compras, rol desempeñado por Humberto Dávalos.
+Actor principal: Responsable de compras.
 
-Requisitos relacionados: RF-003, RF-004 y RF-007.
-
-Relaciones: incluye CU-003; puede extender CU-006 con stock por debajo del mínimo y decisión de reponer.
-
-Precondiciones: sesión administrativa activa y productos existentes en el catálogo. La identificación del proveedor se completa dentro de la orden.
+Precondiciones: sesión administrativa y mercadería recibida. El administrador tiene los datos del proveedor y la referencia de recepción.
 
 ### Flujo principal
 
-1. Humberto registra la razón social, el RUC y el teléfono del proveedor en la orden.
-2. Ejecuta CU-003 y agrega los productos a reponer.
-3. Indica la cantidad y el costo unitario por línea.
-4. El sistema calcula el total estimado como la suma de cantidad por costo unitario.
-5. El sistema guarda la orden pendiente. Humberto comunica el pedido al proveedor por un medio externo.
+1. Humberto abre Compras y selecciona «Registrar compra».
+2. Ingresa razón social, RUC y teléfono. Agrega productos, cantidades y costos unitarios.
+3. Ingresa la referencia y selecciona «Guardar compra e ingresar al inventario».
+4. La API guarda la compra, la recepción, los movimientos y el stock en una transacción. El sistema muestra la compra como recibida.
 
-### Alternativas y excepciones
+### Alternativas
 
-| Situación | Respuesta |
+| Situación | Comportamiento |
 |---|---|
-| Se inicia CU-008 desde CU-006 | Conservar el contexto del producto revisado y completar la orden. |
-| Humberto necesita reponer sin una alerta | Iniciar CU-008 directamente. |
-| Humberto ya compró y recibió la mercadería de una tienda mayorista | En «Registrar compra», indicar que la mercadería ya fue recibida y completar la referencia. Al guardar, el sistema ejecuta CU-008 y CU-009 en una sola transacción. La compra queda recibida y el stock aumenta por las cantidades ingresadas. |
-| La compra incluye un producto nuevo | Darlo de alta desde la línea con stock inicial cero. El producto queda seleccionado y se conserva el formulario de compra. Las unidades se ingresan al confirmar la recepción. |
-| Faltan datos obligatorios del proveedor | Solicitar completarlos antes de guardar. |
-| La cantidad o el costo no es positivo | Rechazar la línea y señalar el campo. |
-| La orden no contiene líneas | Impedir el guardado. |
-
-Postcondición de éxito: la orden conserva proveedor, productos, cantidades, costos, total estimado y estado pendiente. Registrar la orden no modifica existencias; el incremento corresponde a CU-009. El proveedor no necesita una cuenta ni un caso de uso independiente.
+| El producto aún no existe | Crearlo desde la línea con stock inicial cero y continuar el formulario de compra. |
+| La referencia es inválida o la recepción falla | Mostrar el error y conservar las existencias previas al intento. |
+| Se crea una orden pendiente mediante la API | Guardar proveedor, detalle y total estimado. La orden queda disponible para recepción en CU-009. |
 
 ## CU-009: Gestionar compras (Recepción de mercadería)
 
@@ -249,7 +243,7 @@ Precondiciones: sesión administrativa activa, orden pendiente con saldo por rec
 2. Compara los productos y cantidades con la mercadería recibida.
 3. Registra las cantidades efectivamente recibidas.
 4. El sistema incrementa el stock y registra un movimiento de entrada por producto en una misma transacción.
-5. El sistema acumula las cantidades recibidas, actualiza el saldo y las alertas y conserva la orden pendiente o la marca recibida según corresponda.
+5. El sistema acumula las cantidades recibidas, actualiza el saldo, el costo unitario ponderado y las alertas, y conserva la orden pendiente o la marca recibida según corresponda.
 
 ### Alternativas y excepciones
 
@@ -263,3 +257,8 @@ Precondiciones: sesión administrativa activa, orden pendiente con saldo por rec
 
 Postcondición de éxito: queda guardada una recepción sin duplicados y el stock aumenta por lo efectivamente recibido. La orden permanece pendiente si hay saldo o queda recibida cuando se completa. Una orden con entradas registradas no se anula; las devoluciones y la reversión de recepciones quedan fuera de este alcance.
 
+## Operaciones transversales
+
+- **Mi cuenta.** Administrador y cliente pueden cambiar su propia contraseña. Se verifica la contraseña actual y se actualiza la misma identidad. El cliente consulta su contacto, incluido el teléfono cuando está registrado.
+- **Fidelización.** El cliente consulta su saldo, reclama un beneficio disponible y puede cancelarlo antes del canje. El administrador selecciona el beneficio del titular en Caja. El uso se confirma con la venta.
+- **Modelos de V2.** Los recorridos de venta, reserva, inventario y compra se representan en [modelos-v2.md](../modelos/modelos-v2.md).

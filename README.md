@@ -1,8 +1,24 @@
-# Comercial Nazareth: entrega definitiva
+# Comercial Nazareth · Definitivo V2
 
 Grupo 4 · Ingeniería de Software
 
-Sistema de gestión comercial y portal de clientes de Comercial Nazareth. El repositorio reúne el SRS completo, los ocho casos de uso, las pruebas del catálogo y el flujo de CU-006: Gestionar inventario.
+Sistema de gestión de ventas, inventario, compras y portal de clientes. La documentación de esta entrega se contrastó con la [revisión de código 58611e9](https://github.com/seckfly/Comercial_Nazareth_Codigo/tree/58611e91ce6a14d4eefcddbfc54dc789e818f0b4). La [línea base documental V1](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo/tree/5b3c9b1e67bd41b4c9f56c19a77a8d6db10d67c9) identifica el punto de partida de la comparación.
+
+## Documentación de la entrega
+
+| Documento | Contenido |
+|---|---|
+| [SRS de V2](docs/SRS.md) | 17 requisitos funcionales, 7 no funcionales y 11 reglas de negocio. |
+| [Casos de uso](docs/CU.md) | Flujos de venta, catálogo, promociones, reservas, inventario y compras. |
+| [Modelos](modelos/modelos-v2.md) | Despliegue, clases del dominio, casos de uso y flujos de operación. |
+| [Matriz de trazabilidad](matrices/trazabilidad.md) | Relaciones entre requisitos, reglas, pruebas y solicitudes de cambio. |
+| [Pruebas](pruebas/pruebas.md) | Escenarios de aceptación y referencias de evidencia. |
+| [Registro de cambios](docs/cambios-v2.md) | Antecedente CR-001 e Issues CR-002 a CR-010. |
+| [Informe de verificación](reportes/verificacion-v2.md) | Revisión de referencia y comprobaciones pendientes para la demo. |
+
+## Ejecución
+
+La [guía técnica de la revisión de código](https://github.com/seckfly/Comercial_Nazareth_Codigo/blob/58611e91ce6a14d4eefcddbfc54dc789e818f0b4/README.md) describe instalación, migraciones, arranque y pruebas. La interfaz usa React/Vite y la API usa Express. PostgreSQL y los servicios de identidad y fotos están en Supabase.
 
 ## Integrantes
 
@@ -13,43 +29,3 @@ Sistema de gestión comercial y portal de clientes de Comercial Nazareth. El rep
 | Isaí Samuel Bejarano Benites | N00490010 |
 | Cesar Jeremin Alonso Chuquimango Reyes | N00480808 |
 | Alonso Castillo Davalos | N00491764 |
-
-
-## Documentos
-
-| Documento | Contenido |
-|---|---|
-| [SRS completo](docs/SRS.md) | Quince requisitos funcionales, seis no funcionales y ocho reglas del negocio. |
-| [Casos de uso](docs/CU.md) | Ocho casos de uso, sus actores, flujos y excepciones. |
-| [Proceso crítico](docs/proceso-critico.md) | Justificación y flujo de CU-006, con los controles del ajuste manual. |
-| [Convención de identificadores](docs/convencion-ids.md) | Identificadores usados en SRS, casos de uso, modelo y pruebas. |
-| [Matriz de trazabilidad](matrices/trazabilidad.md) | Vínculos de los 15 requisitos funcionales y los 6 no funcionales. |
-| [Pruebas](pruebas/pruebas.md) | Veintitrés casos documentados, incluidos los escenarios de CR-001. |
-| [Hoja de trazabilidad](reportes/trazabilidad-s12.xlsx) | Cobertura calculada a partir de los vínculos de la matriz. |
-| [Agilidad y concurrencia](docs/agilidad.md) | Kanban, límites de dos tarjetas por etapa y evidencias del flujo de V2. |
-| [Reporte v1.1](reportes/reporte-v1.1.md) | Comparación histórica entre v1.0 y v1.1. |
-
-## Modelos
-
-| Modelo | Visualización | Fuente editable |
-|---|---|---|
-| Casos de uso del sistema | [PNG](modelos/casos-de-uso.png) | Diagrama de los ocho casos de uso. |
-| Clases del alcance seleccionado | [PNG](modelos/clases.png) | [draw.io](modelos/clases.drawio) |
-| Flujo de CU-006: Gestionar inventario | [PNG](modelos/actividad-gestionar-inventario.png) | [draw.io](modelos/actividad-gestionar-inventario.drawio) · [XML](modelos/actividad-gestionar-inventario.xml) |
-
-## Alcance de la trazabilidad
-
-La [matriz](matrices/trazabilidad.md) reúne los 15 RF, los seis RNF y las ocho reglas del negocio del SRS. Los 23 casos de [pruebas.md](pruebas/pruebas.md) cubren el catálogo de requisitos. El modelo disponible tiene seis clases vinculadas con cinco RF. La [hoja de cálculo](reportes/trazabilidad-s12.xlsx) calcula la cobertura y comprueba los vínculos entre requisitos y pruebas.
-
-CU-006 incorpora CR-001: cada ajuste manual requiere un motivo válido y conserva el ajuste, el motivo y el stock en una misma transacción. El flujo de esta entrega desarrolla ese proceso y su relación con la reposición.
-
-## Sesión 12
-
-- [Impacto de CR-001](matrices/impacto-cr-001.md): alcance, tiempo y calidad/costo.
-- [Riesgos de CR-001](matrices/riesgos-cr-001.md): probabilidad, impacto y respuesta.
-- [Resumen de trazabilidad](reportes/trazabilidad-s12.md) y [hoja de cálculo](reportes/trazabilidad-s12.xlsx): catálogo completo y cobertura documental.
-
-## Kanban
-
-[Tablero de Comercial Nazareth](https://trello.com/b/9LEaT3KG/comercial-nazareth-kanban-v2). En curso y En revisión admiten un máximo de dos tarjetas cada una. Las reglas contemplan capacidad, bloqueos, correcciones y criterios de cierre.
-

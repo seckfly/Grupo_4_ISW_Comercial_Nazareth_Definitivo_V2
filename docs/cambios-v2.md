@@ -1,0 +1,16 @@
+# Cambios de Definitivo V2
+
+Los Issues documentan cambios observados en el código y las comprobaciones que corresponden a la entrega. Las fechas de implementación se consultan en los commits enlazados.
+
+| ID | Cambio | Evidencia |
+|---|---|---|
+| CR-001 | Motivo obligatorio en el ajuste manual | [Análisis de impacto](../matrices/impacto-cr-001.md) |
+| [CR-002](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/1) | Migración a PostgreSQL y Supabase Auth | [CR-002 original](https://github.com/seckfly/Comercial_Nazareth_Codigo/blob/58611e91ce6a14d4eefcddbfc54dc789e818f0b4/docs/cambios/CR-002-migracion-supabase.md) |
+| [CR-003](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/2) | Despliegue de Express en Render | [PR de preparación](https://github.com/seckfly/Comercial_Nazareth_Codigo/pull/1) · [API en Render](https://nazareth-backend.onrender.com) |
+| [CR-004](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/3) | Apartado de stock y recojo de reservas | [Commit 0f90cdf](https://github.com/seckfly/Comercial_Nazareth_Codigo/commit/0f90cdf2ecd3b3d057d1de28903920571f51f9a8) |
+| [CR-005](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/4) | Ingreso directo de compras y costo promedio | [Ingreso directo](https://github.com/seckfly/Comercial_Nazareth_Codigo/commit/daa5d491ae0a021e426964e7f8debd96d9f6263e) · [Costo ponderado](https://github.com/seckfly/Comercial_Nazareth_Codigo/commit/059552c6a343465e2acb425eb4e3e6db5ce1b6d7) |
+| [CR-006](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/5) | Confirmación de pagos digitales en caja | [Commit 0f90cdf](https://github.com/seckfly/Comercial_Nazareth_Codigo/commit/0f90cdf2ecd3b3d057d1de28903920571f51f9a8) |
+| [CR-007](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/6) | Interfaz adaptable por tamaño de pantalla | [Catálogo y caja móvil](https://github.com/seckfly/Comercial_Nazareth_Codigo/commit/4e83b97c36b748fcf8beee44fc35ee1990fadebf) · [Panel](https://github.com/seckfly/Comercial_Nazareth_Codigo/commit/5937bcf3754a24725bc01871a843834b71741815) |
+| [CR-008](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/7) | Fotos de productos y ciclo de vida del inventario | [Foto opcional](https://github.com/seckfly/Comercial_Nazareth_Codigo/commit/0f90cdf2ecd3b3d057d1de28903920571f51f9a8) · [Servicio de inventario](https://github.com/seckfly/Comercial_Nazareth_Codigo/blob/58611e91ce6a14d4eefcddbfc54dc789e818f0b4/backend/src/services/inventoryService.js) |
+| [CR-009](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/8) | Teléfono opcional y contraseña de la propia cuenta | [PR de teléfono](https://github.com/seckfly/Comercial_Nazareth_Codigo/pull/3) · [PR de portal](https://github.com/seckfly/Comercial_Nazareth_Codigo/pull/4) · [Contraseña](https://github.com/seckfly/Comercial_Nazareth_Codigo/commit/6c64f9ff1a362551fa00523d211faf0da7b247e1) |
+| [CR-010](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/issues/9) | Reclamo y canje de beneficios de fidelización | [Commit de fidelización](https://github.com/seckfly/Comercial_Nazareth_Codigo/commit/f8721cc6ee2d8c15f26f06b80684b33eef255875) |
