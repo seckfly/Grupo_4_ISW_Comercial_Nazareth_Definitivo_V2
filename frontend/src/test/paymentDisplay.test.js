@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { digitalPaymentGroups, matchesPaymentFilter, paymentFilterGroups, paymentGroupTotal } from '../utils/paymentDisplay.js'
+import { digitalPaymentGroups, matchesPaymentFilter, paymentDisplayName, paymentFilterGroups, paymentGroupTotal } from '../utils/paymentDisplay.js'
 
 describe('presentación agrupada de pagos digitales', () => {
   it('presenta todas las billeteras en una única categoría sin cambiar los métodos originales', () => {
@@ -23,5 +23,12 @@ describe('presentación agrupada de pagos digitales', () => {
     expect(matchesPaymentFilter('efectivo', 'digital')).toBe(false)
     expect(matchesPaymentFilter('efectivo', 'efectivo')).toBe(true)
     expect(matchesPaymentFilter('unknown', 'digital')).toBe(false)
+  })
+  
+  it('muestra todas las billeteras con la etiqueta Pagos digitales', () => {
+    for (const method of ['yape', 'plin', 'otro_digital']) {
+      expect(paymentDisplayName(method)).toBe('Pagos digitales')
+    }
+    expect(paymentDisplayName('efectivo')).toBe('Efectivo')
   })
 })
