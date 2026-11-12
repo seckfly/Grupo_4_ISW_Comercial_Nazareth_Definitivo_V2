@@ -47,6 +47,16 @@ export default function AppShell({page,setPage,onSale,children}){
     }
   }
   useEffect(()=>{if(palette)setTimeout(()=>searchRef.current?.focus(),30)},[palette])
+  useEffect(() => {
+    const onKeyDown = event => {
+      if (event.key !== 'Escape') return
+      setPalette(false)
+      setNotices(false)
+      if (open) closeMobileMenu()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [open])
   const [signingOut, setSigningOut] = useState(false)
   const [logoutError, setLogoutError] = useState('')
   async function endSession() {
