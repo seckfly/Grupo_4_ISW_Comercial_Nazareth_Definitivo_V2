@@ -18,7 +18,7 @@ import { createPromotionRouter } from '../src/routes/promotionRouter.js'
 import { Product } from '../src/models/Product.js'
 import { customerForUser,preferences,savePreferences } from '../src/services/customerService.js'
 import { User } from '../src/models/User.js'
-import { removeClientAccess } from '../src/services/userService.js'
+import { removeAccountAccess } from '../src/services/userService.js'
 import { requestReservation } from '../src/services/reservationService.js'
 
 let postgres, pool, server, base, app
@@ -38,7 +38,7 @@ before(async () => {
   await postgres.admin.query(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
     CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY, email text NOT NULL);
     CREATE TABLE auth.sessions (id uuid PRIMARY KEY, user_id uuid, not_after timestamptz)`)
-  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql', '008_promotion_creation_requests.sql', '009_archive_and_remove_access.sql', '010_retire_inventory_products.sql', '011_sync_unavailable_product_campaigns.sql', '012_other_digital_payments.sql', '013_loyalty_benefits.sql']) {
+  for (const file of ['001_commercial_schema.sql', '002_express_access.sql', '003_inventory_access.sql', '004_sales.sql', '005_full_scope.sql', '007_product_creation_requests.sql', '008_promotion_creation_requests.sql', '009_archive_and_remove_access.sql', '010_retire_inventory_products.sql', '011_sync_unavailable_product_campaigns.sql', '012_other_digital_payments.sql', '013_loyalty_benefits.sql', '014_customer_phone_access.sql', '015_admin_phone.sql', '016_account_deletion_admin.sql']) {
     await postgres.admin.query(await readFile(new URL('../../database/migrations/' + file, import.meta.url), 'utf8'))
   }
   pool = await postgres.applicationPool()
@@ -243,10 +243,11 @@ test('Eliminar acceso protege administradores, conserva el historial y permite c
     await postgres.admin.query('DELETE FROM auth.users WHERE id = $1', [id])
     return { error: null }
   }
-  const remove = (id, confirmation = 'ELIMINAR', actor = 1) => removeClientAccess(pool, actor, id, confirmation, deleteIdentity)
+  const admin = { id: 1, role: 'admin', isProtected: true }
+  const remove = (id, confirmation = 'ELIMINAR', actor = admin) => removeAccountAccess(pool, actor, id, confirmation, deleteIdentity)
   await assert.rejects(remove(2, 'eliminar'), { statusCode: 400 })
   await assert.rejects(remove(1), { statusCode: 403 })
-  await assert.rejects(remove(1, 'ELIMINAR', 3), { statusCode: 403 })
+  await assert.rejects(remove(1, 'ELIMINAR', { id: 3, role: 'client' }), { statusCode: 403 })
   await assert.rejects(remove(2), { statusCode: 409 })
   assert.equal(attempts, 0)
   await request('/api/reservations/' + reservation.body.id, { method: 'POST', body: { action: 'cancel' } })
@@ -260,10 +261,12 @@ test('Eliminar acceso protege administradores, conserva el historial y permite c
   assert.deepEqual((await User.list(pool)).map(user => user.id), [1])
   assert.deepEqual((await request('/api/customers')).body, [])
   const savedSale = (await request('/api/sales/' + sale.body.id)).body
-  assert.equal(savedSale.customerName, 'Cliente Demo')
+  assert.equal(savedSale.id, sale.body.id)
+  assert.equal(savedSale.customerName, 'Cuenta eliminada')
   const savedReservation = (await request('/api/reservations')).body[0]
   assert.equal(savedReservation.status, 'cancelled')
-  assert.equal(savedReservation.customerName, 'Cliente Demo')
+  assert.equal(savedReservation.id, reservation.body.id)
+  assert.equal(savedReservation.customerName, 'Cuenta eliminada')
 })
 
 test('PRU-005/006/008: proveedor, orden sin stock, recepción parcial, exceso, duplicados y anulación',async()=>{

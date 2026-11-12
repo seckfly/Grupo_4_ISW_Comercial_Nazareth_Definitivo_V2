@@ -18,13 +18,13 @@ describe('CU-006 alertas de inventario', () => {
 
 describe('precio promocional en inventario', () => {
   it('tacha el precio regular y destaca el precio promocional vigente', () => {
-    const markup = renderToStaticMarkup(<OfferPrice regularPrice={6.7} price={5.36}/>)
+    const markup = renderToStaticMarkup(<OfferPrice regularPrice={6.7} price={5.36}/>).replace(/\u00a0/g, ' ')
     expect(markup).toContain('<del aria-label="Precio anterior S/ 6.70">S/ 6.70</del>')
     expect(markup).toContain('<strong aria-label="Precio actual S/ 5.36">S/ 5.36</strong>')
   })
 
   it('muestra un solo precio cuando no existe descuento vigente', () => {
-    const markup = renderToStaticMarkup(<OfferPrice regularPrice={6.7} price={6.7}/>)
+    const markup = renderToStaticMarkup(<OfferPrice regularPrice={6.7} price={6.7}/>).replace(/\u00a0/g, ' ')
     expect(markup).not.toContain('<del')
     expect(markup).toContain('S/ 6.70')
   })

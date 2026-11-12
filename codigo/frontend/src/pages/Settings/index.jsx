@@ -4,11 +4,15 @@ import PageHeader from '../../components/ui/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { api } from '../../services/api';
 import PasswordForm from '../../components/ui/PasswordForm';
+import PhoneForm from '../../components/ui/PhoneForm';
+import AccountRemoval from '../../components/ui/AccountRemoval';
+import { useAuth } from '../../context/AuthContext';
 import PasswordVisibilityControl from '../../components/ui/PasswordVisibilityControl';
 import ConfirmationDrawer from '../../components/ui/ConfirmationDrawer';
 
 const EMPTY_FORM = { name: '', email: '', password: '', phone: '', role: 'client', isActive: true };
 export default function Settings() {
+  const { user: currentUser } = useAuth();
   const [section, setSection] = useState('credentials');
   const temporaryPasswordId = useId();
   const [showPassword, setShowPassword] = useState(false);
@@ -135,9 +139,9 @@ export default function Settings() {
               </div>
               <div className="credential-role"><span className={`role-badge ${user.role}`}>{user.role === 'admin' ? 'Administrador' : 'Cliente'}</span></div>
               <div className="credential-actions">
-                {!user.removalPending && <button type="button" disabled={saving} onClick={() => editUser(user)} aria-label={`Editar a ${user.name}`} title="Editar"><Pencil /></button>}
-                {!user.isProtected && !user.removalPending && <button type="button" disabled={saving} onClick={() => toggleUser(user)} aria-label={`${user.isActive ? 'Suspender' : 'Activar'} a ${user.name}`} title={user.isActive ? 'Suspender' : 'Activar'}><Power /></button>}
-                {user.role === 'client' && !user.isProtected && <button type="button" disabled={saving}
+                {!user.removalPending && (currentUser?.isProtected || user.role === 'client' || currentUser?.id === user.id) && <button type="button" disabled={saving} onClick={() => editUser(user)} aria-label={`Editar a ${user.name}`} title="Editar"><Pencil /></button>}
+                {!user.isProtected && !user.removalPending && (user.role === 'client' || currentUser?.isProtected) && <button type="button" disabled={saving} onClick={() => toggleUser(user)} aria-label={`${user.isActive ? 'Suspender' : 'Activar'} a ${user.name}`} title={user.isActive ? 'Suspender' : 'Activar'}><Power /></button>}
+                {!user.isProtected && (user.role === 'client' || currentUser?.isProtected) && currentUser?.id !== user.id && <button type="button" disabled={saving}
                   aria-label={'Eliminar acceso de ' + user.name} title="Eliminar acceso"
                   onClick={() => { setListNotice(''); setRowFeedback(null); setRemoving(user); }}><Trash2/></button>}
               </div>
@@ -167,9 +171,9 @@ export default function Settings() {
                     minLength={editing ? undefined : 8} placeholder={editing ? 'Déjala vacía para conservarla' : 'Mínimo 8 caracteres'} required={!editing}/>
                 </PasswordVisibilityControl>
               </div>
-              <label>Tipo de acceso<select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} disabled={protectedAccess}><option value="client">Cliente</option><option value="admin">Administrador</option></select></label>
+              <label>Tipo de acceso<select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} disabled={protectedAccess}><option value="client">Cliente</option><option value="admin" disabled={!currentUser?.isProtected}>Administrador</option></select></label>
             </div>
-            {form.role === 'client' && <div className="form-row">
+            {<div className="form-row">
               <label>Teléfono (opcional)<input type="tel" autoComplete="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Ej. 987 654 321" maxLength={25}/></label>
             </div>}
             {editing && !protectedAccess && <label className="access-toggle"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} /><span><strong>Acceso activo</strong><small>El usuario puede iniciar sesión en el sistema.</small></span></label>}
@@ -179,10 +183,10 @@ export default function Settings() {
           </form>
         </Card>
 
-        </> : <PasswordForm/>}
+        </> : <><PhoneForm/><PasswordForm/><AccountRemoval/></>}
       </div>
     </div>
-    {removing && <ConfirmationDrawer title="Eliminar acceso del cliente" close={() => setRemoving(null)}
+    {removing && <ConfirmationDrawer title={'Eliminar acceso de ' + (removing.role === 'admin' ? 'administrador' : 'cliente')} close={() => setRemoving(null)}
       onConfirm={removeUser} confirmLabel="Eliminar acceso" requireWord>
       <p><strong>{removing.name}</strong> · {removing.email}</p>
       <p>El cliente perderá el acceso a su cuenta. Sus ventas y reservas anteriores seguirán en el historial.</p>
