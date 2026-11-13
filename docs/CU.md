@@ -17,9 +17,9 @@ Humberto Dávalos desempeña los cuatro roles internos; el cliente registrado ut
 | CU-012 | Consultar clientes frecuentes | Administrador | RF-011 |
 | CU-013 | Consultar resumen y reportes | Administrador | RF-012 |
 
-![Diagrama de los casos de uso CU-001 a CU-010](../modelos/casos-de-uso.png)
+![Diagrama general de los 13 casos de uso](../modelos/casos-de-uso.png)
 
-[Diagrama editable de CU-001 a CU-010](../modelos/casos-de-uso.drawio) · [Vista complementaria de CU-011 a CU-013](../modelos/modelos-v2.md#sesión-y-consultas-administrativas).
+[Diagrama general editable](../modelos/casos-de-uso.drawio).
 
 ## CU-001: Registrar venta
 

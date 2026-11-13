@@ -24,7 +24,7 @@ El diagrama muestra la distribución del sistema y las conexiones entre servicio
 
 ![Casos de uso](casos-de-uso.png)
 
-Humberto Dávalos desempeña los roles de vendedor, administrador, responsable de almacén y responsable de compras con una sesión administrativa. El cliente registrado usa su propio perfil. [Diagrama editable de CU-001 a CU-010](casos-de-uso.drawio) · [Detalle de los 13 casos de uso](../docs/CU.md).
+Humberto Dávalos desempeña los roles de vendedor, administrador, responsable de almacén y responsable de compras con una sesión administrativa. El cliente registrado usa su propio perfil. El diagrama general reúne CU-001 a CU-013 dentro del límite del sistema, con los actores fuera de él. [Diagrama general editable](casos-de-uso.drawio) · [Detalle de los 13 casos de uso](../docs/CU.md).
 
 ### Sesión y consultas administrativas
 
@@ -36,9 +36,9 @@ Humberto Dávalos desempeña los roles de vendedor, administrador, responsable d
 
 ![Diagrama de clases de Comercial Nazareth V2](clases.svg)
 
-[Diagrama editable en Draw.io](clases.drawio) · [Esquema comercial](../codigo/database/migrations/001_commercial_schema.sql) · [Relación entre reservas y ventas](../codigo/database/migrations/005_full_scope.sql) · [Beneficios de fidelización](../codigo/database/migrations/013_loyalty_benefits.sql).
+[Diagrama editable en Draw.io](clases.drawio) · [PNG para el informe](clases.png) · [Esquema comercial](../codigo/database/migrations/001_commercial_schema.sql) · [Relación entre reservas y ventas](../codigo/database/migrations/005_full_scope.sql) · [Beneficios de fidelización](../codigo/database/migrations/013_loyalty_benefits.sql).
 
-El diagrama reúne las 18 entidades principales del dominio. **Producto** conecta ventas, inventario, compras, reservas y catálogo. Las multiplicidades y vínculos corresponden al esquema relacional. Las operaciones representan responsabilidades del dominio realizadas por los servicios de Express; no son necesariamente métodos JavaScript declarados dentro de cada entidad.
+El diagrama reúne las 18 entidades principales del dominio. **Producto** conecta ventas, inventario, compras, reservas y catálogo. Las multiplicidades reflejan el esquema y las reglas de negocio, incluido el límite de una a tres líneas por reserva (RF-009). La dependencia de Venta hacia Promoción expresa el uso del precio vigente (BR-002). Las firmas tipadas representan responsabilidades del dominio realizadas por los servicios de Express.
 
 La [matriz de trazabilidad](../matrices/trazabilidad.md#requisitos-funcionales) cita los identificadores `CLS-…` de la fuente editable. Las consultas de clientes y reportes se trazan a las entidades que aportan sus datos y a los servicios enlazados en [alcance y evidencia](../docs/alcance-y-evidencia.md).
 
@@ -107,7 +107,7 @@ sequenceDiagram
     I-->>H: Mostrar resultado
 ```
 
-La secuencia relaciona las responsabilidades `ajustarStock()` y `registrarAjuste()` del modelo con el [servicio de inventario](../codigo/backend/src/services/inventoryService.js) y PRU-016 a PRU-019.
+La secuencia relaciona `ajustarStock(delta, motivo)` y `registrarAjuste(delta, motivo)` del modelo con el [servicio de inventario](../codigo/backend/src/services/inventoryService.js) y PRU-016 a PRU-019.
 
 ## Compra y recepción
 
