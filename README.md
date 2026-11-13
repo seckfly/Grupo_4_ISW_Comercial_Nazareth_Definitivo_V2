@@ -9,9 +9,12 @@ Sistema de gestión de ventas, inventario, compras y portal de clientes. La carp
 | Documento | Contenido |
 |---|---|
 | [SRS de V2](docs/SRS.md) | 19 requisitos funcionales, 7 no funcionales y 14 reglas de negocio. |
-| [Casos de uso](docs/CU.md) | Flujos de venta, catálogo, promociones, reservas, inventario y compras. |
+| [Calidad de requisitos](docs/calidad-requisitos.md) | Lista de control de los 26 requisitos y prioridad respecto de v1.0. |
+| [Casos de uso](docs/CU.md) | 13 casos, incluidos sesión, clientes frecuentes y reportes. |
+| [Backlog V2](docs/backlog-v2.md) | 12 historias con criterios de aceptación y trazas. |
 | [Modelos](modelos/modelos-v2.md) | Despliegue, clases del dominio, casos de uso y flujos de operación. |
-| [Matriz de trazabilidad](matrices/trazabilidad.md) | Relaciones entre requisitos, reglas, pruebas y solicitudes de cambio. |
+| [Matriz de trazabilidad](matrices/trazabilidad.md) | Trazas de requisito, caso de uso, clase, prueba y solicitud de cambio. |
+| [Visión y roadmap RUP](docs/roadmap-rup.md) | Línea base, hitos por fase y matriz actividades–requisitos. |
 | [Impacto CR](matrices/impacto-cr.md) y [Riesgos CR](matrices/riesgos-cr.md) | Evaluación de todas las solicitudes de cambio. |
 | [Pruebas](pruebas/pruebas.md) | Escenarios de aceptación y referencias de evidencia. |
 | [Registro de cambios](docs/cambios-v2.md) | Solicitudes de cambio CR-001 a CR-011. |

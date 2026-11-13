@@ -24,7 +24,13 @@ El diagrama muestra la distribución del sistema y las conexiones entre servicio
 
 ![Casos de uso](casos-de-uso.png)
 
-Humberto Dávalos desempeña los roles de vendedor, administrador, responsable de almacén y responsable de compras con una sesión administrativa. El cliente registrado usa su propio perfil. [Diagrama editable](casos-de-uso.drawio) · [Detalle de casos de uso](../docs/CU.md).
+Humberto Dávalos desempeña los roles de vendedor, administrador, responsable de almacén y responsable de compras con una sesión administrativa. El cliente registrado usa su propio perfil. [Diagrama editable de CU-001 a CU-010](casos-de-uso.drawio) · [Detalle de los 13 casos de uso](../docs/CU.md).
+
+### Sesión y consultas administrativas
+
+![Diagrama UML de CU-011, CU-012 y CU-013](casos-de-uso-sesion-consultas.svg)
+
+[Diagrama editable de CU-011 a CU-013](casos-de-uso-sesion-consultas.drawio).
 
 ## Clases del dominio
 
@@ -34,24 +40,74 @@ Humberto Dávalos desempeña los roles de vendedor, administrador, responsable d
 
 El diagrama reúne las 18 entidades principales del dominio. **Producto** conecta ventas, inventario, compras, reservas y catálogo. Las multiplicidades y vínculos corresponden al esquema relacional. Las operaciones representan responsabilidades del dominio realizadas por los servicios de Express; no son necesariamente métodos JavaScript declarados dentro de cada entidad.
 
+La [matriz de trazabilidad](../matrices/trazabilidad.md#requisitos-funcionales) cita los identificadores `CLS-…` de la fuente editable. Las consultas de clientes y reportes se trazan a las entidades que aportan sus datos y a los servicios enlazados en [alcance y evidencia](../docs/alcance-y-evidencia.md).
+
+El informe final (§4) muestra 17 clases y representa la asociación entre lista y producto directamente. El diagrama del repositorio conserva `CLS-ProductoEnLista` como clase asociativa para reflejar el esquema físico y su vínculo con RF-007.
+
+### Evolución del modelo
+
+| Decisión | Modelo de v1.0 | Modelo V2 | Efecto |
+|---|---|---|---|
+| Separar categoría e historial de inventario | Producto concentraba la categoría como texto y las operaciones de stock. | `CLS-Categoria` agrupa productos y `CLS-MovimientoInventario` registra la variación y el historial. | Cada movimiento conserva el contexto del ajuste de RF-015. Producto sigue siendo el punto de enlace con ventas y compras. |
+| Separar lista y favoritos | Una clase de lista usaba un tipo para distinguir los dos usos. | `CLS-ListaProductos`, `CLS-ProductoEnLista` y `CLS-Favorito` reflejan las estructuras de persistencia. | Las operaciones de RF-007 pueden conservar favoritos al limpiar Mi lista después de una reserva. |
+
+La comparación usa el [modelo de v1.0](https://github.com/seckfly/Grupo_4_ISW_Comercial_Nazareth_Definitivo_V2/blob/v1.0/modelos/clases.drawio), el [modelo V2](clases.drawio) y las [pruebas de integración](../codigo/backend/test/sales.integration.test.js).
+
 ## Reserva y recojo
 
 ```mermaid
 flowchart TD
     P["Solicitud pendiente"] --> Q{"Confirmar y validar stock"}
     Q -->|Disponible| A["Apartado confirmado"]
-    Q -->|Insuficiente| P
+    Q -->|Insuficiente| E["Rechazar confirmación y conservar la solicitud"]
+    E --> P
+    P -->|Rechazo, cancelación o vencimiento| X["Cerrar solicitud sin unidades apartadas"]
     A -->|Edición| P
     A -->|Cancelación o vencimiento| L["Liberar disponibilidad"]
     A -->|Recojo| V["Validar cliente y detalle en Caja"]
-    V --> T["Confirmar venta, salida y cierre del apartado"]
+    V -->|Datos válidos| T["Confirmar venta, salida y cierre del apartado"]
+    V -->|Datos inválidos| A
+    T -->|Fallo de guardado| R["Revertir venta, salida y cierre"]
+    R --> A
 ```
 
 ## CU-006 · Gestionar inventario
 
 ![Flujograma de gestionar inventario](actividad-gestionar-inventario.png)
 
-[Diagrama editable](actividad-gestionar-inventario.drawio) · [Proceso CU-006](../docs/proceso-critico.md)
+[Diagrama editable](actividad-gestionar-inventario.drawio) · [Fuente en XML](actividad-gestionar-inventario.xml) · [Proceso CU-006](../docs/proceso-critico.md)
+
+El flujograma de inventario usa carriles para distinguir las tareas del operador de las validaciones y escrituras del sistema.
+
+### Secuencia del ajuste manual
+
+```mermaid
+sequenceDiagram
+    actor H as Responsable de almacén
+    participant I as Inventario
+    participant A as API Express
+    participant D as PostgreSQL
+    H->>I: Ingresar variación y motivo
+    I->>A: Solicitar ajuste de CLS-Producto
+    A->>A: Comprobar sesión, rol y datos
+    alt Solicitud válida
+        A->>D: Iniciar transacción y bloquear producto
+        A->>D: Verificar estado y unidades apartadas
+        alt Ajuste permitido y guardado correcto
+            A->>D: Actualizar stock y registrar CLS-MovimientoInventario
+            A->>D: Confirmar transacción
+            A-->>I: Confirmar ajuste
+        else Ajuste rechazado o fallo de escritura
+            A->>D: Revertir transacción
+            A-->>I: Informar rechazo o fallo
+        end
+    else Solicitud inválida o sin autorización
+        A-->>I: Informar rechazo
+    end
+    I-->>H: Mostrar resultado
+```
+
+La secuencia relaciona las responsabilidades `ajustarStock()` y `registrarAjuste()` del modelo con el [servicio de inventario](../codigo/backend/src/services/inventoryService.js) y PRU-016 a PRU-019.
 
 ## Compra y recepción
 

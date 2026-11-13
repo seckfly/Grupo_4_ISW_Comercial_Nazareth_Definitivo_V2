@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram id="sesion-consultas" name="Sesión y consultas administrativas">
+    <mxGraphModel page="1" pageWidth="850" pageHeight="410" grid="1" gridSize="10">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="system" parent="1" value="Sistema de Gestión Comercial Nazareth" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;whiteSpace=wrap;verticalAlign=top;spacingTop=16;fontStyle=1;fillColor=#f8fbff;strokeColor=#536d87;strokeWidth=2;connectable=0;" vertex="1">
+          <mxGeometry as="geometry" x="215" y="22" width="418" height="355" />
+        </mxCell>
+        <mxCell id="admin" parent="1" value="Administrador" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;whiteSpace=wrap;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;spacingTop=7;whiteSpace=nowrap;fillColor=#ffffff;strokeColor=#223b56;strokeWidth=2;" vertex="1">
+          <mxGeometry as="geometry" x="87" y="183" width="40" height="58" />
+        </mxCell>
+        <mxCell id="client" parent="1" value="Cliente registrado" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;whiteSpace=wrap;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;spacingTop=7;whiteSpace=nowrap;fillColor=#ffffff;strokeColor=#223b56;strokeWidth=2;" vertex="1">
+          <mxGeometry as="geometry" x="715" y="68" width="40" height="58" />
+        </mxCell>
+        <mxCell id="CU-011" parent="1" value="&lt;b&gt;CU-011&lt;/b&gt;&lt;br&gt;Iniciar y cerrar sesión" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;whiteSpace=wrap;html=1;ellipse;fillColor=#e7f0fc;strokeColor=#587da5;strokeWidth=2;" vertex="1">
+          <mxGeometry as="geometry" x="276" y="66" width="296" height="68" />
+        </mxCell>
+        <mxCell id="CU-012" parent="1" value="&lt;b&gt;CU-012&lt;/b&gt;&lt;br&gt;Consultar clientes frecuentes" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;whiteSpace=wrap;html=1;ellipse;fillColor=#e7f0fc;strokeColor=#587da5;strokeWidth=2;" vertex="1">
+          <mxGeometry as="geometry" x="276" y="173" width="296" height="68" />
+        </mxCell>
+        <mxCell id="CU-013" parent="1" value="&lt;b&gt;CU-013&lt;/b&gt;&lt;br&gt;Consultar resumen y reportes" style="fontFamily=Helvetica;fontColor=#182b40;fontSize=17;whiteSpace=wrap;html=1;ellipse;fillColor=#e7f0fc;strokeColor=#587da5;strokeWidth=2;" vertex="1">
+          <mxGeometry as="geometry" x="276" y="280" width="296" height="68" />
+        </mxCell>
+        <mxCell id="admin-CU-011" edge="1" parent="1" source="admin" target="CU-011" style="endArrow=none;strokeColor=#415b74;strokeWidth=2;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="admin-CU-012" edge="1" parent="1" source="admin" target="CU-012" style="endArrow=none;strokeColor=#415b74;strokeWidth=2;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="admin-CU-013" edge="1" parent="1" source="admin" target="CU-013" style="endArrow=none;strokeColor=#415b74;strokeWidth=2;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="client-CU-011" edge="1" parent="1" source="client" target="CU-011" style="endArrow=none;strokeColor=#415b74;strokeWidth=2;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

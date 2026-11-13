@@ -15,3 +15,14 @@ Cada fila relaciona el cambio con el comportamiento y la comprobación correspon
 | CR-009 | RF-017, RF-018, CU-010 | Teléfono opcional de ambos perfiles y cambio de contraseña propia. | PRU-029 y PRU-030 |
 | CR-010 | RF-014, BR-010 | Reclamo y canje de un beneficio propio vinculado a la venta. | PRU-031 |
 | CR-011 | RF-013, RF-019, BR-012, BR-013 | Protección de cuenta principal y retiro autorizado con preservación de referencias. | PRU-033 y PRU-034 |
+
+## Impacto respecto de v1.0
+
+El análisis sigue el §5.11 del informe final. Las fechas identifican hitos de integración del historial. Las horas de esfuerzo quedan sin registro.
+
+| CR | Alcance | Tiempo | Calidad |
+|---|---|---|---|
+| CR-001 | Exige motivo en los ajustes manuales de inventario y conserva el historial de CU-006. | Octubre de 2026, versión v1.1. | PRU-016 a PRU-019 cubren persistencia, motivos inválidos y reversión. |
+| CR-004 | Incorpora reservas, apartado y recojo vinculado a Caja. | 11 de noviembre de 2026, iteración de Construcción. | PRU-011 y PRU-024 cubren la disponibilidad y el cierre atómico. La suite incluye concurrencia e idempotencia. |
+| CR-005 | Incorpora compra directa y recepción de órdenes pendientes. | 11 de noviembre de 2026, iteración de Construcción. | PRU-008 y PRU-025 cubren recepción parcial, duplicados, exceso y costo ponderado. |
+| CR-011 | Amplía la jerarquía administrativa y el retiro autorizado con conservación de referencias. | 12 de noviembre de 2026, integración en el PR #14. | PRU-033 y PRU-034 cubren la cuenta protegida, jerarquía y el retiro con fallo de identidad. |
