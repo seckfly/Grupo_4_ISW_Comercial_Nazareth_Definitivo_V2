@@ -42,7 +42,7 @@ El diagrama reúne las 18 entidades principales del dominio. **Producto** conect
 
 La [matriz de trazabilidad](../matrices/trazabilidad.md#requisitos-funcionales) cita los identificadores `CLS-…` de la fuente editable. Las consultas de clientes y reportes se trazan a las entidades que aportan sus datos y a los servicios enlazados en [alcance y evidencia](../docs/alcance-y-evidencia.md).
 
-El informe final (§4) muestra 17 clases y representa la asociación entre lista y producto directamente. El diagrama del repositorio conserva `CLS-ProductoEnLista` como clase asociativa para reflejar el esquema físico y su vínculo con RF-007.
+El informe final (§4) y el diagrama del repositorio muestran 18 clases. `CLS-ProductoEnLista` representa la asociación entre una lista y un producto y se vincula con RF-007.
 
 ### Evolución del modelo
 
