@@ -6,6 +6,8 @@ El sistema organiza las ventas, las existencias y la reposición de Comercial Na
 
 El [registro de cambios](cambios-v2.md) documenta las decisiones del sistema. El [catálogo de pruebas](../pruebas/pruebas.md) establece los escenarios y el [informe de verificación](../reportes/verificacion-v2.md) registra sus resultados y límites de ejecución.
 
+La especificación usa [ISO/IEC/IEEE 29148:2018](https://www.iso.org/standard/72089.html) como referencia para identificar los requisitos, definir criterios verificables y mantener su trazabilidad. Los umbrales de esta sección son criterios de aceptación. Los resultados medidos se registran en el informe de verificación con el entorno y la revisión correspondientes.
+
 ## Alcance
 
 Se incluyen ventas, consulta de productos y existencias, mantenimiento de productos e inventario, promociones, solicitudes de separación, apartados y recojo, consultas del portal y beneficios de clientes, administración de accesos, resúmenes de ventas, órdenes de compra y recepción de mercadería.
@@ -32,22 +34,22 @@ Los cuatro roles internos corresponden al perfil administrativo de Humberto. El 
 
 | ID | Requisito | Comportamiento requerido | Caso de uso o ámbito |
 |---|---|---|---|
-| RF-001 | Registrar venta | El sistema debe registrar los productos, cantidades y método de pago de la venta, calcular el total con los precios del servicio y redondear los importes a dos decimales. Una vez confirmada la venta, Caja permite imprimir su ticket. La venta, su detalle y la salida de stock deben confirmarse en una misma transacción; ante un error de guardado, deben revertirse sin cambios parciales. | CU-001 |
+| RF-001 | Registrar venta | El sistema debe registrar los productos, cantidades y método de pago de la venta, calcular el total con los precios del servicio y redondear los importes a dos decimales. Como criterio de aceptación, Caja permite imprimir el ticket de una venta confirmada. La integridad de la transacción se especifica en RNF-004. | CU-001 |
 | RF-002 | Consultar existencias y alertas | El administrador consulta stock físico, apartado y disponible. La alerta usa el stock físico de productos activos y se activa cuando es menor o igual al mínimo. | CU-006 |
 | RF-003 | Identificar proveedor de la orden | El sistema debe guardar razón social, RUC y teléfono del proveedor dentro de la orden, sin exigir un catálogo independiente. | CU-008 |
-| RF-004 | Registrar compras | En Compras, el administrador registra mercadería ya recibida con proveedor, líneas, cantidades, costos y referencia. La API también permite crear órdenes pendientes. El módulo consulta sus estados y permite recibir las órdenes pendientes existentes. | CU-008 |
+| RF-004 | Registrar compras | En Compras, el administrador registra mercadería ya recibida con proveedor, líneas, cantidades, costos y referencia. La API también permite crear órdenes pendientes. El módulo consulta sus estados y permite recibir las órdenes pendientes existentes. | CU-008, CU-009 |
 | RF-005 | Registrar recepción | El administrador recibe toda o parte de una orden pendiente. La operación actualiza cantidades, stock, movimientos de entrada y costo unitario ponderado. El ingreso directo registra la compra y su recepción en una sola transacción. | CU-008, CU-009 |
-| RF-006 | Acceder según perfil | El administrador y el cliente registrado inician sesión con Supabase Auth y pueden cerrarla. Express valida la identidad y resuelve el perfil activo antes de autorizar la operación. | Acceso transversal |
-| RF-007 | Consultar catálogo | El sistema debe permitir buscar productos por nombre y categoría, mostrar su precio y disponibilidad, y guardar favoritos y listas en el portal del cliente registrado. | CU-003 |
+| RF-006 | Acceder según perfil | El administrador y el cliente registrado inician sesión con Supabase Auth y pueden cerrarla. Express valida la identidad y resuelve el perfil activo antes de autorizar la operación. | [CU-011](CU.md#cu-011-iniciar-y-cerrar-sesión) |
+| RF-007 | Consultar catálogo | El sistema debe permitir buscar productos por nombre y categoría, mostrar su precio y disponibilidad y guardar favoritos y listas en el portal del cliente registrado. Para un producto vendible, la disponibilidad corresponde al stock físico menos las unidades apartadas. | CU-003 |
 | RF-008 | Gestionar promociones | El sistema debe crear, editar, pausar, activar y eliminar campañas por producto, con descuento, vigencia y estado. | CU-004 |
 | RF-009 | Gestionar solicitudes y apartados | El cliente solicita hasta tres productos distintos y recibe un código de recojo y un importe estimado. El administrador puede confirmar, editar o rechazar una solicitud vigente. La confirmación aparta unidades disponibles. El recojo enlaza la venta y cierra el apartado en la misma transacción. | CU-005, CU-001 |
 | RF-010 | Vincular cliente a la venta | El sistema debe permitir vincular un cliente registrado a la venta cuando el comprador se identifique y registrar la venta sin cliente asociado cuando no se identifique. | CU-002 |
-| RF-011 | Consultar clientes frecuentes | El sistema debe mostrar nombre, contacto, frecuencia e historial básico de clientes identificados. | Consulta administrativa |
-| RF-012 | Consultar resumen y reportes | El sistema debe mostrar ventas, métodos de pago y productos con movimiento por periodo. | Consulta administrativa |
+| RF-011 | Consultar clientes frecuentes | El sistema debe mostrar nombre, contacto, número de compras completadas e historial básico de clientes identificados. | [CU-012](CU.md#cu-012-consultar-clientes-frecuentes) |
+| RF-012 | Consultar resumen y reportes | El sistema debe mostrar ventas completadas, totales por método de pago y demanda por producto para los últimos siete días o el mes en curso, según la hora de Lima. La actividad reciente muestra por separado los últimos movimientos de inventario. | [CU-013](CU.md#cu-013-consultar-resumen-y-reportes) |
 | RF-013 | Administrar accesos | El administrador crea y gestiona credenciales de clientes. La cuenta principal también puede crear administradores, gestionar otras cuentas administrativas y cambiar roles. La cuenta principal conserva su rol y acceso activo. | CU-007 |
 | RF-014 | Consultar cuenta y beneficios | El cliente consulta su contacto, historial de compras y puntos. Puede reclamar o cancelar un beneficio disponible. En caja, el administrador puede canjear un beneficio disponible del cliente asociado a la venta. | CU-010, CU-001 |
 | RF-015 | Mantener productos e inventario | El sistema debe permitir registrar productos con su stock inicial, editar datos y precios, y modificar las existencias mediante ajustes autorizados que quedan en el historial. Cada ajuste manual debe incluir un motivo con al menos un carácter distinto de espacios y conservarlo en el historial. Si el motivo está vacío o contiene únicamente espacios, el sistema debe solicitar su corrección sin modificar el stock ni registrar el ajuste. El ajuste, su motivo y la actualización del stock deben guardarse en una misma transacción. Esta condición del motivo no se aplica a las salidas generadas por ventas. | CU-006 |
-| RF-016 | Gestionar fotos y estado de productos | El administrador puede asociar, cambiar o retirar la foto opcional de un producto. Puede archivar y restaurar productos, o registrar su baja con confirmación. Las operaciones de inventario validan los apartados vigentes y conservan los movimientos anteriores. | CU-006 |
+| RF-016 | Gestionar fotos y estado de productos | El administrador puede asociar, cambiar o retirar la foto opcional de un producto. Puede archivar y restaurar productos, o registrar su baja con confirmación. Para archivar o dar de baja se deben resolver las reservas vigentes y las órdenes con saldo pendiente. Se conservan los movimientos anteriores. | CU-006 |
 | RF-017 | Cambiar la contraseña propia | El usuario autenticado puede cambiar su contraseña con la contraseña actual, la nueva y su confirmación. Se actualiza la misma identidad en Supabase Auth. | CU-010 |
 | RF-018 | Gestionar el teléfono propio | El cliente y el administrador pueden registrar, cambiar o quitar su teléfono. El teléfono es opcional y, si se informa, contiene de 6 a 15 dígitos y hasta 25 caracteres telefónicos. | CU-010 |
 | RF-019 | Eliminar una cuenta autorizada | El titular de una cuenta no protegida puede retirarla con su contraseña actual y confirmación expresa. Un administrador puede retirar accesos según su jerarquía. La cuenta principal no puede eliminarse. | CU-007, CU-010 |
@@ -56,15 +58,15 @@ Los cuatro roles internos corresponden al perfil administrativo de Humberto. El 
 
 | ID | Requisito | Condición de aceptación |
 |---|---|---|
-| RNF-001 | Rapidez de registro | Una venta de hasta tres líneas, con precios cargados y un administrador, se confirma en menos de 15 segundos, sin contar la espera de un pago externo. |
-| RNF-002 | Separación de perfiles | Las opciones administrativas quedan fuera de la navegación del cliente y las operaciones protegidas rechazan roles no autorizados. |
-| RNF-003 | Tiempo de consulta | Productos, stock y resumen responden en tres segundos o menos, con un usuario concurrente y el catálogo de demostración en entorno local. |
-| RNF-004 | Integridad de venta | Venta, detalle y movimiento se confirman juntos; ante un error no quedan modificaciones parciales. |
+| RNF-001 | Rapidez de registro | Con precios cargados y un administrador, cada una de diez ventas equivalentes de hasta tres líneas debe confirmarse en menos de 15 segundos, desde el envío de la confirmación hasta la respuesta de éxito, excluida la espera del pago externo. |
+| RNF-002 | Separación de perfiles | La navegación del cliente muestra cero opciones administrativas. El 100 % de las operaciones de la API protegidas por `requireRole('admin')` debe responder HTTP 403 ante una sesión válida de cliente. |
+| RNF-003 | Tiempo de consulta | Con un usuario y el catálogo de demostración en entorno local, cada una de diez solicitudes por operación debe responder en tres segundos o menos desde el envío hasta la respuesta. Medir por separado productos, inventario y resumen. |
+| RNF-004 | Integridad de venta | Venta, detalle, movimiento y actualización de stock se confirman en la misma transacción. En los fallos de guardado simulados deben quedar cero cambios parciales en cualquiera de estos registros. |
 | RNF-005 | Consistencia monetaria | Totales y subtotales usan dos decimales, con diferencia admitida de S/ 0,00 respecto del cálculo redondeado. |
-| RNF-006 | Respaldo recuperable | El respaldo de PostgreSQL debe poder restaurarse conservando las ventas. La ejecución al cierre requiere configurar el horario en el entorno de uso. |
-| RNF-007 | Interfaz adaptable | El catálogo, el panel administrativo y el registro de venta deben poder usarse en los tamaños de pantalla validados. Los controles y los importes deben quedar accesibles sin desplazamiento horizontal de la página. El resultado se registra por dispositivo en el informe de verificación. |
+| RNF-006 | Respaldo recuperable | Una restauración en una base aislada debe recuperar el 100 % de las ventas, detalles y movimientos incluidos en la copia con cero diferencias respecto del origen. El informe final propone una copia diaria al cierre. La programación operativa queda pendiente de definir con el equipo y el negocio. |
+| RNF-007 | Interfaz adaptable | El catálogo, el panel administrativo y el registro de venta deben mantener accesibles los controles e importes con cero desplazamiento horizontal de la página. El informe final propone medir a 360, 768 y 1366 px. La adopción de esos anchos como criterio de aceptación y el resultado por dispositivo quedan pendientes. |
 
-Para RNF-001 se consideran diez operaciones equivalentes, todas bajo el umbral. Para RNF-003 se miden diez consultas por operación en el entorno indicado. RNF-002 se contrasta con las opciones de navegación y el rechazo de operaciones no autorizadas; RNF-004, con ventas válidas, stock insuficiente y fallos de guardado; RNF-005, con cantidades y precios conocidos; RNF-006, mediante restauración y comparación de los registros conservados.
+Los procedimientos y resultados esperados se detallan en PRU-009 y PRU-021 a PRU-023, PRU-026 y, para integridad y consistencia monetaria, en PRU-001 y PRU-003. En las mediciones de rendimiento se deben registrar el entorno, el número de líneas por venta, el tamaño del catálogo y el máximo por operación. La prueba automatizada existente mide ventas de una línea y solicitudes HTTP locales sobre datos de prueba. Para RNF-007 se registran las dimensiones de la ventana, el navegador y el resultado de cada flujo. La cobertura por tamaño se acredita con las ejecuciones registradas.
 
 ## Reglas del negocio
 
@@ -88,3 +90,5 @@ Para RNF-001 se consideran diez operaciones equivalentes, todas bajo el umbral. 
 ## Trazabilidad
 
 La [matriz](../matrices/trazabilidad.md) vincula los requisitos y reglas con los [casos de uso](CU.md), los [modelos V2](../modelos/modelos-v2.md) y el [catálogo de pruebas](../pruebas/pruebas.md).
+
+Consulta la [lista de control de calidad y prioridades](calidad-requisitos.md) para revisar las observaciones sobre los 26 requisitos.

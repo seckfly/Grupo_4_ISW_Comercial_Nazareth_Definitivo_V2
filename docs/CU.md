@@ -13,10 +13,13 @@ Humberto Dávalos desempeña los cuatro roles internos; el cliente registrado ut
 | CU-008 | Registrar compra mayorista | Responsable de compras | RF-003, RF-004, RF-007 |
 | CU-009 | Recibir mercadería | Responsable de compras | RF-004, RF-005 |
 | CU-010 | Gestionar mi cuenta | Administrador y Cliente registrado | RF-014, RF-017, RF-018, RF-019 |
+| CU-011 | Iniciar y cerrar sesión | Administrador y Cliente registrado | RF-006 |
+| CU-012 | Consultar clientes frecuentes | Administrador | RF-011 |
+| CU-013 | Consultar resumen y reportes | Administrador | RF-012 |
 
-![Diagrama general de casos de uso](../modelos/casos-de-uso.png)
+![Diagrama de los casos de uso CU-001 a CU-010](../modelos/casos-de-uso.png)
 
-[Diagrama editable de casos de uso](../modelos/casos-de-uso.drawio).
+[Diagrama editable de CU-001 a CU-010](../modelos/casos-de-uso.drawio) · [Vista complementaria de CU-011 a CU-013](../modelos/modelos-v2.md#sesión-y-consultas-administrativas).
 
 ## CU-001: Registrar venta
 
@@ -43,6 +46,7 @@ Precondiciones: Humberto tiene una sesión administrativa activa. Los productos 
 | El monto recibido en efectivo supera el total | Calcular y mostrar el vuelto. |
 | La venta corresponde al recojo de un apartado | Abrir Caja con el cliente y las líneas del apartado. Confirmar la venta y cerrar el apartado en la misma transacción. |
 | Se elige pago digital | Mostrar el panel con un QR común. Elegir la billetera, registrar el importe exacto y confirmar manualmente el abono. |
+| Humberto necesita el ticket de una venta confirmada | Seleccionar «Imprimir comprobante» y abrir el diálogo de impresión del navegador. |
 | La venta está vacía o contiene cantidades no válidas | Solicitar la corrección antes de continuar. |
 | Un producto no tiene stock suficiente | Identificar el producto y rechazar el intento actual. Humberto puede iniciar una nueva selección. |
 | El monto recibido no es válido o falta comprobar el abono digital | Solicitar la corrección antes de guardar. |
@@ -212,12 +216,18 @@ El [proceso crítico](proceso-critico.md) presenta el flujo de CU-006 y sus cont
 
 ## CU-007: Gestionar credenciales
 
+Actor principal. Administrador con sesión activa.
+
+Requisitos relacionados. RF-013 y RF-019. La jerarquía de cuentas se rige por BR-012 y el retiro de acceso por BR-013.
+
 1. El administrador abre Configuración y consulta los perfiles.
 2. Registra o edita una cuenta, incluida la información de contacto opcional. También puede suspender o reactivar accesos autorizados.
 3. La cuenta principal puede crear otros administradores, editar sus credenciales y cambiar roles. El sistema protege el rol y acceso de la cuenta principal.
 4. Para retirar un acceso autorizado, el administrador confirma la operación. El sistema verifica reservas vigentes del cliente, bloquea el acceso y conserva los registros comerciales vinculados.
 
 **Excepciones.** Un rol insuficiente o un perfil protegido impiden el retiro. Si el proveedor de identidad falla tras bloquear el acceso, queda pendiente completar el retiro.
+
+Postcondición de éxito. Los cambios autorizados quedan guardados. En un retiro se conserva el historial comercial vinculado.
 
 ## CU-008: Registrar compra mayorista
 
@@ -270,7 +280,65 @@ Postcondición de éxito: queda guardada una recepción sin duplicados y el stoc
 
 ## CU-010: Gestionar mi cuenta
 
+Actores. Cliente registrado y Administrador con sesión activa.
+
+Requisitos relacionados. RF-014, RF-017, RF-018 y RF-019. El reclamo y canje de beneficios se rigen por BR-010.
+
 1. El cliente abre Mi cuenta o el administrador entra en Configuración y Seguridad.
 2. El titular puede guardar, cambiar o quitar el teléfono. Para cambiar la contraseña, verifica la actual e ingresa la nueva con su confirmación.
 3. El titular no protegido puede retirar su acceso. Debe verificar su contraseña y escribir ELIMINAR. Las reservas vigentes bloquean el retiro de un cliente.
 4. El cliente también consulta su contacto, historial y puntos. Puede reclamar o cancelar un beneficio disponible. El canje se realiza en Caja con CU-001 y queda vinculado a la venta.
+
+**Excepciones.** Una contraseña actual incorrecta o una confirmación inválida impiden el cambio de contraseña o el retiro de cuenta, según la operación. El titular de la cuenta principal conserva su acceso. Si el cliente tiene reservas vigentes, debe resolverlas para retirar su cuenta.
+
+Postcondición de éxito. Se muestran los datos de la cuenta activa o se confirma el cambio solicitado. Si se retira la cuenta, se bloquea el acceso y se conservan las referencias comerciales.
+
+## CU-011: Iniciar y cerrar sesión
+
+Requisito relacionado. RF-006.
+
+Actores. Administrador y Cliente registrado con una cuenta habilitada.
+
+1. El usuario ingresa su correo y contraseña en el formulario de acceso.
+2. Supabase Auth autentica las credenciales. La interfaz carga el perfil mediante la API y muestra la navegación correspondiente.
+3. En cada operación protegida, la API valida la sesión y el perfil activo antes de autorizar el acceso.
+4. Al cerrar sesión, la interfaz vuelve al formulario de acceso.
+
+**Excepciones.** Las credenciales inválidas, una sesión inválida o un perfil sin acceso impiden entrar. Una solicitud con un rol insuficiente recibe un rechazo.
+
+**Postcondición.** El usuario accede a las operaciones autorizadas para su perfil o vuelve al formulario después de salir.
+
+**Escenario relacionado.** PRU-009.
+
+## CU-012: Consultar clientes frecuentes
+
+Requisito relacionado. RF-011.
+
+Actor. Administrador con sesión activa.
+
+1. El administrador abre «Clientes frecuentes».
+2. El sistema carga el directorio de clientes registrados y excluye las cuentas retiradas.
+3. El administrador puede filtrar por nombre, correo o teléfono y seleccionar un cliente.
+4. El sistema muestra el contacto disponible, la cantidad de compras completadas, el importe acumulado y el historial del cliente.
+
+**Excepciones.** El módulo muestra un estado vacío cuando faltan clientes o coincidencias. Si falla la consulta, muestra el error y permite reintentar.
+
+**Postcondición.** El directorio y el historial quedan disponibles para consulta.
+
+**Escenario relacionado.** PRU-012.
+
+## CU-013: Consultar resumen y reportes
+
+Requisito relacionado. RF-012.
+
+Actor. Administrador con sesión activa.
+
+1. El administrador abre Resumen o Reportes y selecciona los últimos siete días o el mes en curso.
+2. El sistema consulta las ventas completadas según el calendario de Lima.
+3. El sistema muestra los totales del periodo, el desglose por medios de pago y la demanda por producto. La actividad reciente muestra los últimos movimientos de inventario.
+
+**Excepciones.** Si el periodo carece de ventas, la interfaz muestra el estado correspondiente. Las comparaciones y proyecciones se muestran cuando existe el historial requerido.
+
+**Postcondición.** El administrador puede consultar los indicadores del periodo seleccionado.
+
+**Escenario relacionado.** PRU-013.

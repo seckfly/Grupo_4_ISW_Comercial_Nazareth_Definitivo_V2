@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg aria-labelledby="title desc" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 400" role="img">
+  <title id="title">Casos de uso de sesión y consultas administrativas</title>
+  <desc id="desc">El administrador inicia y cierra sesión, consulta clientes frecuentes y consulta reportes. El cliente registrado inicia y cierra sesión.</desc>
+  <rect width="850" height="400" fill="#ffffff" />
+  <rect stroke-width="2" x="215" y="22" width="418" height="355" fill="#f8fbff" stroke="#536d87" />
+  <text text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#182b40" font-weight="bold" x="424" y="52">Sistema de Gestión Comercial Nazareth</text>
+  <line stroke-width="2" x1="127" y1="215" x2="277" y2="100" stroke="#415b74" />
+  <line stroke-width="2" x1="127" y1="215" x2="277" y2="207" stroke="#415b74" />
+  <line stroke-width="2" x1="127" y1="215" x2="277" y2="314" stroke="#415b74" />
+  <line stroke-width="2" x1="573" y1="100" x2="715" y2="100" stroke="#415b74" />
+  <circle stroke-width="2" cx="107" cy="192" r="8" fill="#ffffff" stroke="#223b56" />
+  <path stroke-width="2" d="M 107 200 V 222 M 87 210 H 127 M 92 240 L 107 222 L 122 240" fill="none" stroke="#223b56" />
+  <text text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#182b40" font-weight="bold" x="107" y="263">Administrador</text>
+  <circle stroke-width="2" cx="735" cy="77" r="8" fill="#ffffff" stroke="#223b56" />
+  <path stroke-width="2" d="M 735 85 V 107 M 715 95 H 755 M 720 125 L 735 107 L 750 125" fill="none" stroke="#223b56" />
+  <text text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#182b40" font-weight="bold" x="735" y="148">Cliente registrado</text>
+  <ellipse stroke-width="2" cx="424" cy="100" rx="148" ry="34" fill="#e7f0fc" stroke="#587da5" />
+  <text text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#182b40" font-weight="bold" x="424" y="96">CU-011</text>
+  <text text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#182b40" x="424" y="118">Iniciar y cerrar sesión</text>
+  <ellipse stroke-width="2" cx="424" cy="207" rx="148" ry="34" fill="#e7f0fc" stroke="#587da5" />
+  <text text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#182b40" font-weight="bold" x="424" y="203">CU-012</text>
+  <text text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#182b40" x="424" y="225">Consultar clientes frecuentes</text>
+  <ellipse stroke-width="2" cx="424" cy="314" rx="148" ry="34" fill="#e7f0fc" stroke="#587da5" />
+  <text text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#182b40" font-weight="bold" x="424" y="310">CU-013</text>
+  <text text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#182b40" x="424" y="332">Consultar resumen y reportes</text>
+</svg>
