@@ -34,7 +34,7 @@ Humberto Dávalos desempeña los roles de vendedor, administrador, responsable d
 
 ## Clases del dominio
 
-![Diagrama de clases de Comercial Nazareth V2](clases.svg)
+![Diagrama de clases de Comercial Nazareth V2](clases.png)
 
 [Diagrama editable en Draw.io](clases.drawio) · [PNG para el informe](clases.png) · [Esquema comercial](../codigo/database/migrations/001_commercial_schema.sql) · [Relación entre reservas y ventas](../codigo/database/migrations/005_full_scope.sql) · [Beneficios de fidelización](../codigo/database/migrations/013_loyalty_benefits.sql).
 
